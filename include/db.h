@@ -13,7 +13,6 @@
   */
 
 
-
 /********************************************************************************
  **			数据库读取时，callback 回调函数参数定义
  **	callback(void *NotUsed, int argc, char **argv, char **azColName)	
@@ -26,6 +25,45 @@
 
 #ifndef _DB_H_
 #define _DB_H_
+
+/********************************************************************************
+ ** SQL动词
+ ********************************************************************************/
+#define SQL_SELECT			"select"
+#define SQL_DELETE			"delete"
+#define SQL_INSERT			"insert into"
+#define SQL_DROP				"drop table if exists"
+#define SQL_CREATE_TABLE	"create table"
+/********************************************************************************
+ ** SQL副词与介词
+ ********************************************************************************/
+#define SQL_FROM		"from"
+#define SQL_WHERE	"where"
+#define SQL_ORDER	"order by"
+/********************************************************************************
+ ** SQL符号
+ ********************************************************************************/
+#define SQL_START				"*"
+#define SQL_LEFT_PARENTHESIS	"("
+#define SQL_RIGHT_PARENTHESIS	")"
+#define SQL_SINGLE_QUOTES		"'"
+#define SQL_SPACE				" "
+/********************************************************************************
+ ** SQL错误
+ ********************************************************************************/
+#define SQLERR_OPEN_DB			1//打开数据库失败
+#define SQLSUS_OPEN_DB			2//打开数据库成功
+
+
+/********************************************************************************
+ ** SQL数据表名称
+ ********************************************************************************/
+#define TABLE_REQUEST_DATA	"t_request_data"//各类型仪表需要的数据项表
+#define TABLE_ELEC			"t_elec_data"//电表
+#define TABLE_WATER			"t_water_data"//水表
+#define TABLE_HEAT			"t_heat_data"//热量表
+#define TABLE_AIR			"t_air_data"//天然气表
+
 
 /********************************************************************************
  ** 各字符型字段的长度
@@ -70,7 +108,6 @@ typedef struct {
 	int f_id;
 } sys_config_str;
 typedef sys_config_str *pSys_config;
-typedef pSys_config sys_config_list;
 /********************************************************************************
  **	 t_meter_info
  ** 设备地址信息表
@@ -85,8 +122,6 @@ typedef struct {
 	int f_meter_proto_type;
 }meter_address_str;
 typedef meter_address_str *pMeter_address;
-typedef pMeter_address meter_address_list;
-
 /********************************************************************************
  **	 t_request_data
  ** 仪表需要返回的数据项配置表
@@ -99,8 +134,6 @@ typedef pMeter_address meter_address_list;
 	int f_item_index;
 }request_data_str;
 typedef request_data_str *pRequest_data;
-typedef pRequest_data request_data_list;
-
 /********************************************************************************
  **	 t_time_node
  ** 仪表需要返回的数据项配置表
@@ -111,10 +144,13 @@ typedef pRequest_data request_data_list;
 	int f_id;
 }time_node_str;
 typedef time_node_str *pTime_node;
-typedef pTime_node time_node_list;
+/********************************************************************************
+ **	 t_time_node
+ ** 仪表需要返回的数据项配置表
+ ********************************************************************************/
 
 extern sys_config_str sys_config_array[SYS_CONFIG_COUNT];
 
-extern void init_sys_config();
+extern void read_sys_config();
 
 #endif  //_DB_H_
