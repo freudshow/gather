@@ -39,6 +39,7 @@
  ********************************************************************************/
 #define SQL_FROM		"from"
 #define SQL_WHERE	"where"
+#define SQL_AND		"and"
 #define SQL_ORDER	"order by"
 /********************************************************************************
  ** SQL符号
@@ -47,7 +48,6 @@
 #define SQL_LEFT_PARENTHESIS	"("
 #define SQL_RIGHT_PARENTHESIS	")"
 #define SQL_SINGLE_QUOTES		"'"
-#define SQL_SPACE				" "
 /********************************************************************************
  ** SQL错误
  ********************************************************************************/
@@ -78,6 +78,9 @@
 #define LENGTH_F_COL_TYPE			20//抄表项类型名长度
 #define LENGTH_F_TIME_NAME			20//时间点名称长度
 #define LENGTH_F_TIME_NODE			100//时间点配置长度
+
+#define LENGTH_SQLBUF	512//sql语句的最大长度
+#define LENGTH_SQLCON	100//一条条件语句的最大长度
 
 /********************************************************************************
  ** t_base_define
