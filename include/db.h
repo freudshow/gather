@@ -34,12 +34,16 @@
 #define SQL_INSERT			"insert into"
 #define SQL_DROP				"drop table if exists"
 #define SQL_CREATE_TABLE	"create table"
+#define SQL_UPDATE			"update"
+#define SQL_SET				"set"
+
 /********************************************************************************
  ** SQL副词与介词
  ********************************************************************************/
 #define SQL_FROM		"from"
 #define SQL_WHERE	"where"
 #define SQL_AND		"and"
+#define SQL_VALUES	"values"
 #define SQL_ORDER	"order by"
 /********************************************************************************
  ** SQL符号
@@ -79,8 +83,12 @@
 #define LENGTH_F_TIME_NAME			20//时间点名称长度
 #define LENGTH_F_TIME_NODE			100//时间点配置长度
 
-#define LENGTH_SQLBUF	512//sql语句的最大长度
-#define LENGTH_SQLCON	100//一条条件语句的最大长度
+#define LENGTH_SQLBUF		4096//sql语句的最大长度; 有的语句很长, 所以长度定的长些
+#define LENGTH_SQLCONS		50//一个条件语句的最大长度, 如"col_number_id=23"
+#define LENGTH_SQLCON		1024//一条条件从句的最大长度, 如"col_number_id=23 and col_number2_id=24"
+#define LENGTH_SQLINSERT	2048//一条insert语句(不计where从句)的最大长度
+#define LENGTH_SQLVALUE		50//一个数据域值的最大长度
+#define LENGTH_SQLSET		200//一条set分句的最大长度
 
 /********************************************************************************
  ** t_base_define
@@ -148,12 +156,30 @@ typedef request_data_str *pRequest_data;
 }time_node_str;
 typedef time_node_str *pTime_node;
 /********************************************************************************
- **	 t_time_node
- ** 仪表需要返回的数据项配置表
+ ** 仪表历史数据项
  ********************************************************************************/
+typedef struct {
+	char f_timestamp[LENGTH_F_TIMESTAMP];//时间戳
+	char f_time[LENGTH_F_TIME];//抄表时间点
+	char f_meter_address[LENGTH_F_METER_ADDRESS];//仪表地址
+	int  f_device_id;//仪表的设备编号
+	int  f_id;//索引值
+	void *pValues;//数据项列表
+	int value_len;//数据项长度
+}his_data_str;
 
+
+/********************************************************************************
+ ** 全局声明
+ ********************************************************************************/
 extern sys_config_str sys_config_array[SYS_CONFIG_COUNT];
 
 extern void read_sys_config();
+extern void get_select_sql(char *table_name, char **cols, int col_count, char *sql);
+extern void get_where_sql(char **condition, int con_count, char *sql);
+extern void get_query_sql(char *table_name, char **cols, int col_count, char **condition, int con_count, char *sql);
+extern void get_insert_sql(char *table_name, char **cols, int col_count, char **values,char *sql);
+extern void get_update_sql(char *table_name, char **sets, int set_count, char **condition, int con_count, char *sql);
+extern void get_delete_sql(char *table_name, char **condition, int con_count, char *sql);
 
 #endif  //_DB_H_
