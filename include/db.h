@@ -48,20 +48,16 @@
 /********************************************************************************
  ** SQL符号
  ********************************************************************************/
-#define SQL_START				"*"
+#define SQL_STAR					"*"
 #define SQL_LEFT_PARENTHESIS	"("
 #define SQL_RIGHT_PARENTHESIS	")"
 #define SQL_SINGLE_QUOTES		"'"
-/********************************************************************************
- ** SQL错误
- ********************************************************************************/
-#define SQLERR_OPEN_DB			1//打开数据库失败
-#define SQLSUS_OPEN_DB			2//打开数据库成功
-
+#define SQL_EQUAL				"="
 
 /********************************************************************************
  ** SQL数据表名称
  ********************************************************************************/
+#define TABLE_BASE_DEF		"t_base_define"//基本配置表
 #define TABLE_REQUEST_DATA	"t_request_data"//各类型仪表需要的数据项表
 #define TABLE_ELEC			"t_elec_data"//电表
 #define TABLE_WATER			"t_water_data"//水表
@@ -88,7 +84,9 @@
 #define LENGTH_SQLCON		1024//一条条件从句的最大长度, 如"col_number_id=23 and col_number2_id=24"
 #define LENGTH_SQLINSERT	2048//一条insert语句(不计where从句)的最大长度
 #define LENGTH_SQLVALUE		50//一个数据域值的最大长度
-#define LENGTH_SQLSET		200//一条set分句的最大长度
+#define LENGTH_SQLSET		200//一条set从句的最大长度
+#define LENGTH_SQLORDER		200//一条order by从句的最大长度
+
 
 /********************************************************************************
  ** t_base_define
@@ -96,21 +94,27 @@
  ********************************************************************************/
 #define SYS_CONFIG_COUNT	14//基本配置项的数量
 
+#define FIELD_BASE_DEF_ID		"f_id"
+#define FIELD_BASE_DEF_NAME	"f_config_name"
+#define FIELD_BASE_DEF_VALUE	"f_config_value"
+
+
 enum T_System_Config {
-	CONFIG_PRIMARY_SERVER 	= 0,
-	CONFIG_PRIMARY_DNS 		= 1,
-	CONFIG_PRIMARY_PORT 	= 2,
-	CONFIG_SECOND_SERVER 	= 3,
-	CONFIG_SECOND_DNS 		= 4,
-	CONFIG_SECOND_PORT 		= 5,
-	CONFIG_GATEWAY_ID 		= 6,
-	CONFIG_NET_TYPE 			= 7,
-	CONFIG_MD5_KEY 			= 8,
-	CONFIG_AES_KEY 			= 9,
-	CONFIG_COLLECT_MODE 	= 10,
-	CONFIG_COLLECT_CYCLE 	= 12,
-	CONFIG_REPORT_MODE 		= 13,
-	CONFIG_BEAT_CYCLE 		= 14
+	CONFIG_PRIMARY_SERVER = 0,
+	CONFIG_PRIMARY_DNS,
+	CONFIG_PRIMARY_PORT,
+	CONFIG_SECOND_SERVER,
+	CONFIG_SECOND_DNS,
+	CONFIG_SECOND_PORT,
+	CONFIG_GATEWAY_ID,
+	CONFIG_NET_TYPE,
+	CONFIG_MD5_KEY,
+	CONFIG_AES_KEY,
+	CONFIG_COLLECT_MODE,
+	CONFIG_COLLECT_CYCLE,
+	CONFIG_REPORT_MODE,
+	CONFIG_BEAT_CYCLE
+
 };
 
 typedef struct {
@@ -167,6 +171,7 @@ typedef struct {
 	void *pValues;//数据项列表
 	int value_len;//数据项长度
 }his_data_str;
+typedef his_data_str *pHis_data;
 
 
 /********************************************************************************
@@ -174,12 +179,12 @@ typedef struct {
  ********************************************************************************/
 extern sys_config_str sys_config_array[SYS_CONFIG_COUNT];
 
-extern void read_sys_config();
 extern void get_select_sql(char *table_name, char **cols, int col_count, char *sql);
 extern void get_where_sql(char **condition, int con_count, char *sql);
+extern void get_orderby_sql(char **fields, int f_cnt, char *sql);
 extern void get_query_sql(char *table_name, char **cols, int col_count, char **condition, int con_count, char *sql);
 extern void get_insert_sql(char *table_name, char **cols, int col_count, char **values,char *sql);
 extern void get_update_sql(char *table_name, char **sets, int set_count, char **condition, int con_count, char *sql);
 extern void get_delete_sql(char *table_name, char **condition, int con_count, char *sql);
-
+extern void read_sys_config(char *pErr);
 #endif  //_DB_H_
