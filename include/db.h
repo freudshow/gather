@@ -59,10 +59,13 @@
  ********************************************************************************/
 #define TABLE_BASE_DEF		"t_base_define"//基本配置表
 #define TABLE_REQUEST_DATA	"t_request_data"//各类型仪表需要的数据项表
-#define TABLE_ELEC			"t_elec_data"//电表
-#define TABLE_WATER			"t_water_data"//水表
-#define TABLE_HEAT			"t_heat_data"//热量表
-#define TABLE_AIR			"t_air_data"//天然气表
+#define TABLE_ELEC			"t_elec_data"//电表历史数据
+#define TABLE_WATER			"t_water_data"//水表历史数据
+#define TABLE_HEAT			"t_heat_data"//热量表历史数据
+#define TABLE_AIR			"t_air_data"//天然气表历史数据
+#define TABLE_meter_info	"t_meter_info"//仪表基本信息表
+#define TABLE_time_node		"t_time_node"//时间配置表
+
 
 
 /********************************************************************************
@@ -141,6 +144,10 @@ typedef meter_address_str *pMeter_address;
  **	 t_request_data
  ** 仪表需要返回的数据项配置表
  ********************************************************************************/
+#define MTYPE_ELECT	0x40//电表编号
+#define MTYPE_WATER	0x10//水表编号
+#define MTYPE_HEAT	0x20//热量表编号
+ 
  typedef struct {
 	char f_col_name[LENGTH_F_COL_NAME];
 	char f_col_type[LENGTH_F_COL_TYPE];
@@ -151,7 +158,7 @@ typedef meter_address_str *pMeter_address;
 typedef request_data_str *pRequest_data;
 /********************************************************************************
  **	 t_time_node
- ** 仪表需要返回的数据项配置表
+ ** 时间点配置表
  ********************************************************************************/
  typedef struct {
 	char f_time_name[LENGTH_F_TIME_NAME];
