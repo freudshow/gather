@@ -10,20 +10,20 @@ create table t_base_define
 	f_config_value	varchar(50)
 );
 
-insert into t_base_define(f_id, f_config_name, f_config_value)values(1,	 'primary_server', '219.140.0.136');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(2,	 'primary_dns', '219.141.0.131');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(3,	 'primary_port', '4439');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(4,	 'second_server', '220.54.1.21');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(5,	 'second_dns', '213.5.1.2');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(6,	 'second_port', '9001');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(7,	 'gateway_id', '9403');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(8,	 'net_type', '0/1/2');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(9,	 'md5_key', '863CA654');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(10, 'aes_key', 'd41d8cd98f00b204e9800998ecf8427e');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(11, 'collect_mode', '0/1');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(12, 'collect_cycle', '15');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(13, 'report_mode', '0/1');
-insert into t_base_define(f_id, f_config_name, f_config_value)values(14, 'beat_cycle', '2');
+insert into t_base_define(f_config_name, f_config_value)values('primary_server', '219.140.0.136');
+insert into t_base_define(f_config_name, f_config_value)values('primary_dns', '219.141.0.131');
+insert into t_base_define(f_config_name, f_config_value)values('primary_port', '4439');
+insert into t_base_define(f_config_name, f_config_value)values('second_server', '220.54.1.21');
+insert into t_base_define(f_config_name, f_config_value)values('second_dns', '213.5.1.2');
+insert into t_base_define(f_config_name, f_config_value)values('second_port', '9001');
+insert into t_base_define(f_config_name, f_config_value)values('gateway_id', '9403');
+insert into t_base_define(f_config_name, f_config_value)values('net_type', '0/1/2');
+insert into t_base_define(f_config_name, f_config_value)values('md5_key', '863CA654');
+insert into t_base_define(f_config_name, f_config_value)values('aes_key', 'd41d8cd98f00b204e9800998ecf8427e');
+insert into t_base_define(f_config_name, f_config_value)values('collect_mode', '0/1');
+insert into t_base_define(f_config_name, f_config_value)values('collect_cycle', '15');
+insert into t_base_define(f_config_name, f_config_value)values('report_mode', '0/1');
+insert into t_base_define(f_config_name, f_config_value)values('beat_cycle', '2');
 ---------------------------------
 --仪表地址信息配置表
 ---------------------------------
