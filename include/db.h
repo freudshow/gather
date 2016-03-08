@@ -63,8 +63,8 @@
 #define TABLE_WATER			"t_water_data"//水表历史数据
 #define TABLE_HEAT			"t_heat_data"//热量表历史数据
 #define TABLE_AIR			"t_air_data"//天然气表历史数据
-#define TABLE_meter_info	"t_meter_info"//仪表基本信息表
-#define TABLE_time_node		"t_time_node"//时间配置表
+#define TABLE_METER_INFO	"t_meter_info"//仪表基本信息表
+#define TABLE_TIME_NODE		"t_time_node"//时间配置表
 
 
 
@@ -130,7 +130,15 @@ typedef sys_config_str *pSys_config;
  **	 t_meter_info
  ** 设备地址信息表
  ********************************************************************************/
-typedef struct {
+#define FIELD_MINFO_ID				"f_id"
+#define FIELD_MINFO_ADDRESS		"f_meter_address"
+#define FIELD_MINFO_TYPE			"f_meter_type"
+#define FIELD_MINFO_CHANNEL		"f_meter_channel"
+#define FIELD_MINFO_POS				"f_install_pos"
+#define FIELD_MINFO_DEVICE_ID		"f_device_id"
+#define FIELD_MINFO_PROTO_TYPE	"f_meter_proto_type"
+
+struct meter_info_str{
 	char f_install_pos[LENGTH_F_INSTALL_POS];
 	char f_meter_address[LENGTH_F_METER_ADDRESS];
 	int f_id;
@@ -138,8 +146,12 @@ typedef struct {
 	int f_meter_channel;
 	int f_device_id;
 	int f_meter_proto_type;
-}meter_address_str;
-typedef meter_address_str *pMeter_address;
+	struct meter_info_str* pNext;//下个元素
+	struct meter_info_str* pPrev;//上个元素
+};
+typedef struct meter_info_str *pMeter_info;
+typedef pMeter_info meter_info_List;
+
 /********************************************************************************
  **	 t_request_data
  ** 仪表需要返回的数据项配置表
@@ -148,14 +160,14 @@ typedef meter_address_str *pMeter_address;
 #define MTYPE_WATER	0x10//水表编号
 #define MTYPE_HEAT	0x20//热量表编号
  
- typedef struct {
+struct request_data_str{
 	char f_col_name[LENGTH_F_COL_NAME];
 	char f_col_type[LENGTH_F_COL_TYPE];
 	int f_id;
 	int f_meter_type;
 	int f_item_index;
-}request_data_str;
-typedef request_data_str *pRequest_data;
+};
+typedef struct request_data_str *pRequest_data;
 /********************************************************************************
  **	 t_time_node
  ** 时间点配置表
@@ -185,7 +197,10 @@ typedef his_data_str *pHis_data;
  ** 全局声明
  ********************************************************************************/
 extern sys_config_str sys_config_array[SYS_CONFIG_COUNT];
+extern meter_info_List list_meter_info;
 
+extern int open_db(void);
+extern int close_db(void);
 extern void get_select_sql(char *table_name, char **cols, int col_count, char *sql);
 extern void get_where_sql(char **condition, int con_count, char *sql);
 extern void get_orderby_sql(char **fields, int f_cnt, char *sql);
@@ -194,4 +209,8 @@ extern void get_insert_sql(char *table_name, char **cols, int col_count, char **
 extern void get_update_sql(char *table_name, char **sets, int set_count, char **condition, int con_count, char *sql);
 extern void get_delete_sql(char *table_name, char **condition, int con_count, char *sql);
 extern void read_sys_config(char *pErr);
+extern void init_meter_info_list(void);
+extern void read_meter_info(char	*pErr);
+extern void retrieve_meter_info_list(meter_info_List list);
+
 #endif  //_DB_H_

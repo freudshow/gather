@@ -22,12 +22,18 @@ extern SQLITE_API int SQLITE_STDCALL sqlite3_open(
   const char *filename,   /* Database filename (UTF-8) */
   sqlite3 **ppDb          /* OUT: SQLite db handle */
 );
-int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 
+int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
+int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name);
+void empty_meter_info_list();
+void init_meter_info_list();
+void retrieve_meter_info_list(meter_info_List list);
 
 sqlite3 *g_pDB;
 sys_config_str sys_config_array[SYS_CONFIG_COUNT];
-int row_cnt;//数据表返回的行数
+int config_cnt;//数据表返回的行数
+int meter_info_cnt;//集中器挂载的仪表数量
+meter_info_List list_meter_info;
 
 /********************************************************************************
  **	 函数名: open_db
@@ -46,10 +52,97 @@ int close_db(void)
 {
 	 return (sqlite3_close(g_pDB) == SQLITE_OK) ? SQLITE_OK : -1;
 }
+/********************************************************************************
+ **	 函数名: read_meter_info
+ ** 功能	: 从数据库中读取仪表地址信息, 放到list_meter_info中
+ ** 重要  : 程序加载时须置list_meter_info为NULL, 否则本程序会出现段错误
+ ********************************************************************************/
+
+void read_meter_info(char	*pErr)
+{
+	char *sql_buf = malloc(LENGTH_SQLBUF);
+	char *order_buf = malloc(LENGTH_SQLORDER);
+	char *table_name = TABLE_METER_INFO;
+	char *col_buf[LENGTH_F_COL_NAME] =  {FIELD_MINFO_ID, \
+				FIELD_MINFO_ADDRESS, FIELD_MINFO_TYPE, FIELD_MINFO_CHANNEL,\
+				FIELD_MINFO_POS, FIELD_MINFO_DEVICE_ID, FIELD_MINFO_PROTO_TYPE};
+	int  col_cnt = 7;
+	
+	meter_info_cnt = 0;
+	if(!list_meter_info)
+		empty_meter_info_list(list_meter_info);
+
+	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
+	get_orderby_sql(&col_buf[5], 1, order_buf);
+	strcat(sql_buf, " ");
+	strcat(sql_buf, order_buf);
+	strcat(sql_buf, ";");
+	printf("%s\n", sql_buf);
+	sqlite3_exec(g_pDB, sql_buf, each_meter_info, NULL, &pErr);
+	free(sql_buf);
+}
+
+int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
+{
+	int i;
+	pMeter_info tmp_info = malloc(sizeof(struct meter_info_str));
+	
+	for (i=0; i<f_cnt; i++) {
+		if (0 == strcmp(f_name[i], FIELD_MINFO_ID))
+			tmp_info->f_id  = atoi(f_value[i]);
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_ADDRESS))
+			strcpy(tmp_info->f_meter_address, f_value[i]);
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE))
+			tmp_info->f_meter_type = atoi(f_value[i]);
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_CHANNEL))
+			tmp_info->f_meter_channel = atoi(f_value[i]);
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_POS))
+			strcpy(tmp_info->f_install_pos, f_value[i]);
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_DEVICE_ID))
+			tmp_info->f_device_id = atoi(f_value[i]);
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_PROTO_TYPE))
+			tmp_info->f_meter_proto_type = atoi(f_value[i]);
+	}
+	tmp_info->pPrev = NULL;
+	tmp_info->pNext = list_meter_info;
+	if (list_meter_info) {
+		list_meter_info->pPrev = tmp_info;
+	}
+	list_meter_info = tmp_info;
+	meter_info_cnt++;
+	return 0;
+}
+
+void empty_meter_info_list(meter_info_List list)
+{
+	pMeter_info pInfo, tmp_info;
+	pInfo = list;
+	while(pInfo) {
+		tmp_info = pInfo;
+		pInfo = pInfo->pNext;
+		free(tmp_info);
+	}
+	init_meter_info_list();
+}
+
+void init_meter_info_list()
+{
+	list_meter_info = NULL;
+}
+
+void retrieve_meter_info_list(meter_info_List list)
+{
+	pMeter_info pInfo = list;
+	while(pInfo) {
+		printf("%d, %d, %d, %s, %d, %d, %s\n", pInfo->f_id, pInfo->f_meter_type, pInfo->f_device_id,\
+				pInfo->f_meter_address, pInfo->f_meter_channel, pInfo->f_meter_proto_type, pInfo->f_install_pos);
+		pInfo = pInfo->pNext;
+	}
+}
 
 
 /********************************************************************************
- **	 函数名: init_sys_config
+ **	 函数名: read_sys_config
  ** 功能	: 从数据库中读取基本参数, 放到sys_config_array中
  ********************************************************************************/
 void read_sys_config(char *pErr)
@@ -60,12 +153,11 @@ void read_sys_config(char *pErr)
 	char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
 	int	col_cnt = 3;
 
-	row_cnt = 0;
+	config_cnt = 0;
 	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
 	get_orderby_sql(col_buf, 1, order_buf);
 	strcat(sql_buf, " ");
 	strcat(sql_buf, order_buf);
-	printf("%s\n", sql_buf);
 	sqlite3_exec(g_pDB, sql_buf, each_config, NULL, &pErr);
 	free(sql_buf);
 }
@@ -75,13 +167,13 @@ int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 	int i;
 	for (i=0; i<f_cnt; i++) {
 		if (0 == strcmp(f_name[i], FIELD_BASE_DEF_ID))
-			sys_config_array[row_cnt].f_id  = atoi(f_value[i]);
+			sys_config_array[config_cnt].f_id  = atoi(f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_NAME))
-			strcpy(sys_config_array[row_cnt].f_config_name, f_value[i]);
+			strcpy(sys_config_array[config_cnt].f_config_name, f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_VALUE))
-			strcpy(sys_config_array[row_cnt].f_config_value, f_value[i]);
+			strcpy(sys_config_array[config_cnt].f_config_value, f_value[i]);
 	}
-	row_cnt++;
+	config_cnt++;
 	return 0;
 }
 
@@ -292,84 +384,3 @@ void get_where_sql(char **condition, int con_cnt, char *sql)
 	strcat(sql, " ");
 	strcat(sql, condition[i]);
 }
-
-#if 1
-int main(void)
-{
-	char *sqlbuf = malloc(LENGTH_SQLBUF);
-	char *colbuf[LENGTH_F_COL_NAME]={"f_id","f_config_name", "f_config_value"};
-	char *conditionbuf[LENGTH_SQLCONS]={"f_id>2","f_id<20", "f_config_name>13",\
-												"f_id<8"};
-	char *valuebuf[LENGTH_SQLVALUE]={"1", "'d41d8cd98f00b204e9800998ecf8427e'", "'213.5.1.2'"};
-	char *setbuf[LENGTH_SQLSET]={"f_id=1", "f_config_name='f_time_node'", "f_type='varchar(10)'", "f_length=50", \
-										"f_timestamp='2016-03-06 12:06:52'"};
-	char *table_name = "t_base_define";
-	char pErr[100];
-	memset(pErr, 0, 100);
-
-	open_db();
-	get_query_sql(table_name, colbuf, 3, conditionbuf, 4, sqlbuf);
-	printf("%s\n", sqlbuf);
-	memset(sqlbuf, 0, LENGTH_SQLBUF);
-	get_insert_sql(table_name, colbuf, 3, valuebuf,sqlbuf);
-	printf("%s\n", sqlbuf);
-	memset(sqlbuf, 0, LENGTH_SQLBUF);
-	get_update_sql(table_name, setbuf, 5, conditionbuf, 4, sqlbuf);
-	printf("%s\n", sqlbuf);
-	memset(sqlbuf, 0, LENGTH_SQLBUF);
-	get_delete_sql(table_name, conditionbuf, 4, sqlbuf);
-	printf("%s\n", sqlbuf);
-	memset(sqlbuf, 0, LENGTH_SQLBUF);
-	get_orderby_sql(colbuf, 3, sqlbuf);
-	printf("%s\n", sqlbuf);
-	memset(sqlbuf, 0, LENGTH_SQLBUF);
-	
-	read_sys_config(pErr);
-	printf("%s\n", pErr);
-	/*1*/printf("%d, %s, %s\n", sys_config_array[CONFIG_PRIMARY_SERVER].f_id, \
-		sys_config_array[CONFIG_PRIMARY_SERVER].f_config_name, \
-		sys_config_array[CONFIG_PRIMARY_SERVER].f_config_value);
-	/*2*/printf("%d, %s, %s\n", sys_config_array[CONFIG_PRIMARY_DNS].f_id, \
-		sys_config_array[CONFIG_PRIMARY_DNS].f_config_name, \
-		sys_config_array[CONFIG_PRIMARY_DNS].f_config_value);
-	/*3*/printf("%d, %s, %s\n", sys_config_array[CONFIG_PRIMARY_PORT].f_id, \
-		sys_config_array[CONFIG_PRIMARY_PORT].f_config_name, \
-		sys_config_array[CONFIG_PRIMARY_PORT].f_config_value);
-	/*4*/printf("%d, %s, %s\n", sys_config_array[CONFIG_SECOND_SERVER].f_id, \
-		sys_config_array[CONFIG_SECOND_SERVER].f_config_name, \
-		sys_config_array[CONFIG_SECOND_SERVER].f_config_value);
-	/*5*/printf("%d, %s, %s\n", sys_config_array[CONFIG_SECOND_DNS].f_id, \
-		sys_config_array[CONFIG_SECOND_DNS].f_config_name, \
-		sys_config_array[CONFIG_SECOND_DNS].f_config_value);
-	/*6*/printf("%d, %s, %s\n", sys_config_array[CONFIG_SECOND_PORT].f_id, \
-		sys_config_array[CONFIG_SECOND_PORT].f_config_name, \
-		sys_config_array[CONFIG_SECOND_PORT].f_config_value);
-	/*7*/printf("%d, %s, %s\n", sys_config_array[CONFIG_GATEWAY_ID].f_id, \
-		sys_config_array[CONFIG_GATEWAY_ID].f_config_name, \
-		sys_config_array[CONFIG_GATEWAY_ID].f_config_value);
-	/*8*/printf("%d, %s, %s\n", sys_config_array[CONFIG_NET_TYPE].f_id, \
-		sys_config_array[CONFIG_NET_TYPE].f_config_name, \
-		sys_config_array[CONFIG_NET_TYPE].f_config_value);
-	/*9*/printf("%d, %s, %s\n", sys_config_array[CONFIG_MD5_KEY].f_id, \
-		sys_config_array[CONFIG_MD5_KEY].f_config_name, \
-		sys_config_array[CONFIG_MD5_KEY].f_config_value);
-	/*10*/printf("%d, %s, %s\n", sys_config_array[CONFIG_AES_KEY].f_id, \
-		sys_config_array[CONFIG_AES_KEY].f_config_name, \
-		sys_config_array[CONFIG_AES_KEY].f_config_value);
-	/*11*/printf("%d, %s, %s\n", sys_config_array[CONFIG_COLLECT_MODE].f_id, \
-		sys_config_array[CONFIG_COLLECT_MODE].f_config_name, \
-		sys_config_array[CONFIG_COLLECT_MODE].f_config_value);
-	/*12*/printf("%d, %s, %s\n", sys_config_array[CONFIG_COLLECT_CYCLE].f_id, \
-		sys_config_array[CONFIG_COLLECT_CYCLE].f_config_name, \
-		sys_config_array[CONFIG_COLLECT_CYCLE].f_config_value);
-	/*13*/printf("%d, %s, %s\n", sys_config_array[CONFIG_REPORT_MODE].f_id, \
-		sys_config_array[CONFIG_REPORT_MODE].f_config_name, \
-		sys_config_array[CONFIG_REPORT_MODE].f_config_value);
-	/*14*/printf("%d, %s, %s\n", sys_config_array[CONFIG_BEAT_CYCLE].f_id, \
-		sys_config_array[CONFIG_BEAT_CYCLE].f_config_name, \
-		sys_config_array[CONFIG_BEAT_CYCLE].f_config_value);
-
-	close_db();
-	return 0;
-}
-#endif
