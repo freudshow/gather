@@ -40,6 +40,12 @@ create table t_meter_info
 	f_install_pos	varchar(50)
 );
 
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (10, 1, '11110052310291', 7, 1, '6#管道井');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (10, 2, '11110052310292', 7, 1, '5#管道井');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (20, 3, '11110053110201', 6, 2, '3#地下室');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (20, 4, '11110053110202', 0, 3, '3#地下室');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 5, '0x01', 7, 6, '2#电表间');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 6, '0x02', 7, 6, '1#电表间');
 ---------------------------------
 --电表历史数据表
 ---------------------------------
