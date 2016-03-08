@@ -104,6 +104,29 @@ create table t_request_data
 	f_col_type	varchar(20)
 );
 
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 1, 'f_cur_cold_E', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 2, 'f_cur_heat_E', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 3, 'f_heat_power', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 4, 'f_flowrate', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 5, 'f_accum_flow', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 6, 'f_in_temp', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 7, 'f_out_temp', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 8, 'f_accum_work_time', 'varchar(20)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 9, 'f_cur_time', 'varchar(20)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(20, 10, 'f_state', 'varchar(20)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(10, 1, 'f_cur_accum_flow', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(10, 2, 'f_flowrate', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(10, 3, 'f_settle_date_accum_flow', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(10, 4, 'f_settle_date', 'varchar(20)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(10, 5, 'f_accum_work_time', 'varchar(20)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(40, 1, 'f_positive_active_total_electricity', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(40, 2, 'f_negative_active_total_electricity', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(40, 3, 'f_positive_reactive_total_electricity', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(40, 4, 'f_negative_reactive_total_electricity', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(40, 5, 'f_active_total_electricity', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(40, 6, 'f_reactive_total_electricity', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(40, 7, 'f_overall_power_factor', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values(40, 8, 'f_maximum_demand', 'float');
 ---------------------------------
 --时间点配置表
 ---------------------------------
