@@ -211,6 +211,6 @@ extern void get_delete_sql(char *table_name, char **condition, int con_count, ch
 extern void read_sys_config(char *pErr);
 extern void init_meter_info_list(void);
 extern void read_meter_info(char	*pErr);
-extern void retrieve_meter_info_list(meter_info_List list);
+extern void retrieve_meter_info_list(meter_info_List list, int (*read_one_meter)(pMeter_info));
 
 #endif  //_DB_H_

@@ -27,7 +27,7 @@ int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 void empty_meter_info_list();
 void init_meter_info_list();
-void retrieve_meter_info_list(meter_info_List list);
+
 
 sqlite3 *g_pDB;
 sys_config_str sys_config_array[SYS_CONFIG_COUNT];
@@ -113,6 +113,7 @@ int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 	return 0;
 }
 
+//清空仪表信息, 以便重新读取
 void empty_meter_info_list(meter_info_List list)
 {
 	pMeter_info pInfo, tmp_info;
@@ -130,12 +131,15 @@ void init_meter_info_list()
 	list_meter_info = NULL;
 }
 
-void retrieve_meter_info_list(meter_info_List list)
+//遍历仪表信息, 对每一个表进行read_one_meter操作
+void retrieve_meter_info_list(meter_info_List list, int (*read_one_meter)(pMeter_info))
 {
 	pMeter_info pInfo = list;
 	while(pInfo) {
 		printf("%d, %d, %d, %s, %d, %d, %s\n", pInfo->f_id, pInfo->f_meter_type, pInfo->f_device_id,\
 				pInfo->f_meter_address, pInfo->f_meter_channel, pInfo->f_meter_proto_type, pInfo->f_install_pos);
+		if(read_one_meter)
+			read_one_meter(pInfo);
 		pInfo = pInfo->pNext;
 	}
 }
