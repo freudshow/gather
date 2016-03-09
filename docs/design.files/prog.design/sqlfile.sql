@@ -32,11 +32,11 @@ drop table if exists "t_meter_info"
 create table t_meter_info
 (
 	f_id	integer primary key autoincrement,
-	f_meter_type	integer,
-	f_device_id	integer,
-	f_meter_address	varchar(50),
-	f_meter_channel	integer,	
-	f_meter_proto_type	integer,
+	f_meter_type	varchar(2),
+	f_device_id	varchar(4),
+	f_meter_address	varchar(14),
+	f_meter_channel	varchar(2),	
+	f_meter_proto_type	varchar(2),
 	f_install_pos	varchar(50)
 );
 
@@ -44,8 +44,13 @@ insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_ch
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (10, 2, '11110052310292', 7, 1, '5#管道井');
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (20, 3, '11110053110201', 6, 2, '3#地下室');
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (20, 4, '11110053110202', 0, 3, '3#地下室');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 5, '0x01', 7, 6, '2#电表间');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 6, '0x02', 7, 6, '1#电表间');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 5, '1', 7, 6, '2#电表间');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 5, '12', 7, 6, '2#电表间');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 5, '123', 7, 6, '2#电表间');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 5, '1234', 7, 6, '2#电表间');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 5, '12345', 7, 6, '2#电表间');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 6, '123456', 7, 6, '1#电表间');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 6, '1234567', 7, 6, '1#电表间');
 ---------------------------------
 --电表历史数据表
 ---------------------------------
