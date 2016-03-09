@@ -21,19 +21,22 @@
 extern SQLITE_API int SQLITE_STDCALL sqlite3_open(
   const char *filename,   /* Database filename (UTF-8) */
   sqlite3 **ppDb          /* OUT: SQLite db handle */
-);
+);//sqlite3 基本数据库接口
 
+sqlite3 *g_pDB;//数据库指针, 私有变量, 只允许通过本文件提供的函数操作, 不允许外部代码操作
+
+sys_config_str sys_config_array[SYS_CONFIG_COUNT];//基本配置列表, 公有变量
+int config_idx;//基本配置的个数索引, 私有变量
 int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name);
+
+
+meter_info_List list_meter_info;//仪表信息列表, 公有变量
+int meter_info_idx;//集中器挂载的仪表数量的索引
 void empty_meter_info_list();
-void init_meter_info_list();
+void init_meter_info_list();//将
 
 
-sqlite3 *g_pDB;
-sys_config_str sys_config_array[SYS_CONFIG_COUNT];
-int config_cnt;//数据表返回的行数
-int meter_info_cnt;//集中器挂载的仪表数量
-meter_info_List list_meter_info;
 
 /********************************************************************************
  **	 函数名: open_db
@@ -68,39 +71,48 @@ void read_meter_info(char	*pErr)
 				FIELD_MINFO_POS, FIELD_MINFO_DEVICE_ID, FIELD_MINFO_PROTO_TYPE};
 	int  col_cnt = 7;
 	
-	meter_info_cnt = 0;
+	meter_info_idx = 0;
 	if(!list_meter_info)
 		empty_meter_info_list(list_meter_info);
 
 	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
-	get_orderby_sql(&col_buf[5], 1, order_buf);
+	get_orderby_sql(&col_buf[3], 1, 1, order_buf);
 	strcat(sql_buf, " ");
 	strcat(sql_buf, order_buf);
 	strcat(sql_buf, ";");
-	printf("%s\n", sql_buf);
+	//printf("%s\n", sql_buf);
 	sqlite3_exec(g_pDB, sql_buf, each_meter_info, NULL, &pErr);
 	free(sql_buf);
 }
 
 int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 {
-	int i;
+	int i, j;
+	int length;
+	int low_idx;
 	pMeter_info tmp_info = malloc(sizeof(struct meter_info_str));
-	
+	memset(tmp_info, 0, sizeof(struct meter_info_str));
 	for (i=0; i<f_cnt; i++) {
-		if (0 == strcmp(f_name[i], FIELD_MINFO_ID))
+		if (0 == strcmp(f_name[i], FIELD_MINFO_ID))//仪表ID
 			tmp_info->f_id  = atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_ADDRESS))
-			strcpy(tmp_info->f_meter_address, f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE))
-			tmp_info->f_meter_type = atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_CHANNEL))
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_ADDRESS)) {//仪表地址
+			length = strlen(f_value[i]);
+			for (j=0; j<(length+1)/BYTE_BCD_CNT;j++) {
+				low_idx = length-BYTE_BCD_CNT*j-2;
+				tmp_info->f_meter_address[LENGTH_B_METER_ADDRESS-1-j] = \
+					(((low_idx < 0) ? 0: (f_value[i][low_idx]-'0')) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-'0'));
+			}
+		}
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码
+			tmp_info->f_meter_type = (((f_value[i][0]-'0')<<4) | (f_value[i][1]-'0'));
+		}
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_CHANNEL))//仪表通道
 			tmp_info->f_meter_channel = atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_POS))
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_POS))//仪表安装位置
 			strcpy(tmp_info->f_install_pos, f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_DEVICE_ID))
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_DEVICE_ID))//仪表的设备编号
 			tmp_info->f_device_id = atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_PROTO_TYPE))
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_PROTO_TYPE))//仪表的协议编码
 			tmp_info->f_meter_proto_type = atoi(f_value[i]);
 	}
 	tmp_info->pPrev = NULL;
@@ -109,7 +121,7 @@ int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 		list_meter_info->pPrev = tmp_info;
 	}
 	list_meter_info = tmp_info;
-	meter_info_cnt++;
+	meter_info_idx++;
 	return 0;
 }
 
@@ -132,12 +144,10 @@ void init_meter_info_list()
 }
 
 //遍历仪表信息, 对每一个表进行read_one_meter操作
-void retrieve_meter_info_list(meter_info_List list, int (*read_one_meter)(pMeter_info))
+void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
 {
-	pMeter_info pInfo = list;
-	while(pInfo) {
-		printf("%d, %d, %d, %s, %d, %d, %s\n", pInfo->f_id, pInfo->f_meter_type, pInfo->f_device_id,\
-				pInfo->f_meter_address, pInfo->f_meter_channel, pInfo->f_meter_proto_type, pInfo->f_install_pos);
+	pMeter_info pInfo = list_meter_info;
+	while(pInfo) {		
 		if(read_one_meter)
 			read_one_meter(pInfo);
 		pInfo = pInfo->pNext;
@@ -157,9 +167,9 @@ void read_sys_config(char *pErr)
 	char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
 	int	col_cnt = 3;
 
-	config_cnt = 0;
+	config_idx = 0;
 	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
-	get_orderby_sql(col_buf, 1, order_buf);
+	get_orderby_sql(col_buf, 1, 0, order_buf);
 	strcat(sql_buf, " ");
 	strcat(sql_buf, order_buf);
 	sqlite3_exec(g_pDB, sql_buf, each_config, NULL, &pErr);
@@ -171,13 +181,13 @@ int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 	int i;
 	for (i=0; i<f_cnt; i++) {
 		if (0 == strcmp(f_name[i], FIELD_BASE_DEF_ID))
-			sys_config_array[config_cnt].f_id  = atoi(f_value[i]);
+			sys_config_array[config_idx].f_id  = atoi(f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_NAME))
-			strcpy(sys_config_array[config_cnt].f_config_name, f_value[i]);
+			strcpy(sys_config_array[config_idx].f_config_name, f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_VALUE))
-			strcpy(sys_config_array[config_cnt].f_config_value, f_value[i]);
+			strcpy(sys_config_array[config_idx].f_config_value, f_value[i]);
 	}
-	config_cnt++;
+	config_idx++;
 	return 0;
 }
 
@@ -347,9 +357,12 @@ void get_select_sql(char *table_name, char **cols, int con_cnt, char *sql)
 /********************************************************************************
  **	 函数名: get_orderby_sql
  ** 功能	: 组合order by从句
- **
+ ** char **fields, 要进行排序的列名
+ ** int f_cnt, 要进行排序的列数量
+ ** int asc, 是否进行升序排序
+ ** char *sql, 返回的sql字符串
  ********************************************************************************/
-void get_orderby_sql(char **fields, int f_cnt, char *sql)
+void get_orderby_sql(char **fields, int f_cnt, int asc, char *sql)
 {
 	int i;
 	if(f_cnt <= 0){
@@ -364,6 +377,8 @@ void get_orderby_sql(char **fields, int f_cnt, char *sql)
 	}
 	strcat(sql, " ");
 	strcat(sql, fields[i]);
+	strcat(sql, " ");
+	strcat(sql, asc ? "desc": "asc");
 }
 /********************************************************************************
  **	 函数名: get_where_sql

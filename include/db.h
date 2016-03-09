@@ -26,6 +26,7 @@
 #ifndef _DB_H_
 #define _DB_H_
 
+#include "globaldefine.h"
 /********************************************************************************
  ** SQL动词
  ********************************************************************************/
@@ -66,14 +67,20 @@
 #define TABLE_METER_INFO	"t_meter_info"//仪表基本信息表
 #define TABLE_TIME_NODE		"t_time_node"//时间配置表
 
-
+/********************************************************************************
+ ** 字符长度相关
+ ********************************************************************************/
+#define LEN_BYTE	8//一个字节的比特数
+#define LEN_HALF_BYTE	4//一半字节的比特数
+#define BYTE_BCD_CNT	2//一个字节由多少个BCD码表示
 
 /********************************************************************************
- ** 各字符型字段的长度
+ ** 各字符型字段的长度 F 代表Field
  ********************************************************************************/
 #define LENGTH_F_CONFIG_NAME		16//配置名长度
 #define LENGTH_F_CONFIG_VALUE		50//配置值长度
-#define LENGTH_F_METER_ADDRESS	50//表地址长度
+#define LENGTH_F_METER_ADDRESS	14//在数据表中存储的仪表地址长度, 最大14个字符
+#define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
 #define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
 #define LENGTH_F_TIMESTAMP			50//时间戳长度
 #define LENGTH_F_TIME				50//抄表时间点长度
@@ -139,13 +146,20 @@ typedef sys_config_str *pSys_config;
 #define FIELD_MINFO_PROTO_TYPE	"f_meter_proto_type"
 
 struct meter_info_str{
+	uint32 f_id;//行索引, 声明放到前面, 以免值被uint8[]类型的溢出改写
+	uint8 f_meter_address[LENGTH_B_METER_ADDRESS];//表地址7字节
+	uint8 f_meter_type;//1字节
+	uint8 f_meter_channel;//1字节
+	uint16 f_device_id;//2字节
+	uint8 f_meter_proto_type;//1字节
+
+	//安装位置, 50字节; 应该放到值声明的最后, 
+	//以免因为"安装位置"的长度超过LENGTH_F_INSTALL_POS, 
+	//对后面的成员变量进行改写.
+	//通常指针成员的操作都是在值成员的操作完成后进行,
+	//所以"安装位置"溢出后一般不会引起指针类型成员的值变化
 	char f_install_pos[LENGTH_F_INSTALL_POS];
-	char f_meter_address[LENGTH_F_METER_ADDRESS];
-	int f_id;
-	int f_meter_type;
-	int f_meter_channel;
-	int f_device_id;
-	int f_meter_proto_type;
+	
 	struct meter_info_str* pNext;//下个元素
 	struct meter_info_str* pPrev;//上个元素
 };
@@ -168,6 +182,7 @@ struct request_data_str{
 	int f_item_index;
 };
 typedef struct request_data_str *pRequest_data;
+typedef pRequest_data request_data_list;
 /********************************************************************************
  **	 t_time_node
  ** 时间点配置表
@@ -181,16 +196,35 @@ typedef time_node_str *pTime_node;
 /********************************************************************************
  ** 仪表历史数据项
  ********************************************************************************/
-typedef struct {
+enum T_His_Field{
+	STRING = 0,
+	INT,
+	FLOAT
+};
+
+struct his_field_data{
+	char *pData;
+	char field_name[LENGTH_F_COL_NAME];
+	enum T_His_Field eData_type;
+	struct his_field_data *pNext;
+};
+typedef struct his_field_data *pHis_field_data;
+typedef pHis_field_data his_data_list;
+
+struct his_data_str{
 	char f_timestamp[LENGTH_F_TIMESTAMP];//时间戳
 	char f_time[LENGTH_F_TIME];//抄表时间点
 	char f_meter_address[LENGTH_F_METER_ADDRESS];//仪表地址
 	int  f_device_id;//仪表的设备编号
 	int  f_id;//索引值
-	void *pValues;//数据项列表
-	int value_len;//数据项长度
-}his_data_str;
-typedef his_data_str *pHis_data;
+	int  f_meter_type;//仪表类型
+	his_data_list value_list;//数据项链表
+	int value_cnt;//数据项的数量
+	struct his_data_str* pNext;//下个元素
+	struct his_data_str* pPrev;//上个元素
+};
+typedef struct his_data_str *pHis_data;
+typedef pHis_data his_data_List;
 
 
 /********************************************************************************
@@ -198,12 +232,13 @@ typedef his_data_str *pHis_data;
  ********************************************************************************/
 extern sys_config_str sys_config_array[SYS_CONFIG_COUNT];
 extern meter_info_List list_meter_info;
+extern request_data_list list_request_data;
 
 extern int open_db(void);
 extern int close_db(void);
 extern void get_select_sql(char *table_name, char **cols, int col_count, char *sql);
 extern void get_where_sql(char **condition, int con_count, char *sql);
-extern void get_orderby_sql(char **fields, int f_cnt, char *sql);
+extern void get_orderby_sql(char **fields, int f_cnt, int asc, char *sql);
 extern void get_query_sql(char *table_name, char **cols, int col_count, char **condition, int con_count, char *sql);
 extern void get_insert_sql(char *table_name, char **cols, int col_count, char **values,char *sql);
 extern void get_update_sql(char *table_name, char **sets, int set_count, char **condition, int con_count, char *sql);
@@ -211,6 +246,6 @@ extern void get_delete_sql(char *table_name, char **condition, int con_count, ch
 extern void read_sys_config(char *pErr);
 extern void init_meter_info_list(void);
 extern void read_meter_info(char	*pErr);
-extern void retrieve_meter_info_list(meter_info_List list, int (*read_one_meter)(pMeter_info));
+extern void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info));
 
 #endif  //_DB_H_
