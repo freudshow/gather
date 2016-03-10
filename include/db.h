@@ -75,12 +75,19 @@
 #define BYTE_BCD_CNT	2//一个字节由多少个BCD码表示
 
 /********************************************************************************
+ ** 字符相关
+ ********************************************************************************/
+#define ZERO_CHAR	0x30//char '0'
+
+/********************************************************************************
  ** 各字符型字段的长度 F 代表Field
  ********************************************************************************/
 #define LENGTH_F_CONFIG_NAME		16//配置名长度
 #define LENGTH_F_CONFIG_VALUE		50//配置值长度
 #define LENGTH_F_METER_ADDRESS	14//在数据表中存储的仪表地址长度, 最大14个字符
 #define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
+#define LENGTH_F_METER_TYPE		2//在数据表中存储的仪表类型长度, 最大2个字符
+
 #define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
 #define LENGTH_F_TIMESTAMP			50//时间戳长度
 #define LENGTH_F_TIME				50//抄表时间点长度
@@ -170,9 +177,17 @@ typedef pMeter_info meter_info_List;
  **	 t_request_data
  ** 仪表需要返回的数据项配置表
  ********************************************************************************/
-#define MTYPE_ELECT	0x40//电表编号
-#define MTYPE_WATER	0x10//水表编号
-#define MTYPE_HEAT	0x20//热量表编号
+#define MTYPE_WATER	0x10//水表仪表编号
+#define MTYPE_HEAT	0x20//热量表仪表编号
+#define MTYPE_ELECT	0x40//电表仪表编号
+
+#define FIELD_REQUEST_ID			"f_id"
+#define FIELD_REQUEST_MTYPE		"f_meter_type"
+#define FIELD_REQUEST_ITEMIDX		"f_item_index"
+#define FIELD_REQUEST_COLNAME		"f_col_name"
+#define FIELD_REQUEST_COLTYPE		"f_col_type"
+
+
  
 struct request_data_str{
 	int32 f_id;
@@ -259,7 +274,10 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info));//顺序遍历仪表
 int  get_meter_info_cnt();//读取仪表地址信息的个数
 
 /**********************
- ** 读取配置项相关 **
+ ** 读取数据项相关 **
  **********************/
+void read_request_data(char	*pErr, uint8);//按照仪表类型读取数据项
+void retrieve_request_data_list(int (*read_one_meter)(pMeter_info));//顺序遍历数据项信息
+int  get_request_data_cnt();//读取仪表数据项的个数
 
 #endif  //_DB_H_
