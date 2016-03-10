@@ -196,6 +196,7 @@ struct request_data_str{
 	char f_col_name[LENGTH_F_COL_NAME];
 	char f_col_type[LENGTH_F_COL_TYPE];
 	struct request_data_str *pNext;
+	struct request_data_str *pPrev;
 };
 typedef struct request_data_str *pRequest_data;
 typedef pRequest_data request_data_list;
@@ -277,7 +278,7 @@ int  get_meter_info_cnt();//读取仪表地址信息的个数
  ** 读取数据项相关 **
  **********************/
 void read_request_data(char	*pErr, uint8);//按照仪表类型读取数据项
-void retrieve_request_data_list(int (*read_one_meter)(pMeter_info));//顺序遍历数据项信息
+void retrieve_request_data_list(int (*read_one_meter)(pRequest_data));//顺序遍历数据项信息
 int  get_request_data_cnt();//读取仪表数据项的个数
 
 #endif  //_DB_H_

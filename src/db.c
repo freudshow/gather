@@ -84,13 +84,11 @@ void read_request_data(char *pErr, uint8 meter_type)
 				FIELD_REQUEST_COLTYPE};
 	int  col_cnt = 5;
 
-	meter_info_idx = 0;
+	request_data_idx = 0;
 	sprintf(m_type, "%2x", meter_type);
-
-	
+	strcpy(con_buf, FIELD_REQUEST_MTYPE);
 	strcat(con_buf, SQL_EQUAL);
-	strcat(con_buf[0], m_type);
-	printf("%s\n", con_buf);
+	strcat(con_buf, m_type);
 	
 	empty_request_data_list();//清空以前的信息, 以重新读取
 	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
@@ -98,7 +96,7 @@ void read_request_data(char *pErr, uint8 meter_type)
 	strcat(sql_buf, " ");
 	strcat(sql_buf, where_buf);
 	strcat(sql_buf, ";");
-	
+	printf("%s\n", sql_buf);
 	sqlite3_exec(g_pDB, sql_buf, each_request_data, NULL, &pErr);
 	free(m_type);
 	free(sql_buf);
@@ -107,18 +105,58 @@ void read_request_data(char *pErr, uint8 meter_type)
 
 static int each_request_data(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 {
+	int i;//i, 一条记录的字段名索引
+
+	pRequest_data tmp_request = malloc(sizeof(struct request_data_str));
+	memset(tmp_request, 0, sizeof(struct request_data_str));
+	for (i=0; i<f_cnt; i++) {
+		if (0 == strcmp(f_name[i], FIELD_REQUEST_ID))//数据项ID
+			tmp_request->f_id  = atoi(f_value[i]);
+		else if(0 == strcmp(f_name[i], FIELD_REQUEST_MTYPE))//仪表类型
+			tmp_request->f_meter_type= ((f_value[i][0] - ZERO_CHAR) << LEN_HALF_BYTE | (f_value[i][1] - ZERO_CHAR));
+		else if(0 == strcmp(f_name[i], FIELD_REQUEST_ITEMIDX)) {//仪表数据项的索引号
+			printf(" %s ", f_value[i]);
+			tmp_request->f_item_index= ((f_value[i][0] - ZERO_CHAR) << LEN_HALF_BYTE | (f_value[i][1] - ZERO_CHAR));
+		}
+		else if(0 == strcmp(f_name[i], FIELD_REQUEST_COLNAME))//仪表数据项的列名
+			strcpy(tmp_request->f_col_name, f_value[i]);
+		else if(0 == strcmp(f_name[i], FIELD_REQUEST_COLTYPE))//列名的类型
+			strcpy(tmp_request->f_col_type, f_value[i]);
+		else {//异常情况
+			
+		}
+	}
+	tmp_request->pPrev = NULL;
+	tmp_request->pNext = list_request_data;
+	if (list_request_data) {
+		list_request_data->pPrev = tmp_request;
+	}
+	list_request_data = tmp_request;
+	request_data_idx++;
 	return 0;
 }
 
 
-void retrieve_request_data_list(int (*read_one_meter)(pMeter_info))
+void retrieve_request_data_list(int (*read_one_item)(pRequest_data))
 {
+	if(!read_one_item)
+		return;
 	
+	pRequest_data tmp_request = list_request_data;
+	while(tmp_request) {
+		read_one_item(tmp_request);
+		tmp_request = tmp_request->pNext;
+	}
 }
 
 static void empty_request_data_list()
 {
-	
+	pRequest_data tmp_request;
+	while(list_request_data) {
+		tmp_request = list_request_data;
+		list_request_data = list_request_data->pNext;
+		free(tmp_request);
+	}
 }
 
 int  get_request_data_cnt()
@@ -221,10 +259,12 @@ static void empty_meter_info_list()
 //遍历仪表信息, 对每一个表进行read_one_meter操作
 void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
 {
+	if(!read_one_meter)
+		return;
+
 	pMeter_info pInfo = list_meter_info;
-	while(pInfo) {		
-		if(read_one_meter)
-			read_one_meter(pInfo);
+	while(pInfo) {
+		read_one_meter(pInfo);
 		pInfo = pInfo->pNext;
 	}
 }
