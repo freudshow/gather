@@ -20,11 +20,13 @@ extern int32 g_uiIoControl;
 extern int32 g_uiRS4851Fd;
 extern int32 g_uiRS4852Fd;
 extern int32 g_uiGprsFd;
+extern int32 g_uiMbusFd;
 
 extern void sysinit(void);
 extern uint8 QueuesInit(void);
 extern uint8 open_IOControl(void);
 extern void sem_Init(void);
+extern void comInit(void);
 
 
 

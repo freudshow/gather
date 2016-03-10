@@ -49,6 +49,10 @@
 #define	KERN_DEBUG	7	/* debug-level messages			*/
 
 
+#define Ascii2Hex(data) ((data >='0' && data <='9')?(data-'0'):((data>='A'&&data<='F')?(data-'A'+10):((data>='a'&&data<='f')?(data-'a'+10):0)))
+
+
+
 
 extern uint8 gDebugModule[];
 extern uint8 gDebugLevel;
@@ -56,6 +60,10 @@ extern sem_t  CRITICAL_sem;
 extern sem_t  RS485Up_sem;  //上行485端口信号量
 extern sem_t  RS485Down_sem;//下行485端口信号量
 extern sem_t  GPRSPort_sem; //GPRS端口信号量
+extern sem_t  OperateDB_sem; //操作数据库的信号量
+extern sem_t  OperateMBUS_sem;	//操作MBUS端口信号量
+extern sem_t  Opetate485Down_sem;	//操作485下行端口信号量。
+
 
 
 
@@ -110,6 +118,8 @@ extern void OS_ENTER_CRITICAL(void);
 extern void OS_EXIT_CRITICAL(void);
 extern void  OSSemPend (uint8 dev,uint32  timeout,uint8 *perr);
 extern void OSSemPost(uint8 dev);
+extern uint8 Str2Bin(char *str, uint8 *array,uint16 lens);
+extern uint8 PUBLIC_CountCS(uint8* _data, uint16 _len);
 extern void misc_init(void);
 
 

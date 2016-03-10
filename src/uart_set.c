@@ -45,6 +45,8 @@ int32 open_com_dev(char *Dev)
 		printf("standard input is not a terminal device.\n");
 	}
 
+	fcntl(fd, F_SETFL, O_NONBLOCK);//设置为非阻塞方式。
+
 	printf("open_com_dev %s = %d.\n",Dev,fd);
 	
 
@@ -97,15 +99,11 @@ int8 set_com_para(int32 fd,int32 speed, int32 databits,int32 stopbits,int32 pari
 	bzero(&newtio,sizeof(newtio));  
 	cfmakeraw(&newtio);  //配置为原始模式。
 	
-     newtio.c_cflag |= CLOCAL |CREAD;  
-    
-	fcntl(fd, F_SETFL, O_NONBLOCK);//设置为非阻塞方式。
-
-
 	for (i=0;i<(sizeof(lu32speed_arr)/sizeof(int32));i++) { 
 		if(speed == lu32name_arr[i]){ 
 			cfsetispeed(&newtio,lu32speed_arr[i]);  
-			cfsetospeed(&newtio,lu32speed_arr[i]); 	    
+			cfsetospeed(&newtio,lu32speed_arr[i]); 
+			newtio.c_cflag |= lu32speed_arr[i];
 			break;				    
 		} 
 		    
@@ -161,9 +159,13 @@ int8 set_com_para(int32 fd,int32 speed, int32 databits,int32 stopbits,int32 pari
 			break;
 
 	} 
+	
+	newtio.c_iflag = IGNPAR;
+     newtio.c_cflag |= HUPCL | CREAD | CLOCAL;
+     
 
 	newtio.c_cc[VTIME] = 50;  
-     newtio.c_cc[VMIN] = 0;  
+     newtio.c_cc[VMIN] = 1;  
   
      tcflush(fd,TCIOFLUSH);  
 	

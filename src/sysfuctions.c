@@ -25,6 +25,11 @@ sem_t  CRITICAL_sem;
 sem_t  RS485Up_sem;  //上行485端口信号量
 sem_t  RS485Down_sem;//下行485端口信号量
 sem_t  GPRSPort_sem; //GPRS端口信号量
+sem_t  OperateDB_sem; //操作数据库的信号量
+sem_t  OperateMBUS_sem;	//操作MBUS端口信号量
+sem_t  Opetate485Down_sem;	//操作485下行端口信号量。
+
+
 
 
 
@@ -101,13 +106,96 @@ void OSSemPost(uint8 dev)
 
 
 
+
+
+
+/*
+  ******************************************************************************
+  * 函数名称： uint8 Str2Bin(char *str, uint8 *array,uint16 lens)
+  * 说    明： 将字符串转换为十六进制数。
+  * 参    数： lens为array指向空间的字节数，以防str较长，array空间不足带来的问题。
+  ******************************************************************************
+*/
+uint8 Str2Bin(char *str, uint8 *array,uint16 lens)
+{
+	char temp;
+	char data;
+	uint16 lu16counter = 0;
+
+	int number = 0;
+	char tempLow, tempHigh;
+
+	number = strlen(str);
+	//printf("[%s][%s][%d] number = %d\n",FILE_LINE,number);	
+	if(number%2)
+	{	
+		number++;
+		data = *str++;
+		tempHigh = 0x00;
+		tempLow  = Ascii2Hex(data);
+		//printf("templow data is %x\n", tempLow);
+		*array++ = (tempHigh << 4) + tempLow;
+		//printf("creat array data is %x\n", (tempHigh << 4) + tempLow);
+		lu16counter += 1;
+	}
+	
+	//printf("The string 2 Hex data is: ");
+	while(*str != '\0')
+	{
+		if(lu16counter < lens){
+			data = *str++;
+			temp = Ascii2Hex(data)<<4;
+			data = *str++;
+			temp += Ascii2Hex(data);
+
+			*array++ = temp;
+			//printf(" %x ,", temp);
+		
+			lu16counter += 1;
+		}
+		else{
+			break;
+		}
+		
+	}
+	//printf("\n");
+	return 0;
+
+}
+
+
+/*
+  ******************************************************************************
+  * 函数名称： uint8 PUBLIC_CountCS(uint8* _data, uint16 _len)
+  * 说    明： 计算一串数字的累加和校验，溢出部分舍弃。
+  * 参    数： 
+  ******************************************************************************
+*/
+
+uint8 PUBLIC_CountCS(uint8* _data, uint16 _len)
+{
+    uint8 cs = 0;
+    uint16 i;
+    
+    for(i=0;i<_len;i++)
+    {
+       cs += *_data++;
+    }
+    
+    return cs;    
+}
+
+
+
+
+
 /*
   ******************************************************************************
   * 函数名称： void misc_init(void)
   * 说    明： 杂项初始化处理。
   * 参    数： 无
   ******************************************************************************
-  */
+*/
 
 void misc_init(void)
 {

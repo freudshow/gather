@@ -61,7 +61,7 @@ enum DB_Meter_Info
 
 
 /********************************************************************************
-**							Meter_Info_Table
+**							Request_Data_Table
 ** 
 **
 ** 	给每个字段定义枚举数据，在数据库读取时根据枚举数据直接取该字段数据
@@ -70,44 +70,15 @@ enum DB_Meter_Info
 
 enum DB_Request_Data
 {
-	geMI_MeterID	=	0,	//从0开始
-	geMI_MeterAddr,
-	geMI_MeterType,
-	geMI_ProtocolType,
-	geMI_ChannelNum,
-	geMI_PositionInfo
+	geRD_MeterType	=	0,	//从0开始
+	geRD_DataIndex,
+	geRD_DataName,
 
-};
-
-
-
-/********************************************************************************
-**							Electric_Meter_Table
-** Meter_addr | Read_time | Subitem | Total_active_power | Maximum_demand | 
-**
-** Overall_power_factor
-**
-** 	给每个字段定义枚举数据，在数据库读取时根据枚举数据直接取该字段数据
-**
-********************************************************************************/
-
-enum DB_Electric_Meter
-{
-	gSEG_Meter_addr_ElectricMeter,
-	gSEG_Meter_id_ElectricMeter,
-	gSEG_Read_time_ElectricMeter,
-	gSEG_Function_id_ElectricMeter,
-	gSEG_Subitem_ElectricMeter,
-	gSEG_Error_ElectricMeter,
-	gSEG_Total_active_power_ElectricMeter,
-	gSEG_Maximum_demand_ElectricMeter,
-	gSEG_Overall_power_factor_ElectricMeter
 };
 
 
 /********************************************************************************
 **							Heat_Meter_Table
-** Meter_addr | Read_time | Subitem |  |  | 
 **
 ** 
 **
@@ -117,18 +88,41 @@ enum DB_Electric_Meter
 
 enum DB_Heat_Meter
 {
-	gSEG_Meter_addr_HeatMeter,
-	gSEG_Meter_id_HeatMeter,
-	gSEG_Read_time_HeatMeter,
-	gSEG_Function_id_HeatMeter,
-	gSEG_Subitem_HeatMeter,
-	gSEG_Error_HeatMeter,
-	gSEG_Heat_HeatMeter
+	geHM_MeterID	=	0,	//从0开始
+	geHM_MeterAddr,
+	geHM_MeterType,
+	geHM_TimeNode,
+	geHM_ReadTime,
+	geHM_Remark,	//抄表备注，正常、失败、短路等等。
+	
 };
+
+
+
+
+/********************************************************************************
+**							Electric_Meter_Table
+**
+** 	给每个字段定义枚举数据，在数据库读取时根据枚举数据直接取该字段数据
+**
+********************************************************************************/
+
+enum DB_Electric_Meter
+{
+	geEM_MeterID	=	0,	//从0开始
+	geEM_MeterAddr,
+	geEM_MeterType,
+	geEM_TimeNode,
+	geEM_ReadTime,
+	geEM_Remark,	//抄表备注，正常、失败、短路等等。
+
+};
+
+
+
 
 /********************************************************************************
 **							 Water_Meter_Table
-** Meter_addr | Read_time | Subitem |  |  | 
 **
 ** 
 **
@@ -138,14 +132,38 @@ enum DB_Heat_Meter
 
 enum DB_Water_Meter
 {
-	gSEG_Meter_addr_WaterMeter,
-	gSEG_Meter_id_WaterMeter,
-	gSEG_Read_time_WaterMeter,
-	gSEG_Function_id_WaterMeter,
-	gSEG_Subitem_WaterMeter,
-	gSEG_Error_WaterMeter,
-	gSEG_Flow_WaterMeter
+	geWM_MeterID	=	0,	//从0开始
+	geWM_MeterAddr,
+	geWM_MeterType,
+	geWM_TimeNode,
+	geWM_ReadTime,
+	geWM_Remark,	//抄表备注，正常、失败、短路等等。
+
 };
+
+
+
+/********************************************************************************
+**							 Time_Node_Table
+**
+** 
+**
+** 	给每个字段定义枚举数据，在数据库读取时根据枚举数据直接取该字段数据
+**
+********************************************************************************/
+
+enum DB_Time_Node
+{
+	geTN_TimeNode	=	0,	//从0开始
+
+};
+
+
+
+
+
+
+
 
 typedef struct
 {

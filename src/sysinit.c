@@ -10,13 +10,14 @@
   *
   *
   ******************************************************************************
-  */  
+ */  
 
 #include "includes.h"
 #include "uart_set.h"
 #include "commap.h"
 #include "sysinit.h"
 #include "xml.h"
+#include "bsp.h"
 
 
 
@@ -27,6 +28,8 @@ int32 g_uiIoControl = 0;    //IO¹Ü½Å¿ØÖÆ
 int32 g_uiRS4851Fd = 0;
 int32 g_uiRS4852Fd = 0;
 int32 g_uiGprsFd = 0;
+int32 g_uiMbusFd = 0;
+
 
 
 
@@ -48,7 +51,8 @@ void sysinit(void)
 	//COM_INFO_T  l_RS4851DeviceInfo;
 
 	sem_Init();
-	UpcomInit();
+	UpcommapInit();
+	
 	lu8ret = XMLBuf_Init();
 	if(lu8ret == NO_ERR)
 		printf("XMLBuf_Init OK.\n");
@@ -96,6 +100,14 @@ uint8 QueuesInit(void)
     	}
     
   	if (QueueCreate((void *)USART3RecQueue_AtIPD,sizeof(USART3RecQueue_AtIPD),NULL,NULL) == NOT_OK){
+		return ERR_1;
+    	}
+
+	if (QueueCreate((void *)DownRecQueue_RS485,sizeof(DownRecQueue_RS485),NULL,NULL) == NOT_OK){
+		return ERR_1;
+    	}
+
+	if (QueueCreate((void *)DownRecQueue_MBUS,sizeof(DownRecQueue_MBUS),NULL,NULL) == NOT_OK){
 		return ERR_1;
     	}
 	
@@ -158,9 +170,63 @@ void sem_Init(void)
 	   perror("sem_init\n");
 	}
 
+	ret = sem_init(&OperateDB_sem,0,1);
+	if(ret != 0){
+   		perror("sem_init\n");
+	}
+
+	ret = sem_init(&OperateMBUS_sem,0,1);
+	if(ret != 0){
+   		perror("sem_init\n");
+	}
+
+	ret = sem_init(&Opetate485Down_sem,0,1);
+	if(ret != 0){
+   		perror("sem_init\n");
+	}
+
+
+
+ 	ret = sem_init(&UpRecQueSem_Gprs,0,0);
+	if(ret != 0)
+		perror("UpRecQueSem_Gprs  error\n");
+	
+	 ret = sem_init(&USART3RecQueSem_At,0,0);
+	if(ret != 0)
+		perror("UpRecQueSem_Gprs  error\n");
+
+	 ret = sem_init(&USART3RecQueSem_AtIPD,0,0);
+	if(ret != 0)
+		perror("UpRecQueSem_Gprs  error\n");
+
+	ret = sem_init(&UpRecQueSem_RS485UP,0,0);
+	if(ret != 0)
+		perror("UpRecQueSem_Gprs  error\n");
+
+	ret = sem_init(&Sequence_XML_sem,0,0);
+	if(ret != 0)
+		perror("UpRecQueSem_Gprs  error\n");
+
+	ret = sem_init(&Result_XML_sem,0,0);
+	if(ret != 0)
+		perror("UpRecQueSem_Gprs  error\n");
+
+	ret = sem_init(&MBUSRec_sem,0,0);
+	if(ret != 0)
+		perror("UpRecQueSem_Gprs  error\n");
+
+	ret = sem_init(&Down485Rec_sem,0,0);
+	if(ret != 0)
+		perror("UpRecQueSem_Gprs  error\n");
+	
+
+
+	
+
 
 
 }
+
 
 
 

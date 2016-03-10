@@ -1,25 +1,33 @@
 /*
   *******************************************************************************
-  * @file    sysconfig.h
+  * @file    uart_gprs.c
   * @author  zjjin
   * @version V0.0.0
-  * @date    02-24-2016
+  * @date    03-09-2016
   * @brief   
   ******************************************************************************
   * @attention
   *
   *
   ******************************************************************************
-  */ 
-
-#ifndef _SYSCONFIG_H_
-#define _SYSCONFIG_H_
+*/ 
 
 
+#ifndef _UART_GPRS_H_
+#define _UART_GPRS_H_
+
+#include "includes.h"
 
 
-#define 	DEBUG		//DEBUG¿ª¹Ø
 
 
-#endif  //_SYSCONFIG_H_
+extern int pthread_UartGprs_Rec(void);
+extern INT32 UartGprs_Rec(void);
+
+
+
+
+
+
+#endif  //_UART_GPRS_H_
 

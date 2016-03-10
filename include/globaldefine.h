@@ -30,6 +30,16 @@ typedef unsigned short uint16;
 typedef unsigned int uint32;
 
 
+//设备类型定义
+#define HEATMETER	0x20
+#define WATERMETER	0x10
+#define ELECTMETER	0x40
+#define GASMETER	0x30
+
+
+
+
+
 //定义设备文件名称
 #define DEVICE4851		"/dev/ttyS1"
 #define DEVICE4852   	"/dev/ttyS2"
@@ -89,11 +99,19 @@ typedef unsigned int uint32;
 
 
 //超时时间宏定义
-#define REC_TIMEOUT_SEC  	1 	//超时时间 秒
+#define REC_TIMEOUT_SEC  	2 	//超时时间 秒
 #define REC_TIMEOUT_USEC  	0	//超时时间 毫秒
 
 #define RS485UP_REC_TIMEOUT_SEC  	REC_TIMEOUT_SEC 	
 #define RS485UP_REC_TIMEOUT_USEC  	REC_TIMEOUT_USEC	
+
+
+
+#define METER_FRAME_LEN_MAX	256		//数据帧最大长度, 该数据必须保证为2的N次方
+
+#define RS485_DOWN_CHANNEL	7		//宏定义下行485通道号。
+
+
 
 
 
