@@ -175,11 +175,12 @@ typedef pMeter_info meter_info_List;
 #define MTYPE_HEAT	0x20//热量表编号
  
 struct request_data_str{
+	int32 f_id;
+	uint8 f_meter_type;
+	uint8 f_item_index;
 	char f_col_name[LENGTH_F_COL_NAME];
 	char f_col_type[LENGTH_F_COL_TYPE];
-	int f_id;
-	int f_meter_type;
-	int f_item_index;
+	struct request_data_str *pNext;
 };
 typedef struct request_data_str *pRequest_data;
 typedef pRequest_data request_data_list;
@@ -217,7 +218,7 @@ struct his_data_str{
 	char f_meter_address[LENGTH_F_METER_ADDRESS];//仪表地址
 	int  f_device_id;//仪表的设备编号
 	int  f_id;//索引值
-	int  f_meter_type;//仪表类型
+	uint8  f_meter_type;//仪表类型
 	his_data_list value_list;//数据项链表
 	int value_cnt;//数据项的数量
 	struct his_data_str* pNext;//下个元素
@@ -228,24 +229,37 @@ typedef pHis_data his_data_List;
 
 
 /********************************************************************************
- ** 全局声明
+ *******************          全局声明       ************************************
  ********************************************************************************/
-extern sys_config_str sys_config_array[SYS_CONFIG_COUNT];
-extern meter_info_List list_meter_info;
-extern request_data_list list_request_data;
+ 
+/***************************************
+ ** 数据库打开与关闭, sql语句组合相关 **
+ ***************************************/
+int open_db(void);
+int close_db(void);
+void get_select_sql(char *table_name, char **cols, int col_count, char *sql);
+void get_where_sql(char **condition, int con_count, char *sql);
+void get_orderby_sql(char **fields, int f_cnt, int asc, char *sql);
+void get_query_sql(char *table_name, char **cols, int col_count, char **condition, int con_count, char *sql);
+void get_insert_sql(char *table_name, char **cols, int col_count, char **values,char *sql);
+void get_update_sql(char *table_name, char **sets, int set_count, char **condition, int con_count, char *sql);
+void get_delete_sql(char *table_name, char **condition, int con_count, char *sql);
+/**********************
+ ** 系统配置参数相关 **
+ **********************/
+void read_sys_config(char *pErr);//从数据库读取基本配置
+sys_config_str get_sys_config(enum T_System_Config);//读取单独一条配置
+int get_sys_config_cnt();//读取系统配置参数的个数
 
-extern int open_db(void);
-extern int close_db(void);
-extern void get_select_sql(char *table_name, char **cols, int col_count, char *sql);
-extern void get_where_sql(char **condition, int con_count, char *sql);
-extern void get_orderby_sql(char **fields, int f_cnt, int asc, char *sql);
-extern void get_query_sql(char *table_name, char **cols, int col_count, char **condition, int con_count, char *sql);
-extern void get_insert_sql(char *table_name, char **cols, int col_count, char **values,char *sql);
-extern void get_update_sql(char *table_name, char **sets, int set_count, char **condition, int con_count, char *sql);
-extern void get_delete_sql(char *table_name, char **condition, int con_count, char *sql);
-extern void read_sys_config(char *pErr);
-extern void init_meter_info_list(void);
-extern void read_meter_info(char	*pErr);
-extern void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info));
+/**********************
+ ** 仪表地址信息相关 **
+ **********************/
+void read_meter_info(char	*pErr);//从数据库读取仪表地址信息
+void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info));//顺序遍历仪表地址信息
+int  get_meter_info_cnt();//读取仪表地址信息的个数
+
+/**********************
+ ** 读取配置项相关 **
+ **********************/
 
 #endif  //_DB_H_

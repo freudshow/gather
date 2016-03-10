@@ -25,17 +25,15 @@ extern SQLITE_API int SQLITE_STDCALL sqlite3_open(
 
 sqlite3 *g_pDB;//数据库指针, 私有变量, 只允许通过本文件提供的函数操作, 不允许外部代码操作
 
-sys_config_str sys_config_array[SYS_CONFIG_COUNT];//基本配置列表, 公有变量
-int config_idx;//基本配置的个数索引, 私有变量
-int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
-int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name);
+static sys_config_str sys_config_array[SYS_CONFIG_COUNT];//基本配置列表, 私有变量
+static int config_idx;//基本配置的个数索引, 私有变量
+static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
+static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 
 
-meter_info_List list_meter_info;//仪表信息列表, 公有变量
-int meter_info_idx;//集中器挂载的仪表数量的索引
-void empty_meter_info_list();
-void init_meter_info_list();//将
-
+static meter_info_List list_meter_info = NULL;//仪表信息列表, 私有变量
+static int meter_info_idx;//集中器挂载的仪表数量的索引, 私有变量
+static void empty_meter_info_list();
 
 
 /********************************************************************************
@@ -72,9 +70,7 @@ void read_meter_info(char	*pErr)
 	int  col_cnt = 7;
 	
 	meter_info_idx = 0;
-	if(!list_meter_info)
-		empty_meter_info_list(list_meter_info);
-
+	empty_meter_info_list();//清空以前的信息, 以重新读取
 	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
 	get_orderby_sql(&col_buf[3], 1, 1, order_buf);
 	strcat(sql_buf, " ");
@@ -83,13 +79,14 @@ void read_meter_info(char	*pErr)
 	//printf("%s\n", sql_buf);
 	sqlite3_exec(g_pDB, sql_buf, each_meter_info, NULL, &pErr);
 	free(sql_buf);
+	free(order_buf);
 }
 
-int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
+static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 {
-	int i, j;
-	int length;
-	int low_idx;
+	int i, j;//i, 一条记录的字段名索引; j表地址
+	int length;//从数据表中读取的表地址字符串的长度
+	int low_idx;//从数据表中读取的表地址字符串, 高位(低索引)下标
 	pMeter_info tmp_info = malloc(sizeof(struct meter_info_str));
 	memset(tmp_info, 0, sizeof(struct meter_info_str));
 	for (i=0; i<f_cnt; i++) {
@@ -103,8 +100,12 @@ int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 					(((low_idx < 0) ? 0: (f_value[i][low_idx]-'0')) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-'0'));
 			}
 		}
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码
-			tmp_info->f_meter_type = (((f_value[i][0]-'0')<<4) | (f_value[i][1]-'0'));
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码, 固定为两个字符
+			if (strlen(f_value[i]) == 2) {
+				tmp_info->f_meter_type = (((f_value[i][0]-'0')<<4) | (f_value[i][1]-'0'));
+			}
+			else {//异常情况
+			}
 		}
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_CHANNEL))//仪表通道
 			tmp_info->f_meter_channel = atoi(f_value[i]);
@@ -114,6 +115,9 @@ int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 			tmp_info->f_device_id = atoi(f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_PROTO_TYPE))//仪表的协议编码
 			tmp_info->f_meter_proto_type = atoi(f_value[i]);
+		else {//异常情况
+
+		}
 	}
 	tmp_info->pPrev = NULL;
 	tmp_info->pNext = list_meter_info;
@@ -125,22 +129,21 @@ int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 	return 0;
 }
 
-//清空仪表信息, 以便重新读取
-void empty_meter_info_list(meter_info_List list)
+int get_meter_info_cnt()
 {
-	pMeter_info pInfo, tmp_info;
-	pInfo = list;
-	while(pInfo) {
-		tmp_info = pInfo;
-		pInfo = pInfo->pNext;
-		free(tmp_info);
-	}
-	init_meter_info_list();
+	return meter_info_idx;
 }
 
-void init_meter_info_list()
+//清空仪表信息, 以便重新读取
+//此函数运行的基础是, list必须先初始化为NULL
+static void empty_meter_info_list()
 {
-	list_meter_info = NULL;
+	pMeter_info tmp_info;
+	while(list_meter_info) {
+		tmp_info = list_meter_info;
+		list_meter_info = list_meter_info->pNext;
+		free(tmp_info);
+	}
 }
 
 //遍历仪表信息, 对每一个表进行read_one_meter操作
@@ -159,6 +162,11 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
  **	 函数名: read_sys_config
  ** 功能	: 从数据库中读取基本参数, 放到sys_config_array中
  ********************************************************************************/
+sys_config_str get_sys_config(enum T_System_Config idx)
+{
+	return sys_config_array[idx];
+}
+
 void read_sys_config(char *pErr)
 {
 	char *sql_buf = malloc(LENGTH_SQLBUF);
@@ -174,6 +182,7 @@ void read_sys_config(char *pErr)
 	strcat(sql_buf, order_buf);
 	sqlite3_exec(g_pDB, sql_buf, each_config, NULL, &pErr);
 	free(sql_buf);
+	free(order_buf);
 }
 
 int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
@@ -189,6 +198,11 @@ int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 	}
 	config_idx++;
 	return 0;
+}
+
+int get_sys_config_cnt()
+{
+	return config_idx;
 }
 
 
