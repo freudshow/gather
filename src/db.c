@@ -25,15 +25,27 @@ extern SQLITE_API int SQLITE_STDCALL sqlite3_open(
 
 sqlite3 *g_pDB;//数据库指针, 私有变量, 只允许通过本文件提供的函数操作, 不允许外部代码操作
 
+/**********************
+ ** 读取系统配置相关 **
+ **********************/
 static sys_config_str sys_config_array[SYS_CONFIG_COUNT];//基本配置列表, 私有变量
 static int config_idx;//基本配置的个数索引, 私有变量
 static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
-static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 
-
+/**********************
+ ** 读取仪表信息相关 **
+ **********************/
 static meter_info_List list_meter_info = NULL;//仪表信息列表, 私有变量
 static int meter_info_idx;//集中器挂载的仪表数量的索引, 私有变量
+static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 static void empty_meter_info_list();
+/**********************
+ ** 读取数据项相关 **
+ **********************/
+static request_data_list list_request_data = NULL;//仪表信息列表, 私有变量
+static int request_data_idx;//配置数据项数量的索引, 私有变量
+static int each_request_data(void *NotUsed, int f_cnt, char **f_value, char **f_name);
+static void empty_request_data_list();
 
 
 /********************************************************************************
@@ -53,6 +65,67 @@ int close_db(void)
 {
 	 return (sqlite3_close(g_pDB) == SQLITE_OK) ? SQLITE_OK : -1;
 }
+
+/********************************************************************************
+ ** 功能区域	: 读取数据项
+ ********************************************************************************/
+
+void read_request_data(char *pErr, uint8 meter_type)
+{
+	char *sql_buf = malloc(LENGTH_SQLBUF);
+	char *where_buf = malloc(LENGTH_SQLCON);
+
+	char *m_type = malloc(LENGTH_F_METER_TYPE);
+	//char *con_buf[LENGTH_SQLCONS] = {FIELD_REQUEST_MTYPE};//这样初始化后, con_buf[0]指向const char*, 不能再进行连接, copy等操作
+	char *con_buf = malloc(LENGTH_SQLCONS);
+	char *table_name = TABLE_REQUEST_DATA;
+	char *col_buf[LENGTH_F_COL_NAME] =  {FIELD_REQUEST_ID, \
+				FIELD_REQUEST_MTYPE, FIELD_REQUEST_ITEMIDX, FIELD_REQUEST_COLNAME,\
+				FIELD_REQUEST_COLTYPE};
+	int  col_cnt = 5;
+
+	meter_info_idx = 0;
+	sprintf(m_type, "%2x", meter_type);
+
+	
+	strcat(con_buf, SQL_EQUAL);
+	strcat(con_buf[0], m_type);
+	printf("%s\n", con_buf);
+	
+	empty_request_data_list();//清空以前的信息, 以重新读取
+	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
+	get_where_sql(&con_buf, 1, where_buf);
+	strcat(sql_buf, " ");
+	strcat(sql_buf, where_buf);
+	strcat(sql_buf, ";");
+	
+	sqlite3_exec(g_pDB, sql_buf, each_request_data, NULL, &pErr);
+	free(m_type);
+	free(sql_buf);
+	free(where_buf);
+}
+
+static int each_request_data(void *NotUsed, int f_cnt, char **f_value, char **f_name)
+{
+	return 0;
+}
+
+
+void retrieve_request_data_list(int (*read_one_meter)(pMeter_info))
+{
+	
+}
+
+static void empty_request_data_list()
+{
+	
+}
+
+int  get_request_data_cnt()
+{
+	return request_data_idx;
+}
+
 /********************************************************************************
  **	 函数名: read_meter_info
  ** 功能	: 从数据库中读取仪表地址信息, 放到list_meter_info中
@@ -76,7 +149,6 @@ void read_meter_info(char	*pErr)
 	strcat(sql_buf, " ");
 	strcat(sql_buf, order_buf);
 	strcat(sql_buf, ";");
-	//printf("%s\n", sql_buf);
 	sqlite3_exec(g_pDB, sql_buf, each_meter_info, NULL, &pErr);
 	free(sql_buf);
 	free(order_buf);
@@ -97,12 +169,12 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 			for (j=0; j<(length+1)/BYTE_BCD_CNT;j++) {
 				low_idx = length-BYTE_BCD_CNT*j-2;
 				tmp_info->f_meter_address[LENGTH_B_METER_ADDRESS-1-j] = \
-					(((low_idx < 0) ? 0: (f_value[i][low_idx]-'0')) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-'0'));
+					(((low_idx < 0) ? 0: (f_value[i][low_idx]-ZERO_CHAR)) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-ZERO_CHAR));
 			}
 		}
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码, 固定为两个字符
-			if (strlen(f_value[i]) == 2) {
-				tmp_info->f_meter_type = (((f_value[i][0]-'0')<<4) | (f_value[i][1]-'0'));
+			if (strlen(f_value[i]) == BYTE_BCD_CNT) {
+				tmp_info->f_meter_type = (((f_value[i][0]-ZERO_CHAR)<<LEN_HALF_BYTE) | (f_value[i][1]-ZERO_CHAR));
 			}
 			else {//异常情况
 			}

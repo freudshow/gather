@@ -29,7 +29,7 @@
 #include <errno.h> /*´íÎóºÅ¶¨Òå*/ 
 #include <semaphore.h>
 #include <pthread.h>
-#include "sqlite/include/sqlite3.h"
+#include <sqlite3/sqlite3.h>
 
 
 
