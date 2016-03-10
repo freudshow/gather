@@ -50,13 +50,16 @@ static int CallBack_ReadAllMeters(void *p_Para, int argc, char **argv, char **az
 	}
 	memset(&mf, 0x00, sizeof(mf));
 
+/*
 	Str2Bin(argv[geMI_MeterID], (uint8 *)&mf.u16MeterID,sizeof(mf.u16MeterID));
 	Str2Bin(argv[geMI_MeterAddr], (uint8 *)mf.u8MeterAddr,sizeof(mf.u8MeterAddr));
 	Str2Bin(argv[geMI_MeterType], (uint8 *)&mf.u8MeterType,sizeof(mf.u8MeterType));
 	Str2Bin(argv[geMI_ProtocolType], (uint8 *)&mf.u8ProtocolType,sizeof(mf.u8ProtocolType));
 	Str2Bin(argv[geMI_ChannelNum], (uint8 *)&mf.u8Channel,sizeof(mf.u8Channel));
 
-	ReadAllMeters(&mf,argv[geMI_PositionInfo]);	
+*/
+
+	ReadAllMeters(&mf,NULL);	
 
 
 
@@ -167,11 +170,11 @@ void pthread_ReadAllMeters(void)
 
 		
 		//rec = sqlite3_exec(p_sqlitedb, SQ_Str,CallBack_ReadAllMeters, NULL, &zErrMsg);
-		if( rec != SQLITE_OK ){
-                    debug_err(gDebugModule[METER],"[%s][%s][%d] \n",FILE_LINE);
-                    fprintf(stderr, "SQL error: %s\n", zErrMsg);
-			     sqlite3_free(zErrMsg);
-          }
+		//if( rec != SQLITE_OK ){
+          //          debug_err(gDebugModule[METER],"[%s][%s][%d] \n",FILE_LINE);
+          //          fprintf(stderr, "SQL error: %s\n", zErrMsg);
+		//	     sqlite3_free(zErrMsg);
+          //}
 
 		/*
 		if(pmf->u8Channel == RS485_DOWN_CHANNEL){

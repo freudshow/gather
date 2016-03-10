@@ -29,9 +29,8 @@
 #include <errno.h> /*¥ÌŒÛ∫≈∂®“Â*/ 
 #include <semaphore.h>
 #include <pthread.h>
-#include "sqlite/include/sqlite3.h"
-
-
+#include "sqlite3/sqlite3.h"
+#include "sqlite3/sqlite3ext.h"
 
 
 
@@ -40,7 +39,6 @@
 #include "sysfuctions.h"
 #include "sysinit.h"
 #include "queue.h"
-#include "DB_Segment.h"
 
 
 
