@@ -18,12 +18,7 @@
 #include "globaldefine.h" 
 #include "db.h"
 
-extern SQLITE_API int SQLITE_STDCALL sqlite3_open(
-  const char *filename,   /* Database filename (UTF-8) */
-  sqlite3 **ppDb          /* OUT: SQLite db handle */
-);//sqlite3 基本数据库接口
-
-sqlite3 *g_pDB;//数据库指针, 私有变量, 只允许通过本文件提供的函数操作, 不允许外部代码操作
+sqlite3 *g_pDB = NULL;//数据库指针, 私有变量, 只允许通过本文件提供的函数操作, 不允许外部代码操作
 
 /**********************
  ** 读取系统配置相关 **
@@ -202,7 +197,7 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 	for (i=0; i<f_cnt; i++) {
 		if (0 == strcmp(f_name[i], FIELD_MINFO_ID))//仪表ID
 			tmp_info->f_id  = atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_ADDRESS)) {//仪表地址
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_ADDRESS)) {//仪表地址BCD
 			length = strlen(f_value[i]);
 			for (j=0; j<(length+1)/BYTE_BCD_CNT;j++) {
 				low_idx = length-BYTE_BCD_CNT*j-2;
@@ -210,7 +205,7 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 					(((low_idx < 0) ? 0: (f_value[i][low_idx]-ZERO_CHAR)) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-ZERO_CHAR));
 			}
 		}
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码, 固定为两个字符
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码(BCD), 固定为两个字符
 			if (strlen(f_value[i]) == BYTE_BCD_CNT) {
 				tmp_info->f_meter_type = (((f_value[i][0]-ZERO_CHAR)<<LEN_HALF_BYTE) | (f_value[i][1]-ZERO_CHAR));
 			}

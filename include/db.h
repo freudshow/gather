@@ -153,12 +153,12 @@ typedef sys_config_str *pSys_config;
 #define FIELD_MINFO_PROTO_TYPE	"f_meter_proto_type"
 
 struct meter_info_str{
-	uint32 f_id;//行索引, 声明放到前面, 以免值被uint8[]类型的溢出改写
-	uint8 f_meter_address[LENGTH_B_METER_ADDRESS];//表地址7字节
-	uint8 f_meter_type;//1字节
-	uint8 f_meter_channel;//1字节
-	uint16 f_device_id;//2字节
-	uint8 f_meter_proto_type;//1字节
+	uint32 f_id;//行索引, 声明放到前面, 以免值被uint8[]类型的溢出改写HEX
+	uint8 f_meter_address[LENGTH_B_METER_ADDRESS];//表地址7字节BCD
+	uint8 f_meter_type;//1字节BCD
+	uint8 f_meter_channel;//1字节HEX
+	uint16 f_device_id;//2字节HEX
+	uint8 f_meter_proto_type;//1字节HEX
 
 	//安装位置, 50字节; 应该放到值声明的最后, 
 	//以免因为"安装位置"的长度超过LENGTH_F_INSTALL_POS, 
