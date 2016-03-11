@@ -224,6 +224,7 @@ struct his_field_data{
 	char field_name[LENGTH_F_COL_NAME];
 	enum T_His_Field eData_type;
 	struct his_field_data *pNext;
+	struct his_field_data *pPrev;
 };
 typedef struct his_field_data *pHis_field_data;
 typedef pHis_field_data his_data_list;

@@ -201,7 +201,9 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 			length = strlen(f_value[i]);
 			for (j=0; j<(length+1)/BYTE_BCD_CNT;j++) {
 				low_idx = length-BYTE_BCD_CNT*j-2;
-				tmp_info->f_meter_address[LENGTH_B_METER_ADDRESS-1-j] = \
+				/*tmp_info->f_meter_address[LENGTH_B_METER_ADDRESS-1-j] = \
+					(((low_idx < 0) ? 0: (f_value[i][low_idx]-ZERO_CHAR)) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-ZERO_CHAR));*/
+				tmp_info->f_meter_address[j] = \
 					(((low_idx < 0) ? 0: (f_value[i][low_idx]-ZERO_CHAR)) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-ZERO_CHAR));
 			}
 		}
