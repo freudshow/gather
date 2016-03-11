@@ -258,13 +258,32 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
 {
 	if(!read_one_meter)
 		return;
-
+	
+	int i;
+	pMeter_info pInfo_return = malloc(sizeof(struct meter_info_str));//回传一个独立的结构体, 保证原始数据的安全
 	pMeter_info pInfo = list_meter_info;
+
 	while(pInfo) {
-		read_one_meter(pInfo);
+		pInfo_return->f_id 					= pInfo->f_id;
+		pInfo_return->f_meter_type 		= pInfo->f_meter_type;
+		pInfo_return->f_meter_channel 	= pInfo->f_meter_channel;
+		pInfo_return->f_device_id 			= pInfo->f_device_id;
+		pInfo_return->f_meter_proto_type	= pInfo->f_meter_proto_type;
+		
+		for(i=0; i<LENGTH_B_METER_ADDRESS;i++)
+			pInfo_return->f_meter_address[i]	= pInfo->f_meter_address[i];
+		
+		for(i=0; i<LENGTH_F_INSTALL_POS;i++)
+			pInfo_return->f_install_pos[i] = pInfo->f_install_pos[i];
+		
+		pInfo_return->pNext = NULL;
+		pInfo_return->pPrev = NULL;
+		read_one_meter(pInfo_return);
 		pInfo = pInfo->pNext;
 	}
+	free(pInfo_return);
 }
+
 
 
 /********************************************************************************
