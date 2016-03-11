@@ -23,6 +23,7 @@
 
 
 
+
 // 全局文件描述符
 int32 g_uiIoControl = 0;    //IO管脚控制
 int32 g_uiRS4851Fd = 0;
@@ -48,7 +49,6 @@ int32 g_uiMbusFd = 0;
 void sysinit(void)
 {
 	uint8 lu8ret= 0;
-	//COM_INFO_T  l_RS4851DeviceInfo;
 
 	sem_Init();
 	UpcommapInit();
@@ -68,6 +68,10 @@ void sysinit(void)
 		printf("open_IOControl OK!\n");
 	else
 		printf("Error,in open_IOControl!\n");
+
+	
+	sqldb_init();
+
 
 
 
@@ -222,6 +226,37 @@ void sem_Init(void)
 
 
 	
+
+
+
+}
+
+
+/*
+  ******************************************************************************
+  * 函数名称： void sqldb_init(void)
+  * 说    明： 数据库相关内容初始化
+  * 参    数： 无
+  ******************************************************************************
+*/
+
+void sqldb_init(void)
+{
+	char lcSqlRetArry[100];
+	uint8 lu8tmp = 0;
+
+	open_db();
+	read_meter_info(lcSqlRetArry);  //将数据库中的表信息初始化到内存。
+	lu8tmp = strlen(lcSqlRetArry);
+	if(lu8tmp > 0){
+		printf("read_meter_info Err is %s .\n",lcSqlRetArry);
+	}
+
+	printf("get_meter_info_cnt ret = %d.\n",get_meter_info_cnt());
+
+
+
+	//后续待完善。
 
 
 

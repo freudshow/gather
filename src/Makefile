@@ -3,7 +3,7 @@ CC				=$(CROSS)gcc
 TARGET			=gather_V0
 BIN				=../bin/$(TARGET)
 SRC				=main.c sysinit.c uart_set.c commap.c queue.c sysfuctions.c xml.c rs485up.c readallmeters.c read_heatmeter.c \
-		 			meter_table.c bsp.c uart_mbus_down485.c uart_gprs.c
+		 			meter_table.c bsp.c uart_mbus_down485.c uart_gprs.c db.c
 INCLUDEPATH		=-I ../include -I ../include/libxml2
 OBJ				=-o $(BIN)
 CFLAGS			=-g -Wall 

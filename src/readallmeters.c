@@ -20,9 +20,6 @@
 
 
 sqlite3 *p_sqlitedb;	//数据库句柄
-uint8 gu8ReadAllMeterFlag = 0;  //用于标记是否正在抄全表，1-正在抄全表，0-没有在抄全表。
-uint8 gu8DownComDev = 0; //记录使用哪一种下行设备,只能用于全抄表过程中，不允许用于指令控制/抄表。
-
 
 
 
@@ -36,30 +33,32 @@ uint8 gu8DownComDev = 0; //记录使用哪一种下行设备,只能用于全抄表过程中，不允许用
   ******************************************************************************
 */
 
-static int CallBack_ReadAllMeters(void *p_Para, int argc, char **argv, char **azColName)
+static int CallBack_ReadAllMeters(pMeter_info pMeterInfo)
 {
 	uint8 i = 0;
-	//uint8 err = 0;
 	MeterFileType mf;
 
+	//begin:打印测试pMeter_info内容
+	printf("MeterID = %d  .",pMeterInfo->f_device_id);
+	printf("MeterAddr = ");
+	for(i=0;i<7;i++)
+		printf("%x",pMeterInfo->f_meter_address[i]);
 	
-	for(i=0; i<argc; i++)
-	{
-		debug_info(gDebugModule[METER],"%s", argv[i]);
-		debug_info(gDebugModule[METER],"    %s\n",azColName[i]);
-	}
-	memset(&mf, 0x00, sizeof(mf));
+	printf("  MeterType = %x  .",pMeterInfo->f_meter_type);
+	printf("Protocol = %x  .",pMeterInfo->f_meter_proto_type);
+	printf("Channel = %x  .",pMeterInfo->f_meter_channel);
+	printf("Position is %s  .\n",pMeterInfo->f_install_pos);	
 
-/*
-	Str2Bin(argv[geMI_MeterID], (uint8 *)&mf.u16MeterID,sizeof(mf.u16MeterID));
-	Str2Bin(argv[geMI_MeterAddr], (uint8 *)mf.u8MeterAddr,sizeof(mf.u8MeterAddr));
-	Str2Bin(argv[geMI_MeterType], (uint8 *)&mf.u8MeterType,sizeof(mf.u8MeterType));
-	Str2Bin(argv[geMI_ProtocolType], (uint8 *)&mf.u8ProtocolType,sizeof(mf.u8ProtocolType));
-	Str2Bin(argv[geMI_ChannelNum], (uint8 *)&mf.u8Channel,sizeof(mf.u8Channel));
+	//end:打印测试pMeter_info内容
 
-*/
+	mf.u16MeterID = pMeterInfo->f_device_id;
+	memcpy(mf.u8MeterAddr,pMeterInfo->f_meter_address,LENGTH_B_METER_ADDRESS);
+	mf.u8MeterType = pMeterInfo->f_meter_type;
+	mf.u8ProtocolType = pMeterInfo->f_meter_proto_type;
+	mf.u8Channel = pMeterInfo->f_meter_channel;
 
-	ReadAllMeters(&mf,NULL);	
+
+	ReaOneMeter(&mf,NULL);	
 
 
 
@@ -77,7 +76,7 @@ static int CallBack_ReadAllMeters(void *p_Para, int argc, char **argv, char **az
   			*pPositionInfo 安装位置信息。
   ******************************************************************************
 */
-uint8 ReadAllMeters(MeterFileType *pmf,char *pPositionInfo)
+uint8 ReaOneMeter(MeterFileType *pmf,char *pPositionInfo)
 {
 	uint8 err = 0;
 	uint8 i = 0;
@@ -86,6 +85,11 @@ uint8 ReadAllMeters(MeterFileType *pmf,char *pPositionInfo)
 
 	
 	lu8Channel = pmf->u8Channel;
+	if(lu8Channel == RS485_DOWN_CHANNEL)  //操作一个设备，先请求信号量,谨防冲突。
+		sem_wait(&Opetate485Down_sem);
+	else
+		sem_wait(&OperateMBUS_sem);
+		
 	METER_ChangeChannel(lu8Channel);  //先确保在对应通道上。
 	
 	
@@ -118,6 +122,13 @@ uint8 ReadAllMeters(MeterFileType *pmf,char *pPositionInfo)
 
 	}
 
+
+	if(lu8Channel == RS485_DOWN_CHANNEL)  //操作完一个设备，释放对应信号量。
+		sem_post(&Opetate485Down_sem);
+	else
+		sem_post(&OperateMBUS_sem);
+	
+
 	return err;
 
 
@@ -140,78 +151,19 @@ uint8 ReadAllMeters(MeterFileType *pmf,char *pPositionInfo)
 
 void pthread_ReadAllMeters(void)
 {
-	int rec = 0;
-	char SQ_Str[100] = "";
-	char *zErrMsg = 0;
 
+	
 
-	uint8 i = 0;
-	MeterFileType mf;
-	char position[] = "3#-1-102";
 
 	while(1){
 		//检测抄表信号，如果抄表信号有效，则开始全抄表，否则，等待30s吧，这些以后要补充，现在下面测试用。
 
-		//抄表按照通道，逐个通道抄表。
-
-		/*
-		if(pmf->u8Channel == RS485_DOWN_CHANNEL){
-			sem_wait(&Opetate485Down_sem);
-			gu8DownComDev = DOWN_COMM_DEV_485;
-		}
-		else{
-			sem_wait(&OperateMBUS_sem);
-			gu8DownComDev = DOWN_COMM_DEV_MBUS;
-		}
-		*/
-
-		gu8ReadAllMeterFlag = 1;
 
 
-		
-		//rec = sqlite3_exec(p_sqlitedb, SQ_Str,CallBack_ReadAllMeters, NULL, &zErrMsg);
-		//if( rec != SQLITE_OK ){
-          //          debug_err(gDebugModule[METER],"[%s][%s][%d] \n",FILE_LINE);
-          //          fprintf(stderr, "SQL error: %s\n", zErrMsg);
-		//	     sqlite3_free(zErrMsg);
-          //}
+		retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
 
-		/*
-		if(pmf->u8Channel == RS485_DOWN_CHANNEL){
-			post(&Opetate485Down_sem);
-		}
-		else{
-			post(&OperateMBUS_sem);
-		}
-		*/
+		OSTimeDly(10000);
 
-
-		gu8ReadAllMeterFlag = 0;
-
-
-		//begin测试用
-		for(i=1;i<=7;i++){
-			mf.u16MeterID =0x01;
-			mf.u8Channel = i;
-			mf.u8MeterType = 0x20;
-			mf.u8MeterAddr[0] = 0xaa;
-			mf.u8MeterAddr[1] = 0xaa;
-			mf.u8MeterAddr[2] = 0xaa;
-			mf.u8MeterAddr[3] = 0xaa;
-			mf.u8MeterAddr[4] = 0xaa;
-			mf.u8MeterAddr[5] = 0xaa;
-			mf.u8MeterAddr[6] = 0xaa;
-			mf.u8ProtocolType = 0;
-			
-			ReadAllMeters(&mf,position);	
-
-			//usleep(3000000);
-
-		}
-
-
-
-		//end测试用
 		
 	}
 
@@ -280,7 +232,7 @@ static void Mbus_ChangeChannel(uint8 channel)
 
 /****************************************************************************************************
 **	函 数  名 称: METER_ChangeChannel
-**	函 数  功 能: 集中器控制切换MBUS通道 1--6
+**	函 数  功 能: 集中器控制切换MBUS通道 1--6,0通道则关闭所有MBUS通道。
 **	输 入  参 数: uint8 Channel -- 通道标志
 **	输 出  参 数: 
 **   返   回   值: NO_ERR
@@ -347,13 +299,7 @@ uint8 METER_ChangeChannel(uint8 Channel)
 			
        	break;
             		
-        	case 7:
-		if(gsu8Current_Channel != 7){
-           	Mbus_ChangeChannel(7);
-			gsu8Current_Channel = 7;
-		 	lu8ChannelChangeFlag = 1;
-			
-        	}
+        	case 7:  //第7通道是485下行通道，这里不做任何操作。
 			
         	break;
             	
