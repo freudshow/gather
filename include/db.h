@@ -54,6 +54,12 @@
 #define SQL_RIGHT_PARENTHESIS	")"
 #define SQL_SINGLE_QUOTES		"'"
 #define SQL_EQUAL				"="
+/********************************************************************************
+ ** SQL常用语句
+ ********************************************************************************/
+#define SQL_MTYPE_CNT "select distinct f_meter_type from t_request_data"//获取仪表种类数量的SQL语句
+#define SQL_MTYPE	  "select count(distinct f_meter_type) from t_request_data"//获取仪表种类数量的SQL语句
+
 
 /********************************************************************************
  ** SQL数据表名称
@@ -177,18 +183,28 @@ typedef pMeter_info meter_info_List;
  **	 t_request_data
  ** 仪表需要返回的数据项配置表
  ********************************************************************************/
-#define MTYPE_WATER	0x10//水表仪表编号
-#define MTYPE_HEAT	0x20//热量表仪表编号
-#define MTYPE_ELECT	0x40//电表仪表编号
-
 #define FIELD_REQUEST_ID			"f_id"
 #define FIELD_REQUEST_MTYPE		"f_meter_type"
 #define FIELD_REQUEST_ITEMIDX		"f_item_index"
 #define FIELD_REQUEST_COLNAME		"f_col_name"
 #define FIELD_REQUEST_COLTYPE		"f_col_type"
+///////////////////////////////////////////
+#define MTYPE_CNT	4//挂载的仪表类型数量
+enum meter_type_idx{
+	em_heat=0,//热表索引
+	em_water,//水表索引
+	em_elect,//电表索引
+	em_gas//燃气表索引
+};
 
-
- 
+struct meter_type{//仪表类型数据结构
+	uint8 u8type;//仪表类型编码, 如0x40, 0x10等
+	struct meter_type* pNext;
+	struct meter_type* pPrev;
+};
+typedef struct meter_type* pMeter_type;
+typedef pMeter_type meter_type_list;
+///////////////////////////////////////////
 struct request_data_str{
 	int32 f_id;
 	uint8 f_meter_type;
@@ -198,8 +214,9 @@ struct request_data_str{
 	struct request_data_str *pNext;
 	struct request_data_str *pPrev;
 };
-typedef struct request_data_str *pRequest_data;
+typedef struct request_data_str* pRequest_data;
 typedef pRequest_data request_data_list;
+
 /********************************************************************************
  **	 t_time_node
  ** 时间点配置表
@@ -219,15 +236,15 @@ enum T_His_Field{
 	FLOAT
 };
 
-struct his_field_data{
+struct meter_item{
 	char *pData;
 	char field_name[LENGTH_F_COL_NAME];
 	enum T_His_Field eData_type;
 	struct his_field_data *pNext;
 	struct his_field_data *pPrev;
 };
-typedef struct his_field_data *pHis_field_data;
-typedef pHis_field_data his_data_list;
+typedef struct meter_item *pMeter_item;
+typedef pMeter_item meter_item_list;
 
 struct his_data_str{
 	char f_timestamp[LENGTH_F_TIMESTAMP];//时间戳
@@ -236,7 +253,7 @@ struct his_data_str{
 	int  f_device_id;//仪表的设备编号
 	int  f_id;//索引值
 	uint8  f_meter_type;//仪表类型
-	his_data_list value_list;//数据项链表
+	meter_item_list value_list;//数据项链表
 	int value_cnt;//数据项的数量
 	struct his_data_str* pNext;//下个元素
 	struct his_data_str* pPrev;//上个元素
@@ -278,8 +295,9 @@ int  get_meter_info_cnt();//读取仪表地址信息的个数
 /**********************
  ** 读取数据项相关 **
  **********************/
-void read_request_data(char	*pErr, uint8);//按照仪表类型读取数据项
-void retrieve_request_data_list(int (*read_one_meter)(pRequest_data));//顺序遍历数据项信息
-int  get_request_data_cnt();//读取仪表数据项的个数
+void read_all_request_data(char	*pErr);
+void read_request_data(char	*pErr, enum meter_type_idx);//按照仪表类型读取数据项
+void retrieve_request_data_list(int (*read_one_item)(pRequest_data), enum meter_type_idx);//顺序遍历数据项信息
+int  get_request_data_cnt(enum meter_type_idx);//读取仪表数据项的个数
 
 #endif  //_DB_H_

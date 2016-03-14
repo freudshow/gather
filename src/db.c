@@ -37,10 +37,14 @@ static void empty_meter_info_list();
 /**********************
  ** 读取数据项相关 **
  **********************/
-static request_data_list list_request_data = NULL;//仪表信息列表, 私有变量
-static int request_data_idx;//配置数据项数量的索引, 私有变量
-static int each_request_data(void *NotUsed, int f_cnt, char **f_value, char **f_name);
-static void empty_request_data_list();
+
+//u8Meter_type和aItems_list的索引顺序不能搞乱, 须以enum meter_type_idx规定的顺序为准
+static uint8 u8Meter_type[] = {HEATMETER, WATERMETER, ELECTMETER, GASMETER};
+static request_data_list arrayRequest_list[MTYPE_CNT]={0};//仪表信息列表的数组, 私有变量
+
+static int request_data_idx[MTYPE_CNT]={0};//配置数据项数量的索引, 私有变量
+static int each_request_data(void *type_idx, int f_cnt, char **f_value, char **f_name);
+static void empty_request_data_list(enum meter_type_idx type_idx);
 
 
 /********************************************************************************
@@ -64,8 +68,14 @@ int close_db(void)
 /********************************************************************************
  ** 功能区域	: 读取数据项
  ********************************************************************************/
+void read_all_request_data(char	*pErr)
+{
+	int i;
+	for(i=0;i<MTYPE_CNT;i++)
+		read_request_data(pErr, i);
+}
 
-void read_request_data(char *pErr, uint8 meter_type)
+void read_request_data(char *pErr, enum meter_type_idx type_idx)
 {
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	char *where_buf = malloc(LENGTH_SQLCON);
@@ -79,29 +89,29 @@ void read_request_data(char *pErr, uint8 meter_type)
 				FIELD_REQUEST_COLTYPE};
 	int  col_cnt = 5;
 
-	request_data_idx = 0;
-	sprintf(m_type, "%2x", meter_type);
+	request_data_idx[type_idx] = 0;
+	sprintf(m_type, "%2x", u8Meter_type[type_idx]);
 	strcpy(con_buf, FIELD_REQUEST_MTYPE);
 	strcat(con_buf, SQL_EQUAL);
 	strcat(con_buf, m_type);
 	
-	empty_request_data_list();//清空以前的信息, 以重新读取
+	empty_request_data_list(type_idx);//清空以前的信息, 以重新读取
 	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
 	get_where_sql(&con_buf, 1, where_buf);
 	strcat(sql_buf, " ");
 	strcat(sql_buf, where_buf);
 	strcat(sql_buf, ";");
-	printf("%s\n", sql_buf);
-	sqlite3_exec(g_pDB, sql_buf, each_request_data, NULL, &pErr);
+
+	sqlite3_exec(g_pDB, sql_buf, each_request_data, (void*)(&type_idx), &pErr);
 	free(m_type);
 	free(sql_buf);
 	free(where_buf);
 }
 
-static int each_request_data(void *NotUsed, int f_cnt, char **f_value, char **f_name)
+static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name)
 {
-	int i;//i, 一条记录的字段名索引
-
+	int i;
+	int idx = *((int*)meter_type_idx);
 	pRequest_data tmp_request = malloc(sizeof(struct request_data_str));
 	memset(tmp_request, 0, sizeof(struct request_data_str));
 	for (i=0; i<f_cnt; i++) {
@@ -110,7 +120,6 @@ static int each_request_data(void *NotUsed, int f_cnt, char **f_value, char **f_
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_MTYPE))//仪表类型
 			tmp_request->f_meter_type= ((f_value[i][0] - ZERO_CHAR) << LEN_HALF_BYTE | (f_value[i][1] - ZERO_CHAR));
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_ITEMIDX)) {//仪表数据项的索引号
-			printf(" %s ", f_value[i]);
 			tmp_request->f_item_index= ((f_value[i][0] - ZERO_CHAR) << LEN_HALF_BYTE | (f_value[i][1] - ZERO_CHAR));
 		}
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_COLNAME))//仪表数据项的列名
@@ -122,41 +131,55 @@ static int each_request_data(void *NotUsed, int f_cnt, char **f_value, char **f_
 		}
 	}
 	tmp_request->pPrev = NULL;
-	tmp_request->pNext = list_request_data;
-	if (list_request_data) {
-		list_request_data->pPrev = tmp_request;
+	tmp_request->pNext = arrayRequest_list[idx];
+	if (arrayRequest_list[idx]) {
+		arrayRequest_list[idx]->pPrev = tmp_request;
 	}
-	list_request_data = tmp_request;
-	request_data_idx++;
+	arrayRequest_list[idx] = tmp_request;
+	request_data_idx[idx]++;
+
 	return 0;
 }
 
 
-void retrieve_request_data_list(int (*read_one_item)(pRequest_data))
+void retrieve_request_data_list(int (*read_one_item)(pRequest_data), enum meter_type_idx type_idx)
 {
 	if(!read_one_item)
 		return;
-	
-	pRequest_data tmp_request = list_request_data;
+
+	int i;
+	pRequest_data rt_request  = malloc(sizeof(struct request_data_str));
+	pRequest_data tmp_request = arrayRequest_list[type_idx];
 	while(tmp_request) {
-		read_one_item(tmp_request);
+		rt_request->f_id	 = 	tmp_request->f_id;
+		rt_request->f_meter_type	 = 	tmp_request->f_meter_type;
+		rt_request->f_item_index	 = 	tmp_request->f_item_index;
+
+		for(i=0;i<LENGTH_F_COL_NAME;i++)
+			rt_request->f_col_name[i]  = 	tmp_request->f_col_name[i];
+		for(i=0;i<LENGTH_F_COL_TYPE;i++)
+			rt_request->f_col_type[i]  = 	tmp_request->f_col_type[i];		
+		rt_request->pPrev = NULL;
+		rt_request->pNext = NULL;
+		read_one_item(rt_request);
 		tmp_request = tmp_request->pNext;
 	}
+	free(rt_request);
 }
 
-static void empty_request_data_list()
+static void empty_request_data_list(enum meter_type_idx type_idx)
 {
 	pRequest_data tmp_request;
-	while(list_request_data) {
-		tmp_request = list_request_data;
-		list_request_data = list_request_data->pNext;
+	while(arrayRequest_list[type_idx]) {
+		tmp_request = arrayRequest_list[type_idx];
+		arrayRequest_list[type_idx] = arrayRequest_list[type_idx]->pNext;
 		free(tmp_request);
 	}
 }
 
-int  get_request_data_cnt()
+int  get_request_data_cnt(enum meter_type_idx idx)
 {
-	return request_data_idx;
+	return request_data_idx[idx];
 }
 
 /********************************************************************************
@@ -292,7 +315,11 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
  ********************************************************************************/
 sys_config_str get_sys_config(enum T_System_Config idx)
 {
-	return sys_config_array[idx];
+	sys_config_str config_return;
+	config_return.f_id = sys_config_array[idx].f_id;
+	strcpy(config_return.f_config_name, sys_config_array[idx].f_config_name);
+	strcpy(config_return.f_config_value, sys_config_array[idx].f_config_value);
+	return config_return;
 }
 
 void read_sys_config(char *pErr)
