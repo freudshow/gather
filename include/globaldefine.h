@@ -36,6 +36,34 @@ typedef unsigned int uint32;
 #define ELECTMETER	0x40
 #define GASMETER	0x30
 
+//热表需要的数据项索引
+#define	HITEM_CUR_COLD_E			0x01//当前冷量
+#define	HITEM_CUR_HEAT_E			0x02//当前热量
+#define	HITEM_HEAT_POWER			0x03//热功率
+#define	HITEM_FLOWRATE			0x04//流速
+#define	HITEM_ACCUM_FLOW			0x05//累积流量
+#define	HITEM_IN_TEMP				0x06//供水温度
+#define	HITEM_OUT_TEMP			0x07//回水温度
+#define	HITEM_ACCUM_WORK_TIME	0x08//累计工作时间
+#define	HITEM_CUR_TIME			0x09//实时时间
+#define	HITEM_STATE				0x0a//状态ST
+//水表需要的数据项索引
+#define	WITEM_CUR_ACCUM_FLOW			0x01//当前累计流量
+#define	WITEM_FLOWRATE					0x02//流速
+#define	WITEM_SETTLE_DATE_ACCUM_FLOW	0x03//结算日累积流量
+#define	WITEM_SETTLE_DATE				0x04//结算日
+#define	WITEM_ACCUM_WORK_TIME			0x05//累计工作时间
+//电表需要的数据项索引
+#define	EITEM_ACTIVE_TOTAL_ELECTRICITY	0x01//有功总电能
+#define	EITEM_CUR_VOLTAGE					0x02//当前电压值
+#define	EITEM_CUR_CURRENT					0x03//当前电流值
+#define	EITEM_CUR_ACTIVE_POWER				0x04//当前有功功率值
+#define	EITEM_CUR_FREQ						0x05//当前频率值
+#define	EITEM_CUR_REACTIVE_POWER			0x06//当前无功功率值
+#define	EITEM_CUR_ APPARENT_POWER			0x07//当前视在功率值
+#define	EITEM_CUR_POWER_FACTOR				0x08//当前功率因数值
+
+
 
 
 
