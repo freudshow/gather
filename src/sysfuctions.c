@@ -22,6 +22,8 @@
 uint8 gDebugLevel = 1;
 uint8 gDebugModule[20];
 sem_t  CRITICAL_sem;
+sem_t  GprsIPDTask_sem;//控制GprsIPD线程是否运行的信号量(暂没使用其他线程挂起的方法。)。
+sem_t  Gprs_Sem;
 sem_t  RS485Up_sem;  //上行485端口信号量
 sem_t  RS485Down_sem;//下行485端口信号量
 sem_t  GPRSPort_sem; //GPRS端口信号量

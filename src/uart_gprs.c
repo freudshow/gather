@@ -90,6 +90,8 @@ INT32 UartGprs_Rec(void)
 					}				
 					OSSemPost(UP_COMMU_DEV_ATIPD);
 
+					printf("%c \n",lu8data);  //≤‚ ‘”√
+
 		   
 				}
 		    }

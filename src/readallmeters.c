@@ -19,9 +19,6 @@
 
 
 
-sqlite3 *p_sqlitedb;	//数据库句柄
-
-
 
 
 /*
@@ -36,7 +33,7 @@ sqlite3 *p_sqlitedb;	//数据库句柄
 static int CallBack_ReadAllMeters(pMeter_info pMeterInfo)
 {
 	uint8 i = 0;
-	MeterFileType mf;
+	MeterFileType mf;  //防止篡改表基础信息链表，拷贝到局部变量使用。
 
 	//begin:打印测试pMeter_info内容
 	printf("MeterID = %d  .",pMeterInfo->f_device_id);
@@ -160,7 +157,7 @@ void pthread_ReadAllMeters(void)
 
 
 
-		retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
+		//retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
 
 		OSTimeDly(10000);
 

@@ -159,6 +159,16 @@ void sem_Init(void)
 	   perror("sem_init\n");
 	}
 
+	ret = sem_init(&GprsIPDTask_sem,0,1);  //默认GprsIPD线程不运行，当GPRS网络建立好后才运行。
+	if(ret != 0){
+	   perror("sem_init\n");
+	}
+
+	ret = sem_init(&Gprs_Sem,0,1);  //默认GprsIPD线程不运行，当GPRS网络建立好后才运行。
+	if(ret != 0){
+	   perror("sem_init\n");
+	}
+	
 	ret = sem_init(&RS485Up_sem,0,1);
 	if(ret != 0){
 	   perror("sem_init\n");

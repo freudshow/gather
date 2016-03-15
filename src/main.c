@@ -27,6 +27,7 @@
 
 extern void create_pthread(void);
 extern void create_pthread_AllUartRec(void);
+extern void create_pthread_GprsRelated(void);
 
 
 /*
@@ -35,7 +36,7 @@ extern void create_pthread_AllUartRec(void);
   * 说    明： 主函数
   * 参    数： 无
   ******************************************************************************
-  */
+*/
 int main(int argc, char **argv)
 {
 	sysinit();
@@ -68,6 +69,7 @@ void create_pthread(void)
 	pthread_t ReadAllMeters_pthreadID;
 
 	create_pthread_AllUartRec();//创建所有串口接收线程，包括gprs、mbus、485上行、485下行。
+	create_pthread_GprsRelated();  //创建和GPRS有关的线程。
 
 	lReg = pthread_create(&RS485UpDeal_pthreadID,NULL,(void *)pthread_RS485UpDeal,NULL);
      if(0 != lReg){
@@ -145,6 +147,32 @@ void create_pthread_AllUartRec(void)
 
 }
 
+
+/*
+  ******************************************************************************
+  * 函数名称： void create_pthread_GprsRelated(void)
+  * 说    明： 创建所有Gprs处理有关的线程。
+  * 参    数： 无
+  ******************************************************************************
+  */
+
+void create_pthread_GprsRelated(void)
+{
+	int32 lReg = 0;
+	pthread_t GPRS_Mana_pthreadID;  //上行485接口线程ID.
+
+	lReg = pthread_create(&GPRS_Mana_pthreadID,NULL,(void *)pthread_GPRS_Mana,NULL);
+	if(0 != lReg){
+		printf ("Create pthread_GPRS_Mana error!\n");
+		exit (1);
+	}
+	else
+		printf ("Create pthread_GPRS_Mana OK!\n");
+
+
+
+
+}
 
 
 
