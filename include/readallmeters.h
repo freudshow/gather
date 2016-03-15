@@ -22,11 +22,11 @@
 //定义表基础信息结构体。
 typedef struct
 {
-	uint16 u16MeterID;  
-	uint8 u8MeterAddr[7];
-	uint8 u8MeterType;
-	uint8 u8ProtocolType;
-	uint8 u8Channel;
+	uint16 u16MeterID; //Hex
+	uint8 u8MeterAddr[LENGTH_B_METER_ADDRESS];  //BCD码
+	uint8 u8MeterType;	   //BCD
+	uint8 u8ProtocolType;  //HEX
+	uint8 u8Channel;	   //HEX
 }MeterFileType;
 
 
@@ -34,15 +34,11 @@ typedef struct
 
 
 
-extern sqlite3 *p_sqlitedb;
-extern uint8 gu8ReadAllMeterFlag;
-extern uint8 gu8DownComDev;
 
 
 
 
-
-extern uint8 ReadAllMeters(MeterFileType *pmf,char *pPositionInfo);
+extern uint8 ReaOneMeter(MeterFileType *pmf,char *pPositionInfo);
 extern void pthread_ReadAllMeters(void);
 extern uint8 METER_ChangeChannel(uint8 Channel);
 

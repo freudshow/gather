@@ -37,7 +37,7 @@ typedef struct{
 
 typedef struct{
 	uint32   DailyHeat;		         /*结算日热量*/	
-   	uint8     DailyHeatUnit;
+   	uint8    DailyHeatUnit;
 	uint32   CurrentHeat;		    /*当前热量*/
     	uint8     CurrentHeatUnit;
 	uint32 	 HeatPower;		    /*热功率*/

@@ -57,6 +57,8 @@
 extern uint8 gDebugModule[];
 extern uint8 gDebugLevel;
 extern sem_t  CRITICAL_sem;
+extern sem_t  GprsIPDTask_sem;
+extern sem_t  Gprs_Sem;
 extern sem_t  RS485Up_sem;  //上行485端口信号量
 extern sem_t  RS485Down_sem;//下行485端口信号量
 extern sem_t  GPRSPort_sem; //GPRS端口信号量

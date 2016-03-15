@@ -26,7 +26,7 @@ extern void sysinit(void);
 extern uint8 QueuesInit(void);
 extern uint8 open_IOControl(void);
 extern void sem_Init(void);
-extern void comInit(void);
+extern void sqldb_init(void);
 
 
 

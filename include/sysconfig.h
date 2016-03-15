@@ -19,6 +19,8 @@
 
 
 #define 	DEBUG		//DEBUG开关
+#define 	GPRS_ECHO      //GPRS回显功能是否使能。
+
 
 
 #endif  //_SYSCONFIG_H_
