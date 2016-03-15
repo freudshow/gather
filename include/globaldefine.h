@@ -45,7 +45,7 @@ typedef unsigned int uint32;
 #define	HITEM_IN_TEMP				0x06//供水温度
 #define	HITEM_OUT_TEMP			0x07//回水温度
 #define	HITEM_ACCUM_WORK_TIME	0x08//累计工作时间
-#define	HITEM_CUR_TIME			0x09//实时时间
+#define	HITEM_REAL_TIME			0x09//实时时间
 #define	HITEM_STATE				0x0a//状态ST
 //水表需要的数据项索引
 #define	WITEM_CUR_ACCUM_FLOW			0x01//当前累计流量
