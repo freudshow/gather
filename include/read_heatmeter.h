@@ -59,7 +59,7 @@ typedef struct{
 
 
 
-extern uint8 Read_HeatMeter(MeterFileType *pmf,char *pPositionInfo);
+extern uint8 Read_HeatMeter(MeterFileType *pmf);
 
 
 #endif	//_READ_HEATMETER_

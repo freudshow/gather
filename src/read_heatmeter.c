@@ -370,6 +370,33 @@ uint8 HeatMeterCommunicate(MeterFileType *pmf,CJ188_Format *pCJ188Data)
 }
 
 
+/*
+  ******************************************************************************
+  * 函数名称：HeatData_insertDB(MeterFileType *pmf,CJ188_Format *pCJ188Data,struct tm *pNowTime,struct tm *pTimeNode)
+  * 说    明：将抄热表数据存入数据库表格中。
+  * 参    数： 
+  
+  struct tm { 		   pNowTime = localtime(&timep);  
+	  int tm_sec;     printf("%d %d %d \n",(1900+pNowTime->tm_year), (1+pNowTime->tm_mon),pNowTime->tm_mday); 
+	  int tm_min;     printf("%d:%d:%d\n", pNowTime->tm_hour, pNowTime->tm_min, pNowTime->tm_sec);
+	  int tm_hour; 
+	  int tm_mday;    经过以上处理后，即是当前系统时间。
+	  int tm_mon; 
+	  int tm_year; 
+	  int tm_wday; 
+	  int tm_yday; 
+	  int tm_isdst; 
+  };
+
+  ******************************************************************************
+*/
+
+uint8 HeatData_insertDB(MeterFileType *pmf,CJ188_Format *pCJ188Data,struct tm *pNowTime,struct tm *pTimeNode)
+{
+
+
+	return NO_ERR;
+}
 
 
 
@@ -382,12 +409,14 @@ uint8 HeatMeterCommunicate(MeterFileType *pmf,CJ188_Format *pCJ188Data)
   ******************************************************************************
 */
 
-uint8 Read_HeatMeter(MeterFileType *pmf,char *pPositionInfo)
+uint8 Read_HeatMeter(MeterFileType *pmf)
 {
 	uint8 err = 0;
 	uint8 lu8retrytimes = 0;
 	//DELU_Protocol	ProtocoalInfo;
 	CJ188_Format CJ188_Data;
+	struct tm *pNowTime;
+	time_t timep;
 	
 
 	if(pmf->u8ProtocolType >= HEATMETER_PROTO_SUM){  //防止协议版本号超限。
@@ -407,8 +436,15 @@ uint8 Read_HeatMeter(MeterFileType *pmf,char *pPositionInfo)
 
 	//根据t_request_data参数设置，将抄表数据存入对应数据库表格。
 	if(err == NO_ERR){
+		//获取当前时间				
+		time(&timep); 
+		pNowTime = localtime(&timep);  
+		pNowTime->tm_year += 1900;
+		pNowTime->tm_mon += 1;  //转换成当前年和月。
+		//printf("%d %d %d \n",pNowTime->tm_year, pNowTime->tm_mon,pNowTime->tm_mday); 
+		//printf("%d:%d:%d\n", pNowTime->tm_hour, pNowTime->tm_min, pNowTime->tm_sec); 
 
-
+		err = HeatData_insertDB(pmf,&CJ188_Data,pNowTime,p_gTimeNode);
 	}
 
 	

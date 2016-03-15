@@ -17,6 +17,7 @@
 
 
 
+struct tm *p_gTimeNode;  //记录当前抄表时间节点信息。
 
 
 
@@ -53,9 +54,10 @@ static int CallBack_ReadAllMeters(pMeter_info pMeterInfo)
 	mf.u8MeterType = pMeterInfo->f_meter_type;
 	mf.u8ProtocolType = pMeterInfo->f_meter_proto_type;
 	mf.u8Channel = pMeterInfo->f_meter_channel;
+	memcpy(mf.install_pos,pMeterInfo->f_install_pos,LENGTH_F_INSTALL_POS);
 
 
-	ReaOneMeter(&mf,NULL);	
+	ReaOneMeter(&mf);
 
 
 
@@ -73,7 +75,7 @@ static int CallBack_ReadAllMeters(pMeter_info pMeterInfo)
   			*pPositionInfo 安装位置信息。
   ******************************************************************************
 */
-uint8 ReaOneMeter(MeterFileType *pmf,char *pPositionInfo)
+uint8 ReaOneMeter(MeterFileType *pmf)
 {
 	uint8 err = 0;
 	uint8 i = 0;
@@ -94,7 +96,7 @@ uint8 ReaOneMeter(MeterFileType *pmf,char *pPositionInfo)
 		case HEATMETER:
 			lu8retrytimes = 1 + 1;  //补抄次数，当前用固定1次补抄，后期要根据设置。
 			for(i=0;i<lu8retrytimes;i++){
-				err = Read_HeatMeter(pmf,pPositionInfo);
+				err = Read_HeatMeter(pmf);
 				OSTimeDly(200); //防止抄表太快，这里以后可以改成延时可设置。
 				if(err == NO_ERR)
 					break;
@@ -148,16 +150,23 @@ uint8 ReaOneMeter(MeterFileType *pmf,char *pPositionInfo)
 
 void pthread_ReadAllMeters(void)
 {
-
-	
+		time_t timep;
 
 
 	while(1){
 		//检测抄表信号，如果抄表信号有效，则开始全抄表，否则，等待30s吧，这些以后要补充，现在下面测试用。
 
+		time(&timep); 
+		p_gTimeNode = localtime(&timep);  
+		p_gTimeNode->tm_year += 1900;
+		p_gTimeNode->tm_mon += 1;  //转换成当前年和月。
+		p_gTimeNode->tm_sec = 0;   //定时抄表节点，秒数固定写0.
+		printf("%d %d %d \n",p_gTimeNode->tm_year, p_gTimeNode->tm_mon,p_gTimeNode->tm_mday); 
+		printf("%d:%d:%d\n", p_gTimeNode->tm_hour, p_gTimeNode->tm_min, p_gTimeNode->tm_sec); 
 
 
-		//retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
+		retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
+
 
 		OSTimeDly(10000);
 

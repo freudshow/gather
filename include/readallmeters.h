@@ -27,18 +27,20 @@ typedef struct
 	uint8 u8MeterType;	   //BCD
 	uint8 u8ProtocolType;  //HEX
 	uint8 u8Channel;	   //HEX
+	char  install_pos[LENGTH_F_INSTALL_POS];  //×Ö·û´®
 }MeterFileType;
 
 
 
 
+extern struct tm *p_gTimeNode;
 
 
 
 
 
 
-extern uint8 ReaOneMeter(MeterFileType *pmf,char *pPositionInfo);
+extern uint8 ReaOneMeter(MeterFileType *pmf);
 extern void pthread_ReadAllMeters(void);
 extern uint8 METER_ChangeChannel(uint8 Channel);
 
