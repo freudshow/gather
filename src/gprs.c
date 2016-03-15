@@ -757,7 +757,9 @@ gplp:
 uint8 ConnectConfirm(void)
 {
 	uint8 err = 0;
+	FILE *fp;
     	uint8 TryT = 0;
+	uint8 lu8xmlIndex = 0;
    	//int ret = 0;
     
 	while(1){ 
@@ -770,6 +772,17 @@ uint8 ConnectConfirm(void)
 		debug_err(gDebugModule[GPRS_MODULE],"GPRS Start Send Confirm frame !!!!\n");
 
 		//组建登录帧。
+		do{
+			lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
+		}while(lu8xmlIndex == ERR_FF);
+		err = makexml(0,lu8xmlIndex);
+		if(err == NO_ERR){//如果没错误，则通过GPRS发送。
+			fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
+			GPRS_FileSend(UP_COMMU_DEV_GPRS,fp);
+		}
+		
+		Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
+		
 		
 		//setGprsXmlType(REQUEST);/*采集器请求身份验证（该数据包为采集器发送给服务器）*/       
         	//OSSemPend(SEQUEUE_XML, OS_TICKS_PER_SEC*30, &err);/*等待sequence:服务器发送一串随机序列*/
@@ -1338,6 +1351,83 @@ int pthread_GPRS_Mana(void)
 	return(CONTROL_RET_SUC);
 
 }
+
+
+
+/*
+******************************************************************************
+* 函数名称： uint8 Gprs_DataSend(uint8 *Data,uint32 n)
+* 说	明： GPRS接口发送数据。
+* 参	数： 
+******************************************************************************
+*/
+uint8 Gprs_DataSend(uint8 *Data,uint32 n)
+{
+	uint32 lu32delaytimes = 0;
+
+	write(g_uiGprsFd, (uint8 *)Data, n);
+
+	lu32delaytimes = 12000000 / GPRS_COM_SPEED;  //1000000*12/GPRS_COM_SPEED;
+	lu32delaytimes = lu32delaytimes*n;  //计算出在速率为RS485UP_COM_SPEED时，发送n个字节大概需要时间。
+
+	usleep(lu32delaytimes); //保证本次数据发完。
+	
+
+	return NO_ERR; 
+
+}
+
+
+
+/*
+******************************************************************************
+* 函数名称：void GPRS_FileSend(uint8 Dev, FILE *fp)
+* 说	明： 通过GPRS端口，发送一个文件内容。
+* 参	数： 
+******************************************************************************
+*/
+void GPRS_FileSend(uint8 Dev, FILE *fp)
+{
+	int	i = 0;
+	uint8 err = 0;
+	int32 l32FileSize = 0;
+	uint32 lu32SendNum = 0;
+
+	sem_wait(&Gprs_Sem);
+	
+	//计算文件大小。
+	fseek(fp,0,2);			//位置指针到文件末尾
+	l32FileSize = ftell(fp);	//计算文件大小
+	fseek(fp,0,0);			//位置指针到文件开始
+	lu32SendNum = SEND_TEMPBUF_SIZE;
+
+	for(i=0;i<(l32FileSize/SEND_TEMPBUF_SIZE + 1);i++){
+		if(i == l32FileSize/SEND_TEMPBUF_SIZE){ //最后一包
+			lu32SendNum = l32FileSize % SEND_TEMPBUF_SIZE;
+		}
+		
+		memset(pSendTempBuf[Dev],0,sizeof(pSendTempBuf));
+		fread(pSendTempBuf[Dev],1,lu32SendNum,fp);
+                 //debug_info(gDebugModule[GPRS_MODULE], "send xml:  %s\n",gGPRSSendBuf);
+		       // debug_info(gDebugModule[GPRS_MODULE], "INFO: [TaskUpSend] SendNum=%d\n",SendNum);
+  		err = Gprs_DataSend(pSendTempBuf[Dev],lu32SendNum);
+		if(err != NO_ERR){
+
+		}
+
+	}
+
+	sem_post(&Gprs_Sem);
+
+
+}
+
+
+
+
+
+
+
 
 
 

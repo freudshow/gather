@@ -8,7 +8,7 @@ INCLUDEPATH		=-I ../include -I ../include/libxml2
 OBJ				=-o $(BIN)
 CFLAGS			=-g -Wall 
 LIBDIR			=-L ../lib
-LIBS			= -lsqlite3 -lpthread
+LIBS			= -lsqlite3 -lpthread -lxml2
 NFSROOT			=/mcuzone/nfsroot
 CP				=cp
 

@@ -234,20 +234,58 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 
 
 
-
-
-
-
-
-
-
-
 /*
   ******************************************************************************
   * 函数名称： makexml
   * 说    明： 生成xml文件
-  * 参    数： xmltype--文件类型
+  * 参    数： 
   *      		optype--操作类型
   ******************************************************************************
 */
+uint8 makexml(char optype,uint8 xmlIndex)
+{
+	FILE *fp;
+	int nRel;
+	//char *str;
+    	//uint8 string[300]="";
+	//uint8 MD5_Result_String[300]="";
+	//定义文档和指针
+	xmlDocPtr doc = xmlNewDoc(BAD_CAST"1.0");
+	//新建节点
+    	xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
+    	//设置新节点为根节点
+    	xmlDocSetRootElement(doc,root_node);
+    	//创建一个新节点common,添加到根节点
+    	xmlNodePtr node = xmlNewNode(NULL,BAD_CAST "common");
+
+	fp = fopen(gXML_File[xmlIndex].pXMLFile,"w+");
+	
+	
+
+   	//xmlNodePtr childnode = NULL;
+    	xmlAddChild(root_node,node);
+
+    	//在common节点直接创建文本节点
+    	xmlNewTextChild(node,NULL,BAD_CAST "building_id",(xmlChar *)"Build001");
+    	xmlNewTextChild(node,NULL,BAD_CAST "gateway_id",(xmlChar *)"Gather01");
+
+    	//debug_info(gDebugModule[XML_MODULE], "[%s][%s][%d] optype is %d\n",FILE_LINE, optype);
+
+
+	node = xmlNewNode(NULL,BAD_CAST "id_validate");
+	xmlAddChild(root_node,node);
+	xmlNewProp(node,BAD_CAST "operation",BAD_CAST "request");
+	nRel = xmlSaveFileEnc(gXML_File[xmlIndex].pXMLFile,doc,"utf-8");
+	fclose(fp);
+	if(nRel != -1){
+		xmlFreeDoc(doc);
+		printf("make xml success.xml Index = %d.\n",xmlIndex);
+		return NO_ERR;
+	}  
+ 
+
+
+
+  return ERR_1;
+}
 
