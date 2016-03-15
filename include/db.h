@@ -69,7 +69,7 @@
 #define TABLE_ELEC			"t_elec_data"//电表历史数据
 #define TABLE_WATER			"t_water_data"//水表历史数据
 #define TABLE_HEAT			"t_heat_data"//热量表历史数据
-#define TABLE_AIR			"t_air_data"//天然气表历史数据
+#define TABLE_GAS			"t_air_data"//天然气表历史数据
 #define TABLE_METER_INFO	"t_meter_info"//仪表基本信息表
 #define TABLE_TIME_NODE		"t_time_node"//时间配置表
 
@@ -296,8 +296,13 @@ int  get_meter_info_cnt();//读取仪表地址信息的个数
  ** 读取数据项相关 **
  **********************/
 void read_all_request_data(char	*pErr);
-void read_request_data(char	*pErr, enum meter_type_idx);//按照仪表类型读取数据项
-void retrieve_request_data_list(int (*read_one_item)(pRequest_data), enum meter_type_idx);//顺序遍历数据项信息
+void read_request_data(char	*pErr, enum meter_type_idx type_idx);//按照仪表类型读取数据项
+void retrieve_request_data_list(int (*read_one_item)(pRequest_data), enum meter_type_idx type_idx);//顺序遍历数据项信息
 int  get_request_data_cnt(enum meter_type_idx);//读取仪表数据项的个数
+
+/**********************
+ ** 仪表历史数据相关 **
+ **********************/
+void insert_his_data(enum meter_type_idx type_idx, void *pData, char *pErr);
 
 #endif  //_DB_H_

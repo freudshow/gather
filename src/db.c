@@ -14,8 +14,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
+
+#include "readallmeters.h"
+#include "read_heatmeter.h"
+
 #include <sqlite3/sqlite3.h>
-#include "globaldefine.h" 
+
 #include "db.h"
 
 sqlite3 *g_pDB = NULL;//数据库指针, 私有变量, 只允许通过本文件提供的函数操作, 不允许外部代码操作
@@ -45,6 +50,10 @@ static request_data_list arrayRequest_list[MTYPE_CNT]={0};//仪表信息列表的数组, 
 static int request_data_idx[MTYPE_CNT]={0};//配置数据项数量的索引, 私有变量
 static int each_request_data(void *type_idx, int f_cnt, char **f_value, char **f_name);
 static void empty_request_data_list(enum meter_type_idx type_idx);
+/**********************
+ ** 仪表历史数据相关 **
+ **********************/
+static char* tablename_array[] = {TABLE_HEAT, TABLE_WATER, TABLE_ELEC, TABLE_GAS};//索引顺序同u8Meter_type和arrayRequest_list
 
 
 /********************************************************************************
@@ -66,6 +75,124 @@ int close_db(void)
 }
 
 /********************************************************************************
+ ** 功能区域	: 仪表历史数据相关 
+ ********************************************************************************/
+ void insert_his_data(enum meter_type_idx type_idx, void *pData, char *pErr)
+{
+	char *sql_buf = malloc(LENGTH_SQLBUF);
+	memset(sql_buf, 0, LENGTH_SQLBUF);	
+	char *table_name = tablename_array[type_idx];
+	int item_cnt = get_request_data_cnt(type_idx);
+	char *col_buf = malloc(item_cnt*LENGTH_F_COL_NAME);
+	char *tmp_col_buf = col_buf;
+	request_data_list item_list = arrayRequest_list[type_idx];
+	char tmp_data[LENGTH_F_COL_NAME]={0};
+	
+	int i = 0;
+	while(item_list) {
+		strcpy(tmp_col_buf, item_list->f_col_name);
+		tmp_col_buf += LENGTH_F_COL_NAME;
+		item_list = item_list->pNext;
+	}
+	tmp_col_buf = col_buf;//指向第一个元素
+	//insert into
+	strcpy(sql_buf, SQL_INSERT);
+	strcat(sql_buf, " ");
+	strcat(sql_buf, table_name);
+	//columns
+	strcat(sql_buf, " ");
+	strcat(sql_buf, SQL_LEFT_PARENTHESIS);
+	for(i=0;i<item_cnt-1;i++, tmp_col_buf += LENGTH_F_COL_NAME) {
+		strcat(sql_buf, tmp_col_buf);
+		strcat(sql_buf, ", ");
+	}
+	strcat(sql_buf, tmp_col_buf);
+	strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
+	tmp_col_buf = col_buf;//指向第一个元素
+	
+	//values
+	strcat(sql_buf, SQL_VALUES);
+	strcat(sql_buf, SQL_LEFT_PARENTHESIS);
+
+	item_list = arrayRequest_list[type_idx];
+	CJ188_Format* heatdata;
+	switch(type_idx) {
+	case em_heat:
+			heatdata = (CJ188_Format*)pData;
+			
+			while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
+				printf("f_item_index: %02x, pNext: %p\n", item_list->f_item_index, item_list->pNext);
+				memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
+				switch(item_list->f_item_index) {
+				case HITEM_CUR_COLD_E:
+					sprintf(tmp_data, "%08x%02x", heatdata->DailyHeat, heatdata->DailyHeatUnit);//实际为冷量, 而不是结算日热量
+					break;
+				case HITEM_CUR_HEAT_E:
+					sprintf(tmp_data, "%08x%02x", heatdata->CurrentHeat, heatdata->CurrentHeatUnit);
+					break;
+				case HITEM_HEAT_POWER:
+					sprintf(tmp_data, "%08x%02x", heatdata->HeatPower, heatdata->HeatPowerUnit);
+					break;
+				case HITEM_FLOWRATE:
+					sprintf(tmp_data, "%08x%02x", heatdata->Flow, heatdata->FlowUnit);
+					break;
+				case HITEM_ACCUM_FLOW:
+					sprintf(tmp_data, "%08x%02x", heatdata->AccumulateFlow, heatdata->AccumulateFlowUnit);
+					break;
+				case HITEM_IN_TEMP:
+					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[0], \
+						heatdata->WaterInTemp[1], heatdata->WaterInTemp[2]);
+					break;
+				case HITEM_OUT_TEMP:
+					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[0], \
+						heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[2]);
+					break;
+				case HITEM_ACCUM_WORK_TIME:
+					sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[0], \
+						heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[2]);
+					break;
+				case HITEM_REAL_TIME:
+					sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[0], \
+						heatdata->RealTime[1], heatdata->RealTime[2], \
+						heatdata->RealTime[3], heatdata->RealTime[4], 
+						heatdata->RealTime[5], heatdata->RealTime[6]);
+					break;
+				case HITEM_STATE:
+					printf("HITEM_STATE");
+					sprintf(tmp_data, "%04x", heatdata->ST);
+					break;
+				default:
+					sprintf(tmp_data, "Err");
+					break;
+				}
+				strcat(sql_buf, tmp_data);
+				if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
+					strcat(sql_buf, ",");
+				item_list = item_list->pNext;
+			}
+		break;
+	case em_water:
+		break;
+	case em_elect:
+		break;
+	case em_gas:
+		break;
+	default:
+		break;
+	}
+
+	strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
+
+	strcat(sql_buf, ";");
+	
+	printf("%s\n", sql_buf);
+	sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+	free(col_buf);
+	free(sql_buf);
+	
+}
+
+/********************************************************************************
  ** 功能区域	: 读取数据项
  ********************************************************************************/
 void read_all_request_data(char	*pErr)
@@ -79,7 +206,7 @@ void read_request_data(char *pErr, enum meter_type_idx type_idx)
 {
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	char *where_buf = malloc(LENGTH_SQLCON);
-
+	char *order_buf = malloc(LENGTH_SQLORDER);
 	char *m_type = malloc(LENGTH_F_METER_TYPE);
 	//char *con_buf[LENGTH_SQLCONS] = {FIELD_REQUEST_MTYPE};//这样初始化后, con_buf[0]指向const char*, 不能再进行连接, copy等操作
 	char *con_buf = malloc(LENGTH_SQLCONS);
@@ -94,16 +221,20 @@ void read_request_data(char *pErr, enum meter_type_idx type_idx)
 	strcpy(con_buf, FIELD_REQUEST_MTYPE);
 	strcat(con_buf, SQL_EQUAL);
 	strcat(con_buf, m_type);
-	
+
 	empty_request_data_list(type_idx);//清空以前的信息, 以重新读取
 	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
 	get_where_sql(&con_buf, 1, where_buf);
+	get_orderby_sql(&col_buf[2], 1, 1, order_buf);//本程序用到的线性表是先进后出, 所以降序读取, 升序存储
 	strcat(sql_buf, " ");
 	strcat(sql_buf, where_buf);
+	strcat(sql_buf,	" ");
+	strcat(sql_buf, order_buf);
 	strcat(sql_buf, ";");
 
 	sqlite3_exec(g_pDB, sql_buf, each_request_data, (void*)(&type_idx), &pErr);
 	free(m_type);
+	free(order_buf);
 	free(sql_buf);
 	free(where_buf);
 }
@@ -118,9 +249,9 @@ static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, ch
 		if (0 == strcmp(f_name[i], FIELD_REQUEST_ID))//数据项ID
 			tmp_request->f_id  = atoi(f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_MTYPE))//仪表类型
-			tmp_request->f_meter_type= ((f_value[i][0] - ZERO_CHAR) << LEN_HALF_BYTE | (f_value[i][1] - ZERO_CHAR));
+			tmp_request->f_meter_type= (Ascii2Hex(f_value[i][0]) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_ITEMIDX)) {//仪表数据项的索引号
-			tmp_request->f_item_index= ((f_value[i][0] - ZERO_CHAR) << LEN_HALF_BYTE | (f_value[i][1] - ZERO_CHAR));
+			tmp_request->f_item_index= (Ascii2Hex(f_value[i][0]) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
 		}
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_COLNAME))//仪表数据项的列名
 			strcpy(tmp_request->f_col_name, f_value[i]);
@@ -227,12 +358,12 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 				/*tmp_info->f_meter_address[LENGTH_B_METER_ADDRESS-1-j] = \
 					(((low_idx < 0) ? 0: (f_value[i][low_idx]-ZERO_CHAR)) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-ZERO_CHAR));*/
 				tmp_info->f_meter_address[j] = \
-					(((low_idx < 0) ? 0: (f_value[i][low_idx]-ZERO_CHAR)) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-ZERO_CHAR));
+					(((low_idx < 0) ? 0: Ascii2Hex(f_value[i][low_idx])) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][low_idx+1]));
 			}
 		}
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码(BCD), 固定为两个字符
 			if (strlen(f_value[i]) == BYTE_BCD_CNT) {
-				tmp_info->f_meter_type = (((f_value[i][0]-ZERO_CHAR)<<LEN_HALF_BYTE) | (f_value[i][1]-ZERO_CHAR));
+				tmp_info->f_meter_type = (Ascii2Hex(f_value[i][0]) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
 			}
 			else {//异常情况
 			}
