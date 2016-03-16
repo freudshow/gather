@@ -311,7 +311,7 @@ int  get_request_data_cnt(enum meter_type_idx);//读取仪表数据项的个数
 /**********************
  ** 仪表历史数据相关 **
  **********************/
-void insert_his_data(enum meter_type_idx type_idx, MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr);
+void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr);
 
 
 #endif  //_DB_H_

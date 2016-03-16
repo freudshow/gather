@@ -77,16 +77,43 @@ int close_db(void)
 /********************************************************************************
  ** 功能区域	: 仪表历史数据相关 
  ********************************************************************************/
-void insert_his_data(enum meter_type_idx type_idx, MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr)
+void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr)
 {
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	memset(sql_buf, 0, LENGTH_SQLBUF);	
-	char *table_name = tablename_array[type_idx];
-	int item_cnt = get_request_data_cnt(type_idx);
-	char *col_buf = malloc(item_cnt*LENGTH_F_COL_NAME);
-	char *tmp_col_buf = col_buf;
-	request_data_list item_list = arrayRequest_list[type_idx];
+	char *table_name;
+	int item_cnt;
+	char *col_buf;
+	char *tmp_col_buf;
+	request_data_list item_list;
 	char tmp_data[LENGTH_F_VALUE]={0};
+	enum meter_type_idx type_idx;
+
+	switch(pmf->u8MeterType){
+		case HEATMETER:
+			type_idx = em_heat;
+			break;
+		case WATERMETER:
+			type_idx = em_water;
+			break;
+		case ELECTMETER:
+			type_idx = em_elect;
+			break;
+		case GASMETER:
+			type_idx = em_gas;
+			break;
+		default:
+			type_idx = -1;
+
+			break;
+
+	}
+
+	table_name = tablename_array[type_idx];
+	item_cnt = get_request_data_cnt(type_idx);
+	item_list = arrayRequest_list[type_idx];
+	col_buf = malloc(item_cnt*LENGTH_F_COL_NAME);
+	tmp_col_buf = col_buf;
 	
 	int i = 0;
 	while(item_list) {
