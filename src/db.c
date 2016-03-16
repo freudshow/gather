@@ -175,50 +175,50 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	strcat(sql_buf, ",");
 	item_list = arrayRequest_list[type_idx];
 	CJ188_Format* heatdata;
+	uint8 *p;//改变CJ188_Format中uint32类型的字节序
 	switch(type_idx) {
 	case em_heat:
 			heatdata = (CJ188_Format*)pData;
-			printf("%p\n", heatdata);
 			while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
-				printf("f_item_index: %02x, pNext: %p\n", item_list->f_item_index, item_list->pNext);
 				memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
 				switch(item_list->f_item_index) {
 				case HITEM_CUR_COLD_E:
-					sprintf(tmp_data, "%08x%02x", heatdata->DailyHeat, heatdata->DailyHeatUnit);//实际为冷量, 而不是结算日热量
+					p=(uint8 *)&(heatdata->DailyHeat);
+					sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->DailyHeatUnit);//实际为冷量, 而不是结算日热量
 					break;
 				case HITEM_CUR_HEAT_E:
-					sprintf(tmp_data, "%08x%02x", heatdata->CurrentHeat, heatdata->CurrentHeatUnit);
+					p=(uint8 *)&(heatdata->CurrentHeat);
+					sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->CurrentHeatUnit);
 					break;
 				case HITEM_HEAT_POWER:
-					sprintf(tmp_data, "%08x%02x", heatdata->HeatPower, heatdata->HeatPowerUnit);
+					p=(uint8 *)&(heatdata->HeatPower);
+					sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->HeatPowerUnit);
 					break;
 				case HITEM_FLOWRATE:
-					sprintf(tmp_data, "%08x%02x", heatdata->Flow, heatdata->FlowUnit);
+					p=(uint8 *)&(heatdata->Flow);
+					sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->FlowUnit);
 					break;
 				case HITEM_ACCUM_FLOW:
-					sprintf(tmp_data, "%08x%02x", heatdata->AccumulateFlow, heatdata->AccumulateFlowUnit);
+					p=(uint8 *)&(heatdata->AccumulateFlow);
+					sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->AccumulateFlowUnit);
 					break;
 				case HITEM_IN_TEMP:
-					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[0], \
-						heatdata->WaterInTemp[1], heatdata->WaterInTemp[2]);
+					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[2], \
+						heatdata->WaterInTemp[1], heatdata->WaterInTemp[0]);
 					break;
 				case HITEM_OUT_TEMP:
-					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[0], \
-						heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[2]);
+					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[2], \
+						heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[0]);
 					break;
 				case HITEM_ACCUM_WORK_TIME:
-					sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[0], \
-						heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[2]);
+					sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[2], \
+						heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[0]);
 					break;
-				case HITEM_REAL_TIME:
-					for(i=0;i<7;i++)
-						printf("heatdata->RealTime[%d]: %02x\n", i, heatdata->RealTime[i]);
-
-					
-					sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[0], \
-						heatdata->RealTime[1], heatdata->RealTime[2], \
-						heatdata->RealTime[3], heatdata->RealTime[4], 
-						heatdata->RealTime[5], heatdata->RealTime[6]);
+				case HITEM_REAL_TIME:					
+					sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[6], \
+						heatdata->RealTime[5], heatdata->RealTime[4], \
+						heatdata->RealTime[3], heatdata->RealTime[2], 
+						heatdata->RealTime[1], heatdata->RealTime[0]);
 					break;
 				case HITEM_STATE:
 					sprintf(tmp_data, "%04x", heatdata->ST);
