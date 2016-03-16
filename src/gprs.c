@@ -1335,47 +1335,98 @@ void  GPRS_Mana_Proc(void *pdata)
 
 
 
-/*
-  ******************************************************************************
-  * 函数名称： int pthread_GPRS_Mana(void)
-  * 说    明： GPRS管理线程。
-  * 参    数： 无
-  ******************************************************************************
-*/
-
-int pthread_GPRS_Mana(void)
+uint8 gpHexToAscii(uint8 x)
 {
-
-	GPRS_Mana_Proc(NULL);
-
-	return(CONTROL_RET_SUC);
-
+	if(x<0x0a){
+		return(x+'0');
+	}
+	else{
+		return(x-0x0a+'A');
+	}
 }
 
 
-
-/*
-******************************************************************************
-* 函数名称： uint8 Gprs_DataSend(uint8 *Data,uint32 n)
-* 说	明： GPRS接口发送数据。
-* 参	数： 
-******************************************************************************
-*/
-uint8 Gprs_DataSend(uint8 *Data,uint32 n)
+void gpHex16ToStr(uint16 x,char* str)
 {
-	uint32 lu32delaytimes = 0;
-
-	write(g_uiGprsFd, (uint8 *)Data, n);
-
-	lu32delaytimes = 12000000 / GPRS_COM_SPEED;  //1000000*12/GPRS_COM_SPEED;
-	lu32delaytimes = lu32delaytimes*n;  //计算出在速率为RS485UP_COM_SPEED时，发送n个字节大概需要时间。
-
-	usleep(lu32delaytimes); //保证本次数据发完。
+	uint8 i,n;
+	uint8 buf[10];
+	n=0;
+	while(x){
+		buf[n++]=gpHexToAscii(x%10);
+		x=x/10;
+	}
 	
-
-	return NO_ERR; 
-
+	//反序
+	for(i=0;i<n;i++){
+		str[i]=buf[n-1-i];
+	}
+	str[i]='\0';
 }
+
+
+
+//extern uint32 gprs_sfai1,gprs_sfai2;
+uint8 GprsIPSEND_xmz(uint8* ipdata,uint16 len)
+{
+	char buf[8];
+	uint8 err;
+ 
+
+	if(len > MAX_IPSEND_MC52i_BYTENUM){
+		return 0xdd;
+	}
+
+    	if(len == 0){
+      	debug_err(gDebugModule[GPRS_MODULE], "[%s][%s][%d] GprsIPSEND_xmz len=0\n",FILE_LINE);
+      	return 0xd1;
+     }
+
+	OSTimeDly(OS_TICKS_PER_SEC/10);
+	strcpy(Ats_SISW,Ats_SISW_h);
+    
+	gpHex16ToStr(len,buf);
+	strcat(Ats_SISW,buf);
+	strcat(Ats_SISW,over123);
+    	
+    	UGprsWriteStr(Ats_SISW);
+	
+	#ifdef  GPRS_ECHO
+	err = GprsGetHead(UP_COMMU_DEV_AT,Ats_SISW,NULL,2*OS_TICKS_PER_SEC,TRUE);
+	if(err){
+        	debug_err(gDebugModule[GPRS_MODULE],"[%s][%s][%d]Ats_SISW get head Failure, The err is %d!\n", FILE_LINE,err);
+		return err;
+	}
+	#endif
+	err = GprsGetHead(UP_COMMU_DEV_AT,Ata_SISW_m,NULL,2*OS_TICKS_PER_SEC,FALSE);
+	if(err){
+        	debug_err(gDebugModule[GPRS_MODULE],"[%s][%s][%d]Ats_SISW_m get head Failure, The err is %d!\n", FILE_LINE,err);
+		return err;
+	}
+
+	UpDevSend(UP_COMMU_DEV_GPRS,ipdata,len);
+
+	err = GprsGetHead(UP_COMMU_DEV_AT,Ata_OK,NULL,2*OS_TICKS_PER_SEC,TRUE);
+	if(err){
+		debug_err(gDebugModule[GPRS_MODULE],"Ata_OK get head Failure, The err is %d!", err);
+		return err;
+	}
+
+	printf("GPRS IPSend Success.\n");
+	
+	return NO_ERR;
+}
+
+
+
+uint8 GprsIPSEND(uint8* ipdata,uint16 len)
+{
+	if(GetGprsRunSta_ModuId() == MODU_ID_XMZ){
+		return GprsIPSEND_xmz(ipdata,len);
+	}
+	
+	return 1;
+}
+
 
 
 
@@ -1410,7 +1461,7 @@ void GPRS_FileSend(uint8 Dev, FILE *fp)
 		fread(pSendTempBuf[Dev],1,lu32SendNum,fp);
                  //debug_info(gDebugModule[GPRS_MODULE], "send xml:  %s\n",gGPRSSendBuf);
 		       // debug_info(gDebugModule[GPRS_MODULE], "INFO: [TaskUpSend] SendNum=%d\n",SendNum);
-  		err = Gprs_DataSend(pSendTempBuf[Dev],lu32SendNum);
+  		err = GprsIPSEND(pSendTempBuf[Dev],lu32SendNum);
 		if(err != NO_ERR){
 
 		}
@@ -1422,6 +1473,24 @@ void GPRS_FileSend(uint8 Dev, FILE *fp)
 
 }
 
+
+
+/*
+  ******************************************************************************
+  * 函数名称： int pthread_GPRS_Mana(void)
+  * 说    明： GPRS管理线程。
+  * 参    数： 无
+  ******************************************************************************
+*/
+
+int pthread_GPRS_Mana(void)
+{
+
+	GPRS_Mana_Proc(NULL);
+
+	return(CONTROL_RET_SUC);
+
+}
 
 
 

@@ -29,6 +29,9 @@
 #include <errno.h> /*¥ÌŒÛ∫≈∂®“Â*/ 
 #include <semaphore.h>
 #include <pthread.h>
+#include<libxml/xmlmemory.h>
+#include<libxml/parser.h>
+
 
 
 #include "sysconfig.h"
@@ -39,6 +42,7 @@
 #include "db.h"
 #include "commap.h"
 #include "gprs.h"
+#include "xml.h"
 
 
 

@@ -95,6 +95,7 @@ extern uint8 Get_XMLBuf(void);
 extern uint8 Put_XMLBuf(uint8 lu8BufIndex);
 extern uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime);
 extern uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime);
+extern uint8 makexml(char optype,uint8 xmlIndex);
 
 
 

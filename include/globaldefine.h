@@ -15,6 +15,7 @@
 #ifndef _GLOBALDEFINE_H_
 #define _GLOBALDEFINE_H_
 
+
 //变量类型别名
 #define INT8     char
 #define UINT8    unsigned char
@@ -62,6 +63,10 @@ typedef unsigned int uint32;
 #define	EITEM_CUR_REACTIVE_POWER			0x06//当前无功功率值
 #define	EITEM_CUR_ APPARENT_POWER			0x07//当前视在功率值
 #define	EITEM_CUR_POWER_FACTOR				0x08//当前功率因数值
+
+#define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
+#define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
+
 
 
 
@@ -155,6 +160,16 @@ typedef struct
 }COM_INFO_T;
 
 
+//定义表基础信息结构体。
+typedef struct
+{
+	uint16 u16MeterID; //Hex
+	uint8 u8MeterAddr[LENGTH_B_METER_ADDRESS];  //BCD码
+	uint8 u8MeterType;	   //BCD
+	uint8 u8ProtocolType;  //HEX
+	uint8 u8Channel;	   //HEX
+	char  install_pos[LENGTH_F_INSTALL_POS];  //字符串
+}MeterFileType;
 
 
 

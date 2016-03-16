@@ -91,10 +91,8 @@
 #define LENGTH_F_CONFIG_NAME		16//配置名长度
 #define LENGTH_F_CONFIG_VALUE		50//配置值长度
 #define LENGTH_F_METER_ADDRESS	14//在数据表中存储的仪表地址长度, 最大14个字符
-#define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
 #define LENGTH_F_METER_TYPE		2//在数据表中存储的仪表类型长度, 最大2个字符
 
-#define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
 #define LENGTH_F_TIMESTAMP			50//时间戳长度
 #define LENGTH_F_TIME				50//抄表时间点长度
 #define LENGTH_F_COL_NAME			20//抄表项列名长度

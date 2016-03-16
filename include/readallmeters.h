@@ -19,17 +19,6 @@
 #include "includes.h"
 
 
-//定义表基础信息结构体。
-typedef struct
-{
-	uint16 u16MeterID; //Hex
-	uint8 u8MeterAddr[LENGTH_B_METER_ADDRESS];  //BCD码
-	uint8 u8MeterType;	   //BCD
-	uint8 u8ProtocolType;  //HEX
-	uint8 u8Channel;	   //HEX
-	char  install_pos[LENGTH_F_INSTALL_POS];  //字符串
-}MeterFileType;
-
 
 
 
