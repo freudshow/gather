@@ -159,7 +159,9 @@ void create_pthread_AllUartRec(void)
 void create_pthread_GprsRelated(void)
 {
 	int32 lReg = 0;
-	pthread_t GPRS_Mana_pthreadID;  //上行485接口线程ID.
+	pthread_t GPRS_Mana_pthreadID;  //GPRS管理线程ID.
+	pthread_t GPRS_IPD_pthreadID;  //GPRS网络传输数据处理线程ID.
+	pthread_t GprsDataDeal_pthreadID;  //GPRS网络传输数据处理线程ID.
 
 	lReg = pthread_create(&GPRS_Mana_pthreadID,NULL,(void *)pthread_GPRS_Mana,NULL);
 	if(0 != lReg){
@@ -169,6 +171,22 @@ void create_pthread_GprsRelated(void)
 	else
 		printf ("Create pthread_GPRS_Mana OK!\n");
 
+
+	lReg = pthread_create(&GPRS_IPD_pthreadID,NULL,(void *)pthread_GPRS_IPD,NULL);
+	if(0 != lReg){
+		printf ("Create pthread_GPRS_IPD error!\n");
+		exit (1);
+	}
+	else
+		printf ("Create pthread_GPRS_IPD OK!\n");
+
+	lReg = pthread_create(&GprsDataDeal_pthreadID,NULL,(void *)pthread_GprsDataDeal,NULL);
+	if(0 != lReg){
+		printf ("Create pthread_GprsDataDeal error!\n");
+		exit (1);
+	}
+	else
+		printf ("Create pthread_GprsDataDeal OK!\n");
 
 
 

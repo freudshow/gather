@@ -92,7 +92,12 @@ extern GPRS_RUN_STA gGprsRunSta;
 
 
 extern int pthread_GPRS_Mana(void);
+extern int pthread_GPRS_IPD(void);
+extern void pthread_GprsDataDeal(void);
+
+
 extern void GPRS_FileSend(uint8 Dev, FILE *fp);
+
 
 
 

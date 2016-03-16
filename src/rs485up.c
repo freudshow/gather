@@ -203,7 +203,7 @@ void pthread_RS485UpDeal(void)
 			lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
 		}while(lu8xmlIndex == ERR_FF);
 
-		//printf("Get_XMLBuf %d.\n",lu8xmlIndex);
+		//printf("pthread_RS485UpDeal Get_XMLBuf %d.\n",lu8xmlIndex);
 		
 		err = UpGetXMLStart(lu8xmlIndex,UP_COMMU_DEV_485,lu16outtime);
 		if(err == NO_ERR){

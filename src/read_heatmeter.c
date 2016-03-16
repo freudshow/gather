@@ -286,8 +286,9 @@ uint8 Meter_AnalDataFrm_CJ188(uint8 *pRecFrame,uint8 *pLen)
 	memcpy(ProtoclData.DataBuf, pTemp, (ProtoclData.Length-3));	//数据域数据
 	pTemp += ProtoclData.Length - 3;
 	
-	pRecFrame = ProtoclData.DataBuf;
+	memcpy(pRecFrame,ProtoclData.DataBuf, (ProtoclData.Length-3));
 	*pLen = ProtoclData.Length - 3;
+
 	
 	return NO_ERR;
 	
@@ -414,6 +415,7 @@ uint8 Read_HeatMeter(MeterFileType *pmf)
 	CJ188_Format CJ188_Data;
 	struct tm *pNowTime;
 	time_t timep;
+
 	
 
 	if(pmf->u8ProtocolType >= HEATMETER_PROTO_SUM){  //防止协议版本号超限。
@@ -442,7 +444,11 @@ uint8 Read_HeatMeter(MeterFileType *pmf)
 		//printf("%d:%d:%d\n", pNowTime->tm_hour, pNowTime->tm_min, pNowTime->tm_sec); 
 
 		insert_his_data(pmf,&CJ188_Data,pNowTime,p_gTimeNode,lcRet);
-		printf("insert_his_data over.\n"); 
+
+
+		
+		
+
 	}
 
 

@@ -151,6 +151,8 @@ char over_isnd[]="\"\r";
 GPRS_RUN_STA gGprsRunSta;
 uint8 gGPRSManaBusy = 0;  //GPRS管理正忙中，0-不忙，1-忙。
 UP_COMM_MSG gUpCommMsg;
+static char gRecBuf_xmz[MAX_REC_MC52i_BYTENUM+100];//这里+100是冗余
+
 
 
 
@@ -1495,8 +1497,258 @@ int pthread_GPRS_Mana(void)
 
 
 
+//char AtaHead_IPDATA[]="%IPDATA:";
+//%IPDATA:25,"68450045006841FFFFFFFFFF84F10000801E3117070006A416"\r\n
+//独占设备UP_COMMU_DEV_ATIPD
+uint8 GprsGetIPDATA_xmz(char* ipdata,uint16 OutTime,uint16* StrLen)
+{
+	uint8 err;
+
+	ipdata=ipdata;
+	StrLen=StrLen;
+    
+   	err=GprsGetHead(UP_COMMU_DEV_ATIPD,Ata_URC_SISR,NULL,OutTime,TRUE);
+ 
+	return err;	
+
+}
 
 
+
+/*
+get data from USART3RecQueue_At UP_COMMU_DEV_AT
+
+jh:交互
+*/
+uint8 GprsGetIPDATA_jh(char* ipdata,uint16 OutTime,uint16* StrLen)
+{
+	uint8 err;
+	char  lenstr[8];
+	uint16 i,Len;
+	OutTime = OutTime;
+	sem_wait(&Gprs_Sem);
+
+  	UpQueueFlush(UP_COMMU_DEV_AT);
+	UGprsWriteStr(Ats_SISR);
+	
+	#ifdef  GPRS_ECHO
+	err=GprsGetHead(UP_COMMU_DEV_AT,Ats_SISR,NULL,2*OS_TICKS_PER_SEC,TRUE);
+	if(err){
+		sem_post(&Gprs_Sem);
+        	debug_err(gDebugModule[GPRS_MODULE], "[%s][%s][%d] Ats_SISR err=%d\n",FILE_LINE,err);
+		return err;
+	}
+	#endif
+  
+	err=GprsGetHead(UP_COMMU_DEV_AT,Ata_SISR_m,NULL,2*OS_TICKS_PER_SEC,FALSE);
+	if(err){
+		sem_post(&Gprs_Sem);
+        	debug_err(gDebugModule[GPRS_MODULE],"[%s][%d]Ata_SISR_m err=%d\n",__FUNCTION__,__LINE__,err);
+		return err;
+	}
+	
+	Len = GprsGetViaTail(UP_COMMU_DEV_AT,lenstr,'\n',3,8,&err);
+	if(err){
+		sem_post(&Gprs_Sem);
+    		debug_err(gDebugModule[GPRS_MODULE],"%s %d err=%d\n",__FUNCTION__,__LINE__,err);
+		return err;
+	}
+	if(lenstr[Len-2]!='\r'){
+		sem_post(&Gprs_Sem);
+    		debug_err(gDebugModule[GPRS_MODULE],"%s %d err=%d\n",__FUNCTION__,__LINE__,err);
+		return 0xff;
+	}
+	lenstr[Len-2]='\0';
+	
+
+	err = AsciiDec(lenstr,&Len);
+	if(err){
+		sem_post(&Gprs_Sem);
+    		debug_err(gDebugModule[GPRS_MODULE],"%s %d err=%d\n",__FUNCTION__,__LINE__,err);
+		*StrLen = 0;
+		return 0xfe;
+	}
+	
+	if(Len > MAX_REC_MC52i_BYTENUM){
+		return 0xdd;
+	}
+	
+	for(i=0;i<Len;i++){
+		err=UpGetch(UP_COMMU_DEV_AT,(uint8*)(&ipdata[i]),3*OS_TICKS_PER_SEC);
+		if(err){
+			sem_post(&Gprs_Sem);
+      		debug_err(gDebugModule[GPRS_MODULE],"[%s][%d] len=%d err=%d\n",__FUNCTION__,__LINE__,Len,err);
+			return 0xf0;
+		}
+	}
+
+	*StrLen = Len;
+	sem_post(&Gprs_Sem);
+	return 0;
+}
+
+
+
+/********************************************************************************************************
+**  函 数  名 称: Fun_GprsIpd_xmz       									                           **
+**  函 数  功 能: 西门子模块接收网络传输数据处理函数。							                                           **			
+**  输 入  参 数: pdata												                                   **
+**  输 出  参 数: none											                                       **
+**  返   回   值: none																			   	   **
+**  备	    注: 						                                                               **
+********************************************************************************************************/
+uint16 gUpdateBegin = 0;
+uint8 gGPRSBusy = 0;
+
+void Fun_GprsIpd_xmz(void)
+{
+	//本任务没有任务狗,原因之一是它可能在一段时间处在挂起状态
+	uint8 err;
+	uint16 len;
+	uint8 Count = 0;
+	GPRS_RUN_STA GprsRunSta;
+	
+	while(1){
+		ReadGprsRunSta(&GprsRunSta);
+		if(GprsRunSta.Connect != TRUE) //如果GPRS没有连接成功，则退出循环。
+			break;
+		
+		if(gUpdateBegin == 1){
+			err = 0;
+			UpQueueFlush(UP_COMMU_DEV_ATIPD);
+		}
+      	else{
+     		err = GprsGetIPDATA_xmz(gRecBuf_xmz,0,&len);
+      	}
+		
+		if(err==0){
+			debug_debug(gDebugModule[GPRS_MODULE],"enter GPRS jh\n");
+			do{
+				err = GprsGetIPDATA_jh(gRecBuf_xmz,0,&len);
+	  			if(err){
+					//重试一次 
+					//可能对调试过程中断点(或本地口来的数据)导致错误而彻底中断西门子模块发的^SISR: 1, 1(数据还没有完全读空时)
+					debug_err(gDebugModule[GPRS_MODULE],"%s %d err=%d\n",__FUNCTION__,__LINE__,err);	
+					OSTimeDly(OS_TICKS_PER_SEC/8);
+	  				err = GprsGetIPDATA_jh(gRecBuf_xmz,0,&len);
+					if(err){
+						debug_err(gDebugModule[GPRS_MODULE],"%s %d err=%d\n",__FUNCTION__,__LINE__,err);
+					}
+	  			}
+	  		
+				debug_debug(gDebugModule[GPRS_MODULE],"[%s][%s][%d] GprsIPREC len=%d ok \n",FILE_LINE,len);	
+				if(len > 400){gUpdateBegin = 1;}/*进入主动读取数据模式*/
+				if(len == 0)
+					{Count++;}
+				else
+					{Count = 0;}
+				if(Count > 10){gUpdateBegin = 0;}/*连续10次无数据进入查询接受数据模式*/
+			
+            		OSTimeDly(OS_TICKS_PER_SEC/8);
+	  			UpdGprsRunSta_FeedRecDog();	
+	  			UpdGprsRunSta_AddFrmRecTimes(len);	
+	  			UpRecQueueWrite(UP_COMMU_DEV_GPRS,(uint8*)gRecBuf_xmz,len);
+        			if(len){
+        				debug_debug(gDebugModule[GPRS_MODULE],"[%s][%s][%d] %s\n",FILE_LINE,gRecBuf_xmz);
+          			memset(gRecBuf_xmz,0,sizeof(gRecBuf_xmz));
+        			}
+	  		}while(err==0 && len>0);	
+			debug_debug(gDebugModule[GPRS_MODULE],"leave GPRS jh \n");
+		}
+		else{
+			debug_err(gDebugModule[GPRS_MODULE],"%s %d err=%d\n",__FUNCTION__,__LINE__,err);
+		}
+	} 
+	
+}
+
+
+
+
+/*
+  ******************************************************************************
+  * 函数名称： int pthread_GPRS_IPD(void)
+  * 说    明： 获取GPRS网络传输数据的线程。
+  * 参    数： 无
+  ******************************************************************************
+*/
+
+int pthread_GPRS_IPD(void)
+{
+	uint8 lu8GprsType = 0;
+	GPRS_RUN_STA GprsRunSta;
+
+	while(1){
+		ReadGprsRunSta(&GprsRunSta);
+		if(GprsRunSta.Connect == TRUE){
+			lu8GprsType = GetGprsRunSta_ModuId();
+			if(lu8GprsType == MODU_ID_XMZ){  //目前只有西门子模块支持。
+				//printf("Fun_GprsIpd_xmz start.\n");  //测试用
+				Fun_GprsIpd_xmz();
+
+			}
+			else{
+				OSTimeDly(1000);//等待1秒钟之后继续循环。
+			}		
+
+		}
+		else{
+			OSTimeDly(1000);//等待1秒钟之后继续循环。
+		}
+
+	}
+
+	return(CONTROL_RET_SUC);
+
+}
+
+
+
+
+
+/*
+******************************************************************************
+* 函数名称： void pthread_GprsDataDeal(void)
+* 说	明： 通过GPRS传输到集中器的数据处理线程。
+* 参	数： 
+******************************************************************************
+*/
+void pthread_GprsDataDeal(void)
+{
+	uint8 err = 0;
+	//uint8 lu8data = 0;
+	uint16 lu16outtime = 1000;  //等待 毫秒数。
+	uint8 lu8xmlIndex = 0;
+	//FILE *fp;
+
+	while(1){	
+		do{
+			lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
+		}while(lu8xmlIndex == ERR_FF);
+
+		//printf("Get_XMLBuf %d.\n",lu8xmlIndex);
+		
+		err = UpGetXMLStart(lu8xmlIndex,UP_COMMU_DEV_GPRS,lu16outtime);
+		if(err == NO_ERR){
+			//printf("pthread_GprsDataDeal UpGetXMLStart OK.\n");
+			err = UpGetXMLEnd(lu8xmlIndex,UP_COMMU_DEV_GPRS,lu16outtime);
+			if(err == NO_ERR){//说明接收到一帧完整的xml数据。
+				//printf("pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = %d.\n",lu8xmlIndex);
+
+				
+				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
+
+			}
+			else{
+				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
+			}
+
+		}
+		else{
+			Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
+		}
+	}
+}
 
 
 

@@ -34,7 +34,7 @@ typedef struct{
 	}DELU_Protocol;
 
 
-
+#pragma pack(1)
 typedef struct{
 	uint32   DailyHeat;		         /*结算日热量*/	
    	uint8    DailyHeatUnit;
@@ -52,6 +52,10 @@ typedef struct{
 	uint8	RealTime[7];		     /*实时时间*/	
 	uint16 	ST;					/*状态ST*/  
 	}CJ188_Format;
+
+
+#pragma pack()
+
 
 
 
