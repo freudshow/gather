@@ -203,22 +203,22 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 					sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->AccumulateFlowUnit);
 					break;
 				case HITEM_IN_TEMP:
-					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[2], \
-						heatdata->WaterInTemp[1], heatdata->WaterInTemp[0]);
+					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[0], \
+						heatdata->WaterInTemp[1], heatdata->WaterInTemp[2]);
 					break;
 				case HITEM_OUT_TEMP:
-					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[2], \
-						heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[0]);
+					sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[0], \
+						heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[2]);
 					break;
 				case HITEM_ACCUM_WORK_TIME:
-					sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[2], \
-						heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[0]);
+					sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[0], \
+						heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[2]);
 					break;
 				case HITEM_REAL_TIME:					
-					sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[6], \
-						heatdata->RealTime[5], heatdata->RealTime[4], \
-						heatdata->RealTime[3], heatdata->RealTime[2], 
-						heatdata->RealTime[1], heatdata->RealTime[0]);
+					sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[0], \
+						heatdata->RealTime[1], heatdata->RealTime[2], \
+						heatdata->RealTime[3], heatdata->RealTime[4], 
+						heatdata->RealTime[5], heatdata->RealTime[6]);
 					break;
 				case HITEM_STATE:
 					sprintf(tmp_data, "%04x", heatdata->ST);
