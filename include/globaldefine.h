@@ -69,7 +69,8 @@ typedef unsigned int uint32;
 
 
 
-
+#define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
+#define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
 
 
 

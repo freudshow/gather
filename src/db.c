@@ -77,7 +77,7 @@ int close_db(void)
 /********************************************************************************
  ** 功能区域	: 仪表历史数据相关 
  ********************************************************************************/
- void insert_his_data(enum meter_type_idx type_idx, void *pData, char *pErr)
+void insert_his_data(enum meter_type_idx type_idx, MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr)
 {
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	memset(sql_buf, 0, LENGTH_SQLBUF);	
@@ -86,7 +86,7 @@ int close_db(void)
 	char *col_buf = malloc(item_cnt*LENGTH_F_COL_NAME);
 	char *tmp_col_buf = col_buf;
 	request_data_list item_list = arrayRequest_list[type_idx];
-	char tmp_data[LENGTH_F_COL_NAME]={0};
+	char tmp_data[LENGTH_F_VALUE]={0};
 	
 	int i = 0;
 	while(item_list) {
@@ -99,12 +99,22 @@ int close_db(void)
 	strcpy(sql_buf, SQL_INSERT);
 	strcat(sql_buf, " ");
 	strcat(sql_buf, table_name);
-	//columns
-	strcat(sql_buf, " ");
 	strcat(sql_buf, SQL_LEFT_PARENTHESIS);
+	//columns
+	//固定项
+	strcat(sql_buf, FIELD_HIS_ADDRESS);//表地址
+	strcat(sql_buf, ",");
+	strcat(sql_buf, FIELD_HIS_TYPE);//表类型
+	strcat(sql_buf, ",");
+	strcat(sql_buf, FIELD_HIS_DEVID);//设备编号
+	strcat(sql_buf, ",");
+	strcat(sql_buf, FIELD_HIS_TSTAMP);//时间戳
+	strcat(sql_buf, ",");
+	strcat(sql_buf, FIELD_HIS_TNODE);//抄表时间点
+	strcat(sql_buf, ",");
 	for(i=0;i<item_cnt-1;i++, tmp_col_buf += LENGTH_F_COL_NAME) {
 		strcat(sql_buf, tmp_col_buf);
-		strcat(sql_buf, ", ");
+		strcat(sql_buf, ",");
 	}
 	strcat(sql_buf, tmp_col_buf);
 	strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
@@ -113,7 +123,28 @@ int close_db(void)
 	//values
 	strcat(sql_buf, SQL_VALUES);
 	strcat(sql_buf, SQL_LEFT_PARENTHESIS);
-
+	//固定项
+	sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", pmf->u8MeterAddr[6], \
+	pmf->u8MeterAddr[5], pmf->u8MeterAddr[4], pmf->u8MeterAddr[3], 
+	pmf->u8MeterAddr[2], pmf->u8MeterAddr[1], pmf->u8MeterAddr[0]);
+	strcat(sql_buf, tmp_data);//表地址
+	strcat(sql_buf, ",");
+	sprintf(tmp_data, "%02x",type_idx);
+	strcat(sql_buf, tmp_data);//表类型
+	strcat(sql_buf, ",");
+	sprintf(tmp_data, "%s", "NULL");
+	strcat(sql_buf, tmp_data);//设备编号
+	strcat(sql_buf, ",");
+	sprintf(tmp_data, "%s", asctime(pNowTime));
+	strcat(sql_buf, SQL_SINGLE_QUOTES);
+	strcat(sql_buf, tmp_data);//时间戳
+	strcat(sql_buf, SQL_SINGLE_QUOTES);
+	strcat(sql_buf, ",");
+	sprintf(tmp_data, "%s", asctime(pTimeNode));
+	strcat(sql_buf, SQL_SINGLE_QUOTES);
+	strcat(sql_buf, tmp_data);//抄表时间点
+	strcat(sql_buf, SQL_SINGLE_QUOTES);
+	strcat(sql_buf, ",");
 	item_list = arrayRequest_list[type_idx];
 	CJ188_Format* heatdata;
 	switch(type_idx) {
@@ -158,7 +189,6 @@ int close_db(void)
 						heatdata->RealTime[5], heatdata->RealTime[6]);
 					break;
 				case HITEM_STATE:
-					printf("HITEM_STATE");
 					sprintf(tmp_data, "%04x", heatdata->ST);
 					break;
 				default:

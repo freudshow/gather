@@ -27,6 +27,8 @@
 #define _DB_H_
 
 #include "globaldefine.h"
+#include "readallmeters.h"
+#include "read_heatmeter.h"
 /********************************************************************************
  ** SQL动词
  ********************************************************************************/
@@ -96,6 +98,7 @@
 #define LENGTH_F_TIMESTAMP			50//时间戳长度
 #define LENGTH_F_TIME				50//抄表时间点长度
 #define LENGTH_F_COL_NAME			20//抄表项列名长度
+#define LENGTH_F_VALUE				100//抄表历史数据最大长度
 #define LENGTH_F_COL_TYPE			20//抄表项类型名长度
 #define LENGTH_F_TIME_NAME			20//时间点名称长度
 #define LENGTH_F_TIME_NODE			100//时间点配置长度
@@ -228,6 +231,13 @@ typedef time_node_str *pTime_node;
 /********************************************************************************
  ** 仪表历史数据项
  ********************************************************************************/
+#define FIELD_HIS_ID			"f_id"
+#define FIELD_HIS_ADDRESS		"f_meter_address"
+#define FIELD_HIS_TYPE			"f_meter_type"
+#define FIELD_HIS_DEVID			"f_device_id"
+#define FIELD_HIS_TSTAMP		"f_timestamp"
+#define FIELD_HIS_TNODE			"f_time"
+
 enum T_His_Field{
 	STRING = 0,
 	INT,
@@ -301,6 +311,7 @@ int  get_request_data_cnt(enum meter_type_idx);//读取仪表数据项的个数
 /**********************
  ** 仪表历史数据相关 **
  **********************/
-void insert_his_data(enum meter_type_idx type_idx, void *pData, char *pErr);
+void insert_his_data(enum meter_type_idx type_idx, MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr);
+
 
 #endif  //_DB_H_
