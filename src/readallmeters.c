@@ -158,8 +158,8 @@ void pthread_ReadAllMeters(void)
 
 		time(&timep); 
 		p_gTimeNode = localtime(&timep);  
-		p_gTimeNode->tm_year += 1900;
-		p_gTimeNode->tm_mon += 1;  //转换成当前年和月。
+		//p_gTimeNode->tm_year += 1900;
+		//p_gTimeNode->tm_mon += 1;  //转换成当前年和月。
 		p_gTimeNode->tm_sec = 0;   //定时抄表节点，秒数固定写0.
 		printf("%d %d %d \n",p_gTimeNode->tm_year, p_gTimeNode->tm_mon,p_gTimeNode->tm_mday); 
 		printf("%d:%d:%d\n", p_gTimeNode->tm_hour, p_gTimeNode->tm_min, p_gTimeNode->tm_sec); 

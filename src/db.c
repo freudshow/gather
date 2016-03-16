@@ -79,6 +79,10 @@ int close_db(void)
  ********************************************************************************/
 void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr)
 {
+	if(NULL == g_pDB) {
+		pErr = "database not open";
+		return;
+	}
 	enum meter_type_idx type_idx;
 
 	switch(pmf->u8MeterType){
@@ -107,7 +111,8 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	memset(col_buf, 0, item_cnt*LENGTH_F_COL_NAME);
 	char *tmp_col_buf = col_buf;
 	request_data_list item_list = arrayRequest_list[type_idx];
-	char tmp_data[LENGTH_F_VALUE]={0};
+	char *tmp_data = malloc(LENGTH_F_VALUE);
+	memset(tmp_data, 0, LENGTH_F_VALUE);
 	
 	int i = 0;
 	while(item_list) {
@@ -134,9 +139,11 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	strcat(sql_buf, FIELD_HIS_TNODE);//抄表时间点
 	strcat(sql_buf, ",");
 	for(i=0;i<item_cnt-1;i++, tmp_col_buf += LENGTH_F_COL_NAME) {
+		printf("tmp_col_buf: %s\n", tmp_col_buf);
 		strcat(sql_buf, tmp_col_buf);
 		strcat(sql_buf, ",");
 	}
+	printf("tmp_col_buf: %s\n", tmp_col_buf);
 	strcat(sql_buf, tmp_col_buf);
 	strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
 	tmp_col_buf = col_buf;//指向第一个元素
@@ -171,7 +178,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	switch(type_idx) {
 	case em_heat:
 			heatdata = (CJ188_Format*)pData;
-			
+			printf("%p\n", heatdata);
 			while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
 				printf("f_item_index: %02x, pNext: %p\n", item_list->f_item_index, item_list->pNext);
 				memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
@@ -204,6 +211,10 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 						heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[2]);
 					break;
 				case HITEM_REAL_TIME:
+					for(i=0;i<7;i++)
+						printf("heatdata->RealTime[%d]: %02x\n", i, heatdata->RealTime[i]);
+
+					
 					sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[0], \
 						heatdata->RealTime[1], heatdata->RealTime[2], \
 						heatdata->RealTime[3], heatdata->RealTime[4], 
@@ -216,7 +227,9 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 					sprintf(tmp_data, "Err");
 					break;
 				}
+				strcat(sql_buf, SQL_SINGLE_QUOTES);
 				strcat(sql_buf, tmp_data);
+				strcat(sql_buf, SQL_SINGLE_QUOTES);
 				if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
 					strcat(sql_buf, ",");
 				item_list = item_list->pNext;
@@ -236,7 +249,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	strcat(sql_buf, ";");
 	
 	sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
-	printf("sql_buf: %s, pErr: %s\n", sql_buf, pErr);
+	printf("sql_buf: %s, sql_buf length: %d, pErr: %s\n", sql_buf, strlen(sql_buf), pErr);
 	free(col_buf);
 	free(sql_buf);
 	
@@ -254,6 +267,11 @@ void read_all_request_data(char	*pErr)
 
 void read_request_data(char *pErr, enum meter_type_idx type_idx)
 {
+	if(NULL == g_pDB) {
+		pErr = "database not open";
+		return;
+	}
+
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	char *where_buf = malloc(LENGTH_SQLCON);
 	char *order_buf = malloc(LENGTH_SQLORDER);
@@ -371,6 +389,11 @@ int  get_request_data_cnt(enum meter_type_idx idx)
 
 void read_meter_info(char	*pErr)
 {
+	if(NULL == g_pDB) {
+		pErr = "database not open";
+		return;
+	}
+
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	char *order_buf = malloc(LENGTH_SQLORDER);
 	char *table_name = TABLE_METER_INFO;
@@ -505,6 +528,11 @@ sys_config_str get_sys_config(enum T_System_Config idx)
 
 void read_sys_config(char *pErr)
 {
+	if(NULL == g_pDB) {
+		pErr = "database not open";
+		return;
+	}
+
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	char *order_buf = malloc(LENGTH_SQLORDER);
 	char *table_name = TABLE_BASE_DEF;

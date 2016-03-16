@@ -106,7 +106,7 @@
 #define LENGTH_SQLBUF		4096//sql语句的最大长度; 有的语句很长, 所以长度定的长些
 #define LENGTH_SQLCONS		50//一个条件语句的最大长度, 如"col_number_id=23"
 #define LENGTH_SQLCON		1024//一条条件从句的最大长度, 如"col_number_id=23 and col_number2_id=24"
-#define LENGTH_SQLINSERT	2048//一条insert语句(不计where从句)的最大长度
+#define LENGTH_SQLINSERT	4096//一条insert语句(不计where从句)的最大长度
 #define LENGTH_SQLVALUE		50//一个数据域值的最大长度
 #define LENGTH_SQLSET		200//一条set从句的最大长度
 #define LENGTH_SQLORDER		200//一条order by从句的最大长度

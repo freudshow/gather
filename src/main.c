@@ -48,7 +48,7 @@ int main(int argc, char **argv)
 
 
 
-
+	close_db();
 	return 0;
 	
 	
