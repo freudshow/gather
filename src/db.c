@@ -79,14 +79,6 @@ int close_db(void)
  ********************************************************************************/
 void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr)
 {
-	char *sql_buf = malloc(LENGTH_SQLBUF);
-	memset(sql_buf, 0, LENGTH_SQLBUF);	
-	char *table_name;
-	int item_cnt;
-	char *col_buf;
-	char *tmp_col_buf;
-	request_data_list item_list;
-	char tmp_data[LENGTH_F_VALUE]={0};
 	enum meter_type_idx type_idx;
 
 	switch(pmf->u8MeterType){
@@ -103,17 +95,19 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 			type_idx = em_gas;
 			break;
 		default:
-			type_idx = -1;
-
-			break;
-
+			pErr = "meter type error";
+			return;
 	}
-
-	table_name = tablename_array[type_idx];
-	item_cnt = get_request_data_cnt(type_idx);
-	item_list = arrayRequest_list[type_idx];
-	col_buf = malloc(item_cnt*LENGTH_F_COL_NAME);
-	tmp_col_buf = col_buf;
+	
+	char *sql_buf = malloc(LENGTH_SQLBUF);
+	memset(sql_buf, 0, LENGTH_SQLBUF);	
+	char *table_name = tablename_array[type_idx];
+	int item_cnt = get_request_data_cnt(type_idx);
+	char *col_buf = malloc(item_cnt*LENGTH_F_COL_NAME);
+	memset(col_buf, 0, item_cnt*LENGTH_F_COL_NAME);
+	char *tmp_col_buf = col_buf;
+	request_data_list item_list = arrayRequest_list[type_idx];
+	char tmp_data[LENGTH_F_VALUE]={0};
 	
 	int i = 0;
 	while(item_list) {
@@ -239,11 +233,10 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	}
 
 	strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
-
 	strcat(sql_buf, ";");
 	
-	printf("%s\n", sql_buf);
 	sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+	printf("sql_buf: %s, pErr: %s\n", sql_buf, pErr);
 	free(col_buf);
 	free(sql_buf);
 	
@@ -306,9 +299,9 @@ static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, ch
 		if (0 == strcmp(f_name[i], FIELD_REQUEST_ID))//数据项ID
 			tmp_request->f_id  = atoi(f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_MTYPE))//仪表类型
-			tmp_request->f_meter_type= (Ascii2Hex(f_value[i][0]) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
+			tmp_request->f_meter_type= atoi(f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_ITEMIDX)) {//仪表数据项的索引号
-			tmp_request->f_item_index= (Ascii2Hex(f_value[i][0]) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
+			tmp_request->f_item_index = atoi(f_value[i]);
 		}
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_COLNAME))//仪表数据项的列名
 			strcpy(tmp_request->f_col_name, f_value[i]);
