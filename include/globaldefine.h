@@ -127,9 +127,9 @@ typedef unsigned int uint32;
 //错误信息的定义
 #define CONTROL_RET_FAIL 	-1
 #define CONTROL_RET_SUC  	0
-#define NO_ERR		0
-#define ERR_1		1
-#define ERR_FF		0xff
+#define NO_ERR		0//成功
+#define ERR_1			1//解析文档格式
+#define ERR_FF		0xff//打开文档或者编码错误
 
 
 //超时时间宏定义
