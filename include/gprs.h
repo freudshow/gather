@@ -60,10 +60,10 @@ typedef struct {
 #define	SOCKET_TCP	 0
 #define	SOCKET_UDP	 1
 
-#define  GPRS_CHECK_CYCLE	 	10 //单位秒。
-#define  GPRS_SELF_CHECK_CYCLE	 5*GPRS_CHECK_CYCLE
-#define  GPRS_HEART_FRM_TIME		60
-#define  GPRS_HEART_FRM_REC_OUTTIME	GPRS_HEART_FRM_TIME*4
+#define  GPRS_CHECK_CYCLE	 	 	10 //单位秒。
+#define  GPRS_SELF_CHECK_CYCLE	 	5*GPRS_CHECK_CYCLE
+#define  GPRS_HEART_FRM_TIME		 	12*GPRS_CHECK_CYCLE
+#define  GPRS_HEART_FRM_REC_OUTTIME	4  //定义几次心跳没有回应则超时，当前定义4次。
 
 
 
@@ -90,6 +90,7 @@ extern uint8 gGprsFirst;
 extern GPRS_RUN_STA gGprsRunSta;
 
 
+extern void UpdGprsRunSta_FeedSndDog(void);
 
 extern int pthread_GPRS_Mana(void);
 extern int pthread_GPRS_IPD(void);

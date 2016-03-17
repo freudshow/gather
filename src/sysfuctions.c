@@ -15,6 +15,8 @@
 #include "includes.h"
 #include "sysfuctions.h"
 #include "commap.h"
+#include "rs485up.h"
+
 
 
 
@@ -31,9 +33,13 @@ sem_t  OperateDB_sem; //操作数据库的信号量
 sem_t  OperateMBUS_sem;	//操作MBUS端口信号量
 sem_t  Opetate485Down_sem;	//操作485下行端口信号量。
 
+sem_t Validate_sem;  //GPRS登录信号量。
 
 
 
+
+
+static XmlInfoRecord gXmlInfo[UP_COMMU_DEV_ARRAY];  //用于分别记录每种设备下的xml信息。
 
 
 
@@ -106,6 +112,45 @@ void OSSemPost(uint8 dev)
     sem_post(&QueueSems[dev]);  /*加一*/
 }
 
+
+/*
+  ******************************************************************************
+  * 函数名称： int OSSem_timedwait (sem_t Sem,uint32  timeout)
+  * 说    明： 可定时等待一个信号量的到来。
+  * 参    数： 成功等待到信号量，返回0，非0说明超时。
+  			sem_t Sem 要等待的信号量。
+  			uint32  timeout 超时时间，单位毫秒。
+  ******************************************************************************
+*/
+
+int OSSem_timedwait(sem_t *pSem,uint32  timeout)
+{
+    int ret=0;
+    struct timespec outtime;
+    struct timeval now;
+
+    gettimeofday(&now,NULL);
+    
+    outtime.tv_sec = now.tv_sec + timeout/1000;
+    outtime.tv_nsec = now.tv_usec + (timeout%1000)*1000*1000;
+    
+    outtime.tv_sec += outtime.tv_nsec/(1000*1000*1000);
+    outtime.tv_nsec %= (1000*1000*1000);
+    
+    if(timeout == (uint32)NULL){
+      	sem_wait(pSem);
+    }
+    else{
+    		ret = sem_timedwait(pSem,&outtime);
+		if(ret != 0){
+          	debug_err(gDebugModule[MSIC_MODULE],"[%s][%s][%d]sem_timedwait %s\n",FILE_LINE,strerror(errno));
+        	}
+    }
+
+    return ret;
+    
+	
+}
 
 
 
@@ -193,22 +238,84 @@ uint8 PUBLIC_CountCS(uint8* _data, uint16 _len)
 
 /*
   ******************************************************************************
-  * 函数名称： void misc_init(void)
-  * 说    明： 杂项初始化处理。
-  * 参    数： 无
+  * 函数名称： uint8 setXmlInfo()
+  * 说    明： 根据设备号，设置相应的gXmlInfo信息。
+  * 参    数： 
   ******************************************************************************
 */
 
-void misc_init(void)
+uint8 setXmlInfo(uint8 dev,uint8 functype,uint8 opertype,uint8 app1,uint8 app2,uint8 app3,uint8 app4)
 {
-	int ret=0;
-	ret = sem_init(&CRITICAL_sem,0,1);
-	if(ret != 0) {
-	   	perror("sem_init CRITICAL_sem.\n");
+
+	if(dev >= UP_COMMU_DEV_ARRAY){
+		printf("dev num error.\n");
+		return ERR_1;
 	}
 
+	gXmlInfo[dev].FuncType = functype;
+	gXmlInfo[dev].OperType = opertype;
+	gXmlInfo[dev].appendix1 = app1;
+	gXmlInfo[dev].appendix2 = app2;
+	gXmlInfo[dev].appendix3 = app3;
+	gXmlInfo[dev].appendix4 = app4;
+
+	return NO_ERR;
+
+}
+
+/*
+  ******************************************************************************
+  * 函数名称： uint8 getXmlInfo(uint8 dev,XmlInfoRecord *xmlInfo)
+  * 说    明： 根据设备编号，获取对应的xmlInfo信息。
+  * 参    数： 
+  ******************************************************************************
+*/
+
+uint8 getXmlInfo(uint8 dev,XmlInfoRecord *xmlInfo)
+{
+
+	if(dev >= UP_COMMU_DEV_ARRAY){
+		printf("dev num error.\n");
+		return ERR_1;
+	}
+
+	memcpy((uint8 *)xmlInfo,(uint8 *)&gXmlInfo[dev].FuncType,sizeof(XmlInfoRecord));
+
+	return NO_ERR;
+
+}
 
 
+
+
+
+
+
+
+/*
+******************************************************************************
+* 函数名称：void FileSend(uint8 Dev, FILE *fp)
+* 说	明： 发送一个文件内容。
+* 参	数： Dev可以选择通过485还是GPRS发送。
+******************************************************************************
+*/
+void FileSend(uint8 Dev, FILE *fp)
+{	
+	switch(Dev){
+		case UP_COMMU_DEV_AT:
+		case UP_COMMU_DEV_GPRS:
+			GPRS_FileSend(UP_COMMU_DEV_GPRS,fp);
+			break;
+
+		case UP_COMMU_DEV_485:
+			RS485Up_FileSend(UP_COMMU_DEV_485,fp);
+			break;
+
+		default:
+			break;
+
+
+	}
 
 }
 

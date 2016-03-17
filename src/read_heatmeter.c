@@ -442,8 +442,9 @@ uint8 Read_HeatMeter(MeterFileType *pmf)
 		//pNowTime->tm_mon += 1;  	   //转换成当前年和月。
 		//printf("%d %d %d \n",pNowTime->tm_year, pNowTime->tm_mon,pNowTime->tm_mday); 
 		//printf("%d:%d:%d\n", pNowTime->tm_hour, pNowTime->tm_min, pNowTime->tm_sec); 
+		
 		insert_his_data(pmf,&CJ188_Data,pNowTime,p_gTimeNode,lcRet);
-		printf("insert_his_data over.\n");
+		//printf("insert_his_data over.\n");
 	}
 
 

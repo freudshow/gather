@@ -32,7 +32,24 @@ typedef struct {
 } XML_FILE;
 
 
+//xml协议功能类型宏定义。
+#define ID_VALIDATE		0	//登录
+#define HEART_BEAT		1	//心跳
 
+
+//xml操作类型宏定义
+#define 	OPER_READ		0	//操作读
+#define 	OPER_WRITE	1	//操作写
+#define 	OPER_DO		2	//操作执行
+#define 	OPER_ANSWER	3	//应答
+
+
+
+
+
+
+
+/*
 //采集器发送标志
 #define  REQUEST    0
 #define  MD5_XML        1
@@ -78,6 +95,7 @@ typedef struct {
 #define TRANS_REQ         39
 
 #define  NONE            99
+*/
 
 
 
@@ -95,7 +113,10 @@ extern uint8 Get_XMLBuf(void);
 extern uint8 Put_XMLBuf(uint8 lu8BufIndex);
 extern uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime);
 extern uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime);
-extern uint8 makexml(char optype,uint8 xmlIndex);
+extern uint8 makexml(XmlInfoRecord *xmlInfo,uint8 xmlIndex);
+extern uint8 XmlInfo_Analyze(uint8 Dev, uint8 XmlIndex);
+extern uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex);
+
 
 
 

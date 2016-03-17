@@ -118,8 +118,8 @@ typedef unsigned int uint32;
 
 
 
-#define FALSE -1 
-#define TRUE 0 
+#define FALSE 0xff 
+#define TRUE  0x00 
 #define OS_TICKS_PER_SEC     1000u   //Set the number of ticks in one second                        */
 #define OS_ERR_NONE          0u
 
@@ -174,6 +174,16 @@ typedef struct
 
 
 
+//定义xml信息内容记录结构体。
+typedef struct
+{
+	uint8 FuncType; 	//功能类型
+	uint8 OperType;  	//操作类型
+	uint8 appendix1; 	//附加内容1
+	uint8 appendix2;  	//附加内容2
+	uint8 appendix3;  	//附加内容3
+	uint8 appendix4;  	//附加内容4
+}XmlInfoRecord;
 
 
 

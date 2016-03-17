@@ -759,9 +759,10 @@ gplp:
 uint8 ConnectConfirm(void)
 {
 	uint8 err = 0;
-	FILE *fp;
+	int ret = 0;
     	uint8 TryT = 0;
 	uint8 lu8xmlIndex = 0;
+	uint8 lu8Dev = UP_COMMU_DEV_AT;  //¹Ì¶¨Ê¹ÓÃUP_COMMU_DEV_ATÉè±¸¶ÔÓ¦Êý¾Ý¡£
    	//int ret = 0;
     
 	while(1){ 
@@ -774,41 +775,32 @@ uint8 ConnectConfirm(void)
 		debug_err(gDebugModule[GPRS_MODULE],"GPRS Start Send Confirm frame !!!!\n");
 
 		//×é½¨µÇÂ¼Ö¡¡£
+		err = setXmlInfo(lu8Dev,ID_VALIDATE,OPER_READ,0,0,0,0);
+		if(err != NO_ERR){
+			printf("ConnectConfirm setXmlInfo ERR.\n");
+			return FALSE;
+		}
+		
 		do{
 			lu8xmlIndex = Get_XMLBuf();  //»ñÈ¡Ò»¸öxmlÔÝ´æ¿Õ¼ä,×îºóÒ»¶¨ÒªÊÍ·Å¸Ã¿Õ¼ä£¬»ñÈ¡-Ê¹ÓÃ-ÊÍ·Å¡£
 		}while(lu8xmlIndex == ERR_FF);
-		err = makexml(0,lu8xmlIndex);
-		if(err == NO_ERR){//Èç¹ûÃ»´íÎó£¬ÔòÍ¨¹ýGPRS·¢ËÍ¡£
-			fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
-			GPRS_FileSend(UP_COMMU_DEV_GPRS,fp);
-		}
-		
+
+		err = XmlInfo_Exec(lu8Dev,lu8xmlIndex);
 		Put_XMLBuf(lu8xmlIndex);  //ÊÍ·Å±»Õ¼ÓÃµÄxmlÔÝ´æ¡£
-		
-		
-		//setGprsXmlType(REQUEST);/*²É¼¯Æ÷ÇëÇóÉí·ÝÑéÖ¤£¨¸ÃÊý¾Ý°üÎª²É¼¯Æ÷·¢ËÍ¸ø·þÎñÆ÷£©*/       
-        	//OSSemPend(SEQUEUE_XML, OS_TICKS_PER_SEC*30, &err);/*µÈ´ýsequence:·þÎñÆ÷·¢ËÍÒ»´®Ëæ»úÐòÁÐ*/
-        	if(err != OS_ERR_NONE){	
-    			debug_err(gDebugModule[GPRS_MODULE],"[%s][%s][%d]OSSemPend recive sequence err=%d\n",FILE_LINE,err);
-    			continue;
-		}
 
-		//×é½¨MD5.
-		//setGprsXmlType(MD5_XML);
-
-		debug_info(gDebugModule[GPRS_MODULE], "INFO: sem_post MD5_XML!\n");/*²É¼¯Æ÷·¢ËÍ¼ÆËãµÄMD5£¬md5×ÓÔªËØÓÐÐ§*/
-        	//OSSemPend(RESULT_XML, OS_TICKS_PER_SEC*30, &err);
-        	if(err!=OS_ERR_NONE){
-  		    	debug_err(gDebugModule[GPRS_MODULE],"[%s][%s][%d]OSSemPend recive result  err=%d\n",FILE_LINE,err);
+		//µÈ´ýµÇÂ¼Ó¦´ðÐÅºÅÁ¿,µÈ´ýÊ±¼ä10Ãë¡£
+		ret = OSSem_timedwait(&Validate_sem,10*OS_TICKS_PER_SEC);
+		if(ret != 0){
+			printf("ConnectConfirm sem_timedwait timeover.\n");
 			continue;
-  		}
-        	else{//ÊÕµ½»ØÓ¦
-			debug_info(gDebugModule[GPRS_MODULE], "INFO: <ConnectConfirm> Recvie GPRS UpLand Confirm Frame OK!\n");
+		}
+		else{
 			break;
 		}
 		
-		debug_info(gDebugModule[GPRS_MODULE], "INFO: <ConnectConfirm> Retry Times is %d\n", TryT);
 	}
+
+	printf("ConnectConfirm success.\n");
 	
 	return TRUE;
 }
@@ -1194,18 +1186,19 @@ uint8 GprsInit_xmz(void)
   * º¯ÊýÃû³Æ£º void  GPRS_Mana_Proc(void *pdata)
   * Ëµ    Ã÷£º GPRS¹ÜÀíÏà¹Ø£¬°üÀ¨ÍøÂçÁ¬½Ó£¬¶¨Ê±ÐÄÌø£¬Ä£¿é×´Ì¬¼ì²â£¬Ä£¿éÖØÆô»úÖÆ¡£
   * ²Î    Êý£º ÎÞ
+  * ±¸    ×¢:  ÔÚpthread_GPRS_ManaÏß³ÌÖÐ£¬Éè±¸Ò»ÂÉ°´ÕÕUP_COMMU_DEV_AT¡£
   ******************************************************************************
 */
 uint8 gGprsFirst;  //±ê¼ÇGPRSÄ£¿éÊÇ²»ÊÇµÚÒ»´Î³õÊ¼»¯¡£
 void  GPRS_Mana_Proc(void *pdata)
 {
+	uint8 err = 0;
+	uint8 lu8xmlIndex = 0;
+	uint8 lu8Dev = UP_COMMU_DEV_AT;  //±¾ÈÎÎñÖÐÉè±¸¶¼Ê¹ÓÃUP_COMMU_DEV_AT¡£
 	uint8 tmpmid = 0;
+	int ReStartCounter = 0;
 	GPRS_RUN_STA GprsRunSta;
-	//uint32 heartcy_sec;//ÐÄÌøÖÜÆÚ£¬µ¥Î»Ãë
-	uint32 ReStartCounter = 0x00;
-	uint32 selfchecknum = 0;
-	uint32 Cycles;
-	uint32 HeartFrmSndCycles;
+	uint32 HeartFrmSndCycles = 0;
 
 
 
@@ -1249,85 +1242,43 @@ void  GPRS_Mana_Proc(void *pdata)
           }
 		
 	  	UpdGprsRunSta_Ready(TRUE);
-		//gprs readyºó£¬Éè±¸ UP_COMMU_DEV_ATµÄÊ¹ÓÃÈ¨½»¸øTaskUpSend£¬ÏÂÃæ±¾ÈÎÎñ½«
-		//¶¨Ê±¼ì²éGPRS×´Ì¬£¬È·¶¨ÊÇ·ñÐèÒªÖØÐÂÆô¶¯£¬²éÑ¯GPRS×´Ì¬Ê¹ÓÃµÄÊÇÉè±¸UP_COMMU_DEV_AT£¬¹Ê±¾ÈÎÎñ²»Ö±½ÓÊ¹ÓÃ£¬
-	  	//¶øÊÇÏòTaskUpSend·¢³öÇëÇó£¬TaskUpSend½«½á¹ûÐ´ÈëÈ«¾Ö×´Ì¬ÐÅÏ¢
-	  	//ÊÇ·ñ±¾µØ¿ÚÒ²ÏÞÖÆ£¿Ò²¾ÍÊÇÏÔÊ¾Ð´´®¿Ú1
-	  
-	  	//sem_post(&GprsIPDTask_sem);  //GPRSÄ£¿é³õÊ¼»¯½¨Á¢ÍøÂçÍê³Éºó£¬Ê¹ÄÜGprsIPDÏß³Ì¡£
 
 	  	if(ConnectConfirm() == FALSE){
 	  		continue;
 	  	}
 
-	  	//OSMboxPost(HeartFrmMbox,(void*)1);//Í¨ÖªÖ÷¶¯ÉÏ±¨ÈÎÎñ·¢ÐÄÌøÖ¡,µÚ1Ö¡£¨µÇÂ½Ö¡£©
-	  	//==========Èç¹û·¢ÍêµÇÂ½Ö¡ºóÂíÉÏ»¹Òª·¢1¸öÐÄÌøÖ¡,ÔòÓ¦¼ÓÏÂÃæÁ½¾ä,·ñÔò,ÔÚ1¸öÐÄÌøÖÜÆÚºó²Å¿ªÊ¼·¢ÐÄÌøÖ¡
-	  	//OSTimeDly(OS_TICKS_PER_SEC);
-	  	//OSMboxPost(HeartFrmMbox,(void*)3);////Í¨ÖªÖ÷¶¯ÉÏ±¨ÈÎÎñ·¢ÐÄÌøÖ¡
-	  	//==========
-	  	////
 	  	UpdGprsRunSta_Connect(TRUE);
 		
-	  	selfchecknum=0;
-		
 	  	while(1){
-	  		DlyGprsCheck(10);
-	  		UpdGprsRunSta_AddSndDog();
-	  		UpdGprsRunSta_AddRecDog();	
-			
-	  		selfchecknum = (selfchecknum+1)%(GPRS_SELF_CHECK_CYCLE/GPRS_CHECK_CYCLE);
-	  		if(selfchecknum==0 && gGPRSManaBusy==0){
-	  			//========·¢ËÍÏûÏ¢£¬Í¨Öª·¢ËÍÈÎÎñ¼ì²éGPRS×´Ì¬£¬½á¹ûÌîÈëgGprsRunSta
-	  			gGPRSManaBusy = 1;
-	  			gUpCommMsg.GprsGvc = TRUE;
+			DlyGprsCheck(GPRS_CHECK_CYCLE);
 
-                	printf("[%s][%s][%d] GprsGvc=TRUE \n",FILE_LINE);
-                	//sem_post(&UpSend_Sem);  //ÔÙ´´½¨Ò»¸ö×¨ÃÅÉÏ´«ÐÅÏ¢µÄÈÎÎñ¡£
-                	//sem_wait(&GprsMana_Sem);  //Èç¹û³¤Ê±¼äÃ»ÓÐÕâ¸öÐÅºÅÁ¿·¢³ö£¬»á²»»áÒ»Ö±ÔÚÕâÀïµÈ´ý¡?
-	  		}
-	  		
-	  		ReadGprsRunSta(&GprsRunSta);
-	  		
-	  		if(GprsRunSta.IpCloseNum >= 2){
-				debug_err(gDebugModule[GPRS_MODULE],"WARNING: [TaskGprsMana] GprsRunSta.IpCloseNum>=2! Modul Restart!\n");
-	  			goto restart;
-	  		}
+			HeartFrmSndCycles = (HeartFrmSndCycles + 1) % (GPRS_HEART_FRM_TIME / GPRS_CHECK_CYCLE);
+			if(HeartFrmSndCycles  == 0){
+				//·¢ËÍÐÄÌøÖ¡£¬²¢AddSndDog¡£
+				err = setXmlInfo(lu8Dev,HEART_BEAT,OPER_READ,0,0,0,0);
+				if(err != NO_ERR){
+					printf("HEART_BEAT setXmlInfo ERR.\n");
+					break;
+				}
+		
+				do{
+					lu8xmlIndex = Get_XMLBuf();  //»ñÈ¡Ò»¸öxmlÔÝ´æ¿Õ¼ä,×îºóÒ»¶¨ÒªÊÍ·Å¸Ã¿Õ¼ä£¬»ñÈ¡-Ê¹ÓÃ-ÊÍ·Å¡£
+				}while(lu8xmlIndex == ERR_FF);
 
-	  		Cycles = GPRS_HEART_FRM_REC_OUTTIME / GPRS_CHECK_CYCLE;
-	  		//Cycles += HeartFrmSndCycles;
-	  		if(GprsRunSta.RecDog > Cycles){
-				debug_err(gDebugModule[GPRS_MODULE],"WARNING: [TaskGprsMana] Heart Frame Recive Out Time! Module will Restart!\n");
-	  			goto restart;
-	  		}
-    
-            	if(gGprsRunSta.IpSendFailNum > 2){
-                	debug_err(gDebugModule[GPRS_MODULE],"WARNING: [TaskGprsMana] IpSendFailNum >2! Module will Restart!\n");
-	  			goto restart;
-              	}
+				err = XmlInfo_Exec(lu8Dev,lu8xmlIndex);
+				Put_XMLBuf(lu8xmlIndex);  //ÊÍ·Å±»Õ¼ÓÃµÄxmlÔÝ´æ¡£
+		
+				
+				UpdGprsRunSta_AddSndDog();
 
-			#if GPRS_HEART_FRM_TIME%GPRS_CHECK_CYCLE == 0
-				HeartFrmSndCycles = GPRS_HEART_FRM_TIME/GPRS_CHECK_CYCLE;
-			#else
-				HeartFrmSndCycles = GPRS_HEART_FRM_TIME/GPRS_CHECK_CYCLE+1;
-			#endif
+			}
 
-	  		if(GprsRunSta.SndDog>=HeartFrmSndCycles && GprsRunSta.RecDog>=HeartFrmSndCycles){
-	                debug_info(gDebugModule[GPRS_MODULE],"[%s][%s][%d] sem_post NOTIFY ÐÄÌø\n",FILE_LINE);
-	                gGPRSManaBusy = 0;
-				 // gjt add 0607 for xml send
-				 //sem_wait(&Xml_Send_Sem);
-				 // gjt add end
-	  			 //gGPRS_XMLType = NOTIFY;
-	  			 //sem_post(&ReportUp_Sem);
-          
-	  		}
-			
-           	continue;
+			ReadGprsRunSta(&GprsRunSta);
+			if(GprsRunSta.SndDog > GPRS_HEART_FRM_REC_OUTTIME){
+				UpdGprsRunSta_Connect(FALSE);    //GPRS ¶ÏÏß
+				break;
+			}
 
-           
- restart:
-          	UpdGprsRunSta_Connect(FALSE);/*GPRS ¶ÏÏß*/
-	  		break;/*ÖØÐÂÆô¶¯GPRS*/
          
 	  	} 
 		
@@ -1482,6 +1433,7 @@ void GPRS_FileSend(uint8 Dev, FILE *fp)
   * º¯ÊýÃû³Æ£º int pthread_GPRS_Mana(void)
   * Ëµ    Ã÷£º GPRS¹ÜÀíÏß³Ì¡£
   * ²Î    Êý£º ÎÞ
+  * ±¸    ×¢:ÔÚpthread_GPRS_ManaÏß³ÌÖÐ£¬Éè±¸Ò»ÂÉ°´ÕÕUP_COMMU_DEV_AT¡£
   ******************************************************************************
 */
 
@@ -1597,8 +1549,7 @@ uint8 GprsGetIPDATA_jh(char* ipdata,uint16 OutTime,uint16* StrLen)
 **  ·µ   »Ø   Öµ: none																			   	   **
 **  ±¸	    ×¢: 						                                                               **
 ********************************************************************************************************/
-uint16 gUpdateBegin = 0;
-uint8 gGPRSBusy = 0;
+static uint16 gUpdateBegin = 0;
 
 void Fun_GprsIpd_xmz(void)
 {
@@ -1606,12 +1557,8 @@ void Fun_GprsIpd_xmz(void)
 	uint8 err;
 	uint16 len;
 	uint8 Count = 0;
-	GPRS_RUN_STA GprsRunSta;
 	
 	while(1){
-		ReadGprsRunSta(&GprsRunSta);
-		if(GprsRunSta.Connect != TRUE) //Èç¹ûGPRSÃ»ÓÐÁ¬½Ó³É¹¦£¬ÔòÍË³öÑ­»·¡£
-			break;
 		
 		if(gUpdateBegin == 1){
 			err = 0;
@@ -1676,25 +1623,20 @@ void Fun_GprsIpd_xmz(void)
 int pthread_GPRS_IPD(void)
 {
 	uint8 lu8GprsType = 0;
-	GPRS_RUN_STA GprsRunSta;
 
 	while(1){
-		ReadGprsRunSta(&GprsRunSta);
-		if(GprsRunSta.Connect == TRUE){
-			lu8GprsType = GetGprsRunSta_ModuId();
-			if(lu8GprsType == MODU_ID_XMZ){  //Ä¿Ç°Ö»ÓÐÎ÷ÃÅ×ÓÄ£¿éÖ§³Ö¡£
-				//printf("Fun_GprsIpd_xmz start.\n");  //²âÊÔÓÃ
-				Fun_GprsIpd_xmz();
 
-			}
-			else{
-				OSTimeDly(1000);//µÈ´ý1ÃëÖÓÖ®ºó¼ÌÐøÑ­»·¡£
-			}		
+		lu8GprsType = GetGprsRunSta_ModuId();
+		if(lu8GprsType == MODU_ID_XMZ){  //Ä¿Ç°Ö»ÓÐÎ÷ÃÅ×ÓÄ£¿éÖ§³Ö¡£
+			//printf("Fun_GprsIpd_xmz start.\n");  //²âÊÔÓÃ
+			Fun_GprsIpd_xmz();
 
 		}
 		else{
 			OSTimeDly(1000);//µÈ´ý1ÃëÖÓÖ®ºó¼ÌÐøÑ­»·¡£
 		}
+
+
 
 	}
 
@@ -1720,6 +1662,7 @@ void pthread_GprsDataDeal(void)
 	uint16 lu16outtime = 1000;  //µÈ´ý ºÁÃëÊý¡£
 	uint8 lu8xmlIndex = 0;
 	//FILE *fp;
+	printf("pthread_GprsDataDeal start.\n");
 
 	while(1){	
 		do{
@@ -1730,11 +1673,11 @@ void pthread_GprsDataDeal(void)
 		
 		err = UpGetXMLStart(lu8xmlIndex,UP_COMMU_DEV_GPRS,lu16outtime);
 		if(err == NO_ERR){
-			//printf("pthread_GprsDataDeal UpGetXMLStart OK.\n");
+			printf("pthread_GprsDataDeal UpGetXMLStart OK.\n");
 			err = UpGetXMLEnd(lu8xmlIndex,UP_COMMU_DEV_GPRS,lu16outtime);
 			if(err == NO_ERR){//ËµÃ÷½ÓÊÕµ½Ò»Ö¡ÍêÕûµÄxmlÊý¾Ý¡£
-				//printf("pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = %d.\n",lu8xmlIndex);
-
+				printf("pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = %d.\n",lu8xmlIndex);
+				err = XmlInfo_Analyze(UP_COMMU_DEV_GPRS, lu8xmlIndex);
 				
 				Put_XMLBuf(lu8xmlIndex);  //ÊÍ·Å±»Õ¼ÓÃµÄxmlÔÝ´æ¡£
 
@@ -1748,6 +1691,7 @@ void pthread_GprsDataDeal(void)
 			Put_XMLBuf(lu8xmlIndex);  //ÊÍ·Å±»Õ¼ÓÃµÄxmlÔÝ´æ¡£
 		}
 	}
+	
 }
 
 

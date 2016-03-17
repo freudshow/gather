@@ -36,8 +36,6 @@ int32 g_uiMbusFd = 0;
 
 
 
-
-
 /*
   ******************************************************************************
   * º¯ÊýÃû³Æ£º sysinit(void)
@@ -207,35 +205,37 @@ void sem_Init(void)
 	
 	 ret = sem_init(&USART3RecQueSem_At,0,0);
 	if(ret != 0)
-		perror("UpRecQueSem_Gprs  error\n");
+		perror("USART3RecQueSem_At  error\n");
 
 	 ret = sem_init(&USART3RecQueSem_AtIPD,0,0);
 	if(ret != 0)
-		perror("UpRecQueSem_Gprs  error\n");
+		perror("USART3RecQueSem_AtIPDerror\n");
 
 	ret = sem_init(&UpRecQueSem_RS485UP,0,0);
 	if(ret != 0)
-		perror("UpRecQueSem_Gprs  error\n");
+		perror("UpRecQueSem_RS485UP  error\n");
 
 	ret = sem_init(&Sequence_XML_sem,0,0);
 	if(ret != 0)
-		perror("UpRecQueSem_Gprs  error\n");
+		perror("Sequence_XML_sem  error\n");
 
 	ret = sem_init(&Result_XML_sem,0,0);
 	if(ret != 0)
-		perror("UpRecQueSem_Gprs  error\n");
+		perror("Result_XML_sem  error\n");
 
 	ret = sem_init(&MBUSRec_sem,0,0);
 	if(ret != 0)
-		perror("UpRecQueSem_Gprs  error\n");
+		perror("MBUSRec_sem  error\n");
 
 	ret = sem_init(&Down485Rec_sem,0,0);
 	if(ret != 0)
-		perror("UpRecQueSem_Gprs  error\n");
+		perror("Down485Rec_sem  error\n");
 	
+	ret = sem_init(&Validate_sem,0,0);
+	if(ret != 0)
+		perror("Validate_sem  error\n");
 
 
-	
 
 
 

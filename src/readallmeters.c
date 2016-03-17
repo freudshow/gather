@@ -165,7 +165,7 @@ void pthread_ReadAllMeters(void)
 		printf("%d:%d:%d\n", p_gTimeNode->tm_hour, p_gTimeNode->tm_min, p_gTimeNode->tm_sec); 
 
 
-		retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
+		//retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
 
 
 		OSTimeDly(10000);

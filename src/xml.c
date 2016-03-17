@@ -81,16 +81,19 @@ uint8 XMLBuf_Init(void)
 uint8 Get_XMLBuf(void)
 {
 	uint8 i = 0;
+	uint8 ret = ERR_FF;
 
+	OS_ENTER_CRITICAL();
 	for(i=0;i<XML_BUF_FILE_NUM;i++){
 		if(gXML_File[i].usedflag == 0){
 			gXML_File[i].usedflag = 1;  //标记为占用。
-			
-			return i;
+			ret = i;	
+			break;
 		}
 	}
+	OS_EXIT_CRITICAL();
 
-	return ERR_FF;
+	return ret;
 }
 
 
@@ -108,8 +111,9 @@ uint8 Put_XMLBuf(uint8 lu8BufIndex)
 	if(lu8BufIndex >= XML_BUF_FILE_NUM) //超限检查，防止错误。
 		return ERR_FF;
 
-	
+	OS_ENTER_CRITICAL();
 	gXML_File[lu8BufIndex].usedflag = 0;
+	OS_EXIT_CRITICAL();
 
 	return NO_ERR;
 
@@ -242,13 +246,10 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
   *      		optype--操作类型
   ******************************************************************************
 */
-uint8 makexml(char optype,uint8 xmlIndex)
+uint8 makexml(XmlInfoRecord *xmlInfo,uint8 xmlIndex)
 {
 	FILE *fp;
 	int nRel;
-	//char *str;
-    	//uint8 string[300]="";
-	//uint8 MD5_Result_String[300]="";
 	//定义文档和指针
 	xmlDocPtr doc = xmlNewDoc(BAD_CAST"1.0");
 	//新建节点
@@ -257,35 +258,152 @@ uint8 makexml(char optype,uint8 xmlIndex)
     	xmlDocSetRootElement(doc,root_node);
     	//创建一个新节点common,添加到根节点
     	xmlNodePtr node = xmlNewNode(NULL,BAD_CAST "common");
+	xmlAddChild(root_node,node);
 
 	fp = fopen(gXML_File[xmlIndex].pXMLFile,"w+");
 	
 	
+	switch(xmlInfo->FuncType){
+		case ID_VALIDATE:
+			//在common节点直接创建文本节点
+    			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)"3706825001");
+    			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)"3706820001");
+			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"id_validate");
+			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"read");
 
-   	//xmlNodePtr childnode = NULL;
-    	xmlAddChild(root_node,node);
+    			//debug_info(gDebugModule[XML_MODULE], "[%s][%s][%d] optype is %d\n",FILE_LINE, optype);
 
-    	//在common节点直接创建文本节点
-    	xmlNewTextChild(node,NULL,BAD_CAST "building_id",(xmlChar *)"Build001");
-    	xmlNewTextChild(node,NULL,BAD_CAST "gateway_id",(xmlChar *)"Gather01");
+			nRel = xmlSaveFileEnc(gXML_File[xmlIndex].pXMLFile,doc,"utf-8");
+			fclose(fp);
+			if(nRel != -1){
+				xmlFreeDoc(doc);
+				printf("make xml success.xml Index = %d.\n",xmlIndex);
+				return NO_ERR;
+			} 
+			
+			break;
 
-    	//debug_info(gDebugModule[XML_MODULE], "[%s][%s][%d] optype is %d\n",FILE_LINE, optype);
+		case HEART_BEAT:
+			//在common节点直接创建文本节点
+    			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)"3706825001");
+    			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)"3706820001");
+			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"heart_beat");
+			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"read");
+
+    			//debug_info(gDebugModule[XML_MODULE], "[%s][%s][%d] optype is %d\n",FILE_LINE, optype);
+
+			nRel = xmlSaveFileEnc(gXML_File[xmlIndex].pXMLFile,doc,"utf-8");
+			fclose(fp);
+			if(nRel != -1){
+				xmlFreeDoc(doc);
+				printf("make xml success.xml Index = %d.\n",xmlIndex);
+				return NO_ERR;
+			} 
 
 
-	node = xmlNewNode(NULL,BAD_CAST "id_validate");
-	xmlAddChild(root_node,node);
-	xmlNewProp(node,BAD_CAST "operation",BAD_CAST "request");
-	nRel = xmlSaveFileEnc(gXML_File[xmlIndex].pXMLFile,doc,"utf-8");
-	fclose(fp);
-	if(nRel != -1){
-		xmlFreeDoc(doc);
-		printf("make xml success.xml Index = %d.\n",xmlIndex);
-		return NO_ERR;
-	}  
- 
+			break;
+
+		default:
+			fclose(fp);
+			break;
+			
+
+
+	}
 
 
 
-  return ERR_1;
+  	return ERR_1;
 }
+
+
+
+/*
+  ******************************************************************************
+  * 函数名称： uint8 XmlInfo_Analyze(uint8 Dev, uint8 XmlIndex)
+  * 说    明： 解析接收到的xml信息。
+  * 参    数： uint8 Dev 此xml信息来自哪个设备。
+  *      		uint8 XmlIndex 此xml信息存放索引号。
+  ******************************************************************************
+*/
+
+uint8 XmlInfo_Analyze(uint8 Dev, uint8 XmlIndex)
+{
+	if(Dev == UP_COMMU_DEV_GPRS)
+		UpdGprsRunSta_FeedSndDog();  //有任何网络数据收到，都认为网络正常，清空GPRS心跳计数。如果连续几次心跳都不清空，则GPRS重启。
+
+
+
+
+	//正常应该，先检查是不是发送给本集中器的数据，不是则舍弃，是的话才继续。
+
+
+	//下面只是测试用，正常sem_post(&Validate_sem);应该在检测到登录回应时才执行。
+	sem_post(&Validate_sem);
+
+
+
+
+
+	return NO_ERR;
+}
+
+
+
+/*
+  ******************************************************************************
+  * 函数名称： uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
+  * 说    明： 根据解析到的信息，执行xml请求。
+  * 参    数： uint8 Dev 此xml信息去往哪个设备。
+  *      		uint8 XmlIndex 此xml信息存放索引号。
+  ******************************************************************************
+*/
+
+uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
+{
+	uint8 err = 0;
+	FILE *fp;
+	XmlInfoRecord l_xmlInfo;
+	
+
+
+
+	err = getXmlInfo(Dev,&l_xmlInfo);
+	if(err != NO_ERR){
+		printf("XmlInfo_Exec getXmlInfo Err.\n");
+		return err;
+	}
+
+	switch(l_xmlInfo.FuncType){
+		case ID_VALIDATE:
+			err = makexml(&l_xmlInfo,XmlIndex);
+			if(err == NO_ERR){
+				fp = fopen(gXML_File[XmlIndex].pXMLFile,"r");
+				FileSend(Dev, fp);
+				fclose(fp);
+			}
+
+			break;
+
+		case HEART_BEAT:
+			err = makexml(&l_xmlInfo,XmlIndex);
+			if(err == NO_ERR){
+				fp = fopen(gXML_File[XmlIndex].pXMLFile,"r");
+				FileSend(Dev, fp);
+				fclose(fp);
+			}
+
+			break;
+
+
+		default:
+			break;
+			
+	}
+	
+
+
+	return NO_ERR;
+}
+
 
