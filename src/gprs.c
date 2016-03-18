@@ -777,7 +777,7 @@ uint8 ConnectConfirm(void)
 
 		//组建登录帧。
 
-		pXml_info->func_type = em_FUNC_HEATBT;
+		pXml_info->func_type = em_FUNC_ID;
 		pXml_info->func_type = em_OPER_RD;
 		err = setXmlInfo(lu8Dev,pXml_info);
 		if(err != NO_ERR){
@@ -789,7 +789,7 @@ uint8 ConnectConfirm(void)
 			lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
 		}while(lu8xmlIndex == ERR_FF);
 
-		err = parse_xml(lu8Dev,lu8xmlIndex);
+		err = xml_exec(lu8Dev,lu8xmlIndex);
 		Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 
 		//等待登录应答信号量,等待时间10秒。
@@ -999,7 +999,7 @@ uint8 GprsInit_xmz(void)
 	uint8 err;
 	uint32 i, n=0;
     	printf("[%s][%s][%d] \n",FILE_LINE);
-    
+    pSys_config pSyscon = malloc(sizeof(sys_config_str));
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	while(1){
 		n++;
@@ -1146,12 +1146,17 @@ uint8 GprsInit_xmz(void)
 		}
 		debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_SISS_conId CMD OK!\n");
 
+		get_sys_config(CONFIG_PRIMARY_SERVER, pSyscon);
 	 	strcpy(Ats_SISS_address,Ats_SISS_address_h);
-        	strcat(Ats_SISS_address,"122.5.18.174");
-        	strcat(Ats_SISS_address,colon);
-        	strcat(Ats_SISS_address,"9014");
-        	strcat(Ats_SISS_address,over124);
-        	err = CMD_AT_RP(Ats_SISS_address,Ata_OK123,NULL,OS_TICKS_PER_SEC*3,3,FALSE);
+		printf("PRIMARY_SERVER: %s\n", pSyscon->f_config_value);
+     	strcat(Ats_SISS_address,pSyscon->f_config_value);
+     	strcat(Ats_SISS_address,colon);
+		get_sys_config(CONFIG_PRIMARY_PORT, pSyscon);
+		printf("PRIMARY_PORT: %s\n", pSyscon->f_config_value);
+     	strcat(Ats_SISS_address,pSyscon->f_config_value);
+     	strcat(Ats_SISS_address,over124);
+		printf("Ats_SISS_address: %s\n", Ats_SISS_address);
+     	err = CMD_AT_RP(Ats_SISS_address,Ata_OK123,NULL,OS_TICKS_PER_SEC*3,3,FALSE);
 		OSTimeDly(OS_TICKS_PER_SEC);
 		if(err){
       		debug_err(gDebugModule[GPRS_MODULE],"<GprsInit_xmz> Ats_SISS_address CMD Err!");
@@ -1272,8 +1277,8 @@ void  GPRS_Mana_Proc(void *pdata)
 				do{
 					lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
 				}while(lu8xmlIndex == ERR_FF);
-
-				err = parse_xml(lu8Dev,lu8xmlIndex);
+				
+				err = xml_exec(lu8Dev, lu8xmlIndex);
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 		
 				
