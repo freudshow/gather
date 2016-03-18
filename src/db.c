@@ -517,13 +517,13 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
  **	 函数名: read_sys_config
  ** 功能	: 从数据库中读取基本参数, 放到sys_config_array中
  ********************************************************************************/
-sys_config_str get_sys_config(enum T_System_Config idx)
+uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig)
 {
-	sys_config_str config_return;
-	config_return.f_id = sys_config_array[idx].f_id;
-	strcpy(config_return.f_config_name, sys_config_array[idx].f_config_name);
-	strcpy(config_return.f_config_value, sys_config_array[idx].f_config_value);
-	return config_return;
+	if(NULL==pConfig || idx<0 || idx>=SYS_CONFIG_COUNT)
+		return ERR_FF;
+	
+	memcpy((uint8*)pConfig, (uint8*)&sys_config_array[idx], sizeof(sys_config_str));
+	return NO_ERR;
 }
 
 void read_sys_config(char *pErr)

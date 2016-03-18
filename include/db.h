@@ -290,7 +290,7 @@ void get_delete_sql(char *table_name, char **condition, int con_count, char *sql
  ** 系统配置参数相关 **
  **********************/
 void read_sys_config(char *pErr);//从数据库读取基本配置
-sys_config_str get_sys_config(enum T_System_Config);//读取单独一条配置
+uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig);//读取单独一条配置
 int get_sys_config_cnt();//读取系统配置参数的个数
 
 /**********************
