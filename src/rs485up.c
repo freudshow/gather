@@ -196,7 +196,6 @@ void pthread_RS485UpDeal(void)
 	//uint8 lu8data = 0;
 	uint16 lu16outtime = 1000;  //等待 毫秒数。
 	uint8 lu8xmlIndex = 0;
-	FILE *fp;
 
 	while(1){	
 		do{
@@ -207,15 +206,12 @@ void pthread_RS485UpDeal(void)
 		
 		err = UpGetXMLStart(lu8xmlIndex,UP_COMMU_DEV_485,lu16outtime);
 		if(err == NO_ERR){
-			printf("UpGetXMLStart OK.\n");
+			//printf("UpGetXMLStart OK.\n");
 			err = UpGetXMLEnd(lu8xmlIndex,UP_COMMU_DEV_485,lu16outtime);
 			if(err == NO_ERR){//说明接收到一帧完整的xml数据。
-				printf("UpGetXMLEnd OK.\n");
+				//printf("UpGetXMLEnd OK.\n");
 				//相应处理。
-				fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
-				RS485Up_FileSend(UP_COMMU_DEV_485,fp);
-
-				fclose(fp);
+				err = XmlInfo_Analyze(UP_COMMU_DEV_485, lu8xmlIndex);
 				
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 

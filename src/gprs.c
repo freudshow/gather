@@ -1684,9 +1684,10 @@ void pthread_GprsDataDeal(void)
 			printf("pthread_GprsDataDeal UpGetXMLStart OK.\n");
 			err = UpGetXMLEnd(lu8xmlIndex,UP_COMMU_DEV_GPRS,lu16outtime);
 			if(err == NO_ERR){//说明接收到一帧完整的xml数据。
-				printf("pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = %d.\n",lu8xmlIndex);
+				//printf("pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = %d.\n",lu8xmlIndex);
 				//err = XmlInfo_Analyze(UP_COMMU_DEV_GPRS, lu8xmlIndex);
 				err = parse_xml(UP_COMMU_DEV_GPRS, lu8xmlIndex);
+				
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 
 			}
