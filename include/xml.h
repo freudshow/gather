@@ -111,7 +111,8 @@ extern uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex);
 //extern uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex);
 extern uint8 setXmlInfo(uint8 dev, pXml_info pXml_info);
 extern uint8 getXmlInfo(uint8 dev,pXml_info pXml_info);
-extern uint8 parse_xml(int dev, int xml_idx);
+extern uint8 parse_xml(uint8 dev, uint8 xml_idx);
+extern uint8 xml_exec(uint8 dev, uint8 xml_idx);
 
 
 typedef enum{//上,下位机直接下发function的类型编号
