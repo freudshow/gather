@@ -256,13 +256,20 @@ void sqldb_init(void)
 	uint8 lu8tmp = 0;
 
 	open_db();
-	read_meter_info(lcSqlRetArry);  //将数据库中的表信息初始化到内存。
+	read_sys_config(lcSqlRetArry);
+	lu8tmp = strlen(lcSqlRetArry);
+	if(lu8tmp > 0){
+		printf("read_sys_config Err is %s .\n", lcSqlRetArry);
+		return;
+	}
 	
+	read_meter_info(lcSqlRetArry);  //将数据库中的表信息初始化到内存。
 	lu8tmp = strlen(lcSqlRetArry);
 	if(lu8tmp > 0){
 		printf("read_meter_info Err is %s .\n",lcSqlRetArry);
 		return;
 	}
+	
 	read_all_request_data(lcSqlRetArry);
 	if(lu8tmp > 0){
 		printf("read_meter_info Err is %s .\n",lcSqlRetArry);
