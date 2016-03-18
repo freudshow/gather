@@ -13,11 +13,8 @@
   */ 
 
 #include "includes.h"
-#include "xml.h"
 #include "queue.h"
 #include "commap.h"
-
-
 
 
 char *pXMLFileName[XML_BUF_FILE_NUM]={"buff0.xml","buff1.xml","buff2.xml","buff3.xml","buff4.xml","buff5.xml",
@@ -238,6 +235,7 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 
 
 
+
 /*
   ******************************************************************************
   * 函数名称： makexml
@@ -407,3 +405,213 @@ uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
 }
 
 
+/*
+ ******************************************************************************
+ * 函数名称： parse_xml
+ * 说	  明： 解析并执行xml文件
+ ******************************************************************************
+ */
+
+uint8 func_id(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		//下面只是测试用，正常sem_post(&Validate_sem);应该在检测到登录回应时才执行。
+		//sem_post(&Validate_sem);
+	
+		return retErr;
+}
+
+uint8 func_heart_beat(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+
+		return retErr;
+}
+
+uint8 func_sysconfig(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_rqdata(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_tnode(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_minfo(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_rptup(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+
+uint8 func_rdstat(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_swip(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_dbmani(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_syscmd(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_codeup(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_prototrs(uint8 oper_idx)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+
+uint8 (*xml_exec_array[])(uint8) = {
+func_id,//登录
+func_heart_beat,//心跳
+func_sysconfig,//系统参数配置
+func_rqdata,//仪表的数据项配置
+func_tnode,//抄表与上报时间点配置
+func_minfo,//表地址配置
+func_rptup,//上传历史数据
+func_rdstat,//读取集中器状态
+func_swip,//切换ip
+func_dbmani,//数据库透传
+func_syscmd,//本地shell命令透传
+func_codeup,//程序更新
+func_prototrs//协议透传
+};
+xml_info_str g_xml_info;
+
+uint8 parse_common(xmlNodePtr root_node);
+
+uint8 parse_xml(char *docname, int Dev)
+{
+	if(Dev == UP_COMMU_DEV_GPRS)
+			UpdGprsRunSta_FeedSndDog();  //有任何网络数据收到，都认为网络正常，清空GPRS心跳计数。如果连续几次心跳都不清空，则GPRS重启。
+	
+
+	//sem_wait(fd's xml_info_str read semaphore)
+	xmlDocPtr doc;
+	xmlNodePtr cur;
+	uint8 retErr;
+	doc = xmlParseFile(docname);
+	if(doc == NULL) {
+		fprintf(stderr, "Document not open successfully. \n");
+		//sem_post(fd's xml_info_str read semaphore)
+		//Put_XMLBuf
+		return ERR_FF;
+	}
+	g_xml_info.doc = doc;
+
+	cur = xmlDocGetRootElement(doc);
+	if(cur == NULL) {
+		fprintf(stderr, "empty document\n");
+		xmlFreeDoc(doc);
+		//sem_post(fd's xml_info_str read semaphore)
+		//Put_XMLBuf
+		return ERR_FF;
+	}
+
+	if(!xmlStrEqual(cur->name, CONST_CAST NODE_ROOT)) {
+		fprintf(stderr, "root node not found");
+		xmlFreeDoc(doc);
+		//sem_post(fd's xml_info_str read semaphore)
+		//Put_XMLBuf
+		return ERR_1;
+	}
+
+	cur = cur->xmlChildrenNode;
+	while(cur != NULL){
+		if(xmlStrEqual(cur->name, CONST_CAST NODE_COMMON)) {
+			retErr = parse_common(cur);
+			break;
+		}
+		cur = cur->next;
+	}
+	//sem_post(fd's xml_info_str read semaphore)
+	//Put_XMLBuf
+	xmlFreeDoc(doc);
+	
+	return retErr;
+}
+
+uint8 parse_common(xmlNodePtr common_node)
+{
+	uint8 retErr = NO_ERR;
+	xmlNodePtr cur_node;
+	xmlChar* pValue;
+	cur_node = common_node->xmlChildrenNode;
+	while(cur_node != NULL){
+		printf("node name: %s\n", BAD_CAST cur_node->name);
+		if(xmlStrEqual(cur_node->name, CONST_CAST NODE_SRC_ADDR)){
+			pValue = xmlNodeGetContent(cur_node->xmlChildrenNode);
+			strcpy((char*)g_xml_info.sadd, (char*)pValue);
+			xmlFree(pValue);
+		}
+		else if(xmlStrEqual(cur_node->name, CONST_CAST NODE_OBJ_ADDR)){
+			pValue = xmlNodeGetContent(cur_node->xmlChildrenNode);
+			strcpy((char*)g_xml_info.oadd, (char*)pValue);
+			xmlFree(pValue);
+		}
+		else if(xmlStrEqual(cur_node->name, CONST_CAST NODE_FUNC_TYPE)){
+			pValue = xmlNodeGetContent(cur_node->xmlChildrenNode);
+			g_xml_info.func_type = atoi((char*)pValue);
+			xmlFree(pValue);
+		}
+		else if(xmlStrEqual(cur_node->name, CONST_CAST NODE_OPER_TYPE)){
+			pValue = xmlNodeGetContent(cur_node->xmlChildrenNode);
+			g_xml_info.oper_type = atoi((char*)pValue);
+			xmlFree(pValue);
+		}
+		else{//异常情况
+			retErr = NO_ERR;
+		}
+		cur_node=cur_node->next;
+	}
+	//正常应该，先检查是不是发送给本集中器的数据，不是则舍弃，是的话才继续。
+	retErr = (*xml_exec_array[g_xml_info.func_type])(g_xml_info.oper_type);
+	printf((retErr==NO_ERR)?"success\n":"fail\n");
+	return retErr;
+}

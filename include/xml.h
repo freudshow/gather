@@ -97,8 +97,17 @@ typedef struct {
 #define  NONE            99
 */
 
+#define CONST_CAST (const xmlChar *)
 
+#define XML_BEGIN			"<?xml"
+#define NODE_ROOT			"root"
+#define NODE_COMMON			"common"
+#define NODE_SRC_ADDR		"sadd"
+#define NODE_OBJ_ADDR		"oadd"
+#define NODE_FUNC_TYPE		"func_type"
+#define NODE_OPER_TYPE		"oper_type"
 
+#define LENGTH_ADDR	50//集中器号或者上位机ip的地址长度
 
 
 extern char *pXMLFileName[XML_BUF_FILE_NUM];
@@ -113,24 +122,49 @@ extern uint8 Get_XMLBuf(void);
 extern uint8 Put_XMLBuf(uint8 lu8BufIndex);
 extern uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime);
 extern uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime);
+
 extern uint8 makexml(XmlInfoRecord *xmlInfo,uint8 xmlIndex);
 extern uint8 XmlInfo_Analyze(uint8 Dev, uint8 XmlIndex);
 extern uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex);
+extern uint8 parse_xml(char *docname, int fd);
 
 
 
 
 
+typedef enum{//上,下位机直接下发function的类型编号
+	em_FUNC_ID=0,//登录
+	em_FUNC_HEATBT,//心跳
+	em_FUNC_SYSCONF,//系统参数配置
+	em_FUNC_RQDATA,//仪表的数据项配置
+	em_FUNC_TNODE,//抄表与上报时间点配置
+	em_FUNC_MINFO,//表地址配置
+	em_FUNC_RPTUP,//上传历史数据
+	em_FUNC_RDSTAT,//读取集中器状态
+	em_FUNC_SWIP,//切换ip
+	em_FUNC_DBMANI,//数据库透传
+	em_FUNC_SYSCMD,//本地shell命令透传
+	em_FUNC_CODEUP,//程序更新
+	em_FUNC_PROTOTRS//协议透传
+}func_type_idx;
 
+typedef enum{
+	em_OPER_RD=0,//读取
+	em_OPER_WR,//写入
+	em_OPER_DO,//操作
+	em_OPER_ASW//应答
+}oper_type_idx;
 
-
-
-
+typedef struct{
+	uint8 sadd[LENGTH_ADDR];
+	uint8 oadd[LENGTH_ADDR];
+	uint8 func_type;
+	uint8 oper_type;
+	xmlDocPtr doc;
+} xml_info_str;
+typedef xml_info_str* pXml_info;
 
 
 
 
 #endif  //_XML_H_
-
-  
-
