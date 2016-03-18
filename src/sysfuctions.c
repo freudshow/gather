@@ -39,12 +39,6 @@ sem_t Validate_sem;  //GPRS登录信号量。
 
 
 
-static XmlInfoRecord gXmlInfo[UP_COMMU_DEV_ARRAY];  //用于分别记录每种设备下的xml信息。
-
-
-
-
-
 void OSTimeDly(uint32 ms)
 {
     usleep(ms*1000);
@@ -231,66 +225,6 @@ uint8 PUBLIC_CountCS(uint8* _data, uint16 _len)
     
     return cs;    
 }
-
-
-
-
-
-/*
-  ******************************************************************************
-  * 函数名称： uint8 setXmlInfo()
-  * 说    明： 根据设备号，设置相应的gXmlInfo信息。
-  * 参    数： 
-  ******************************************************************************
-*/
-
-uint8 setXmlInfo(uint8 dev,uint8 functype,uint8 opertype,uint8 app1,uint8 app2,uint8 app3,uint8 app4)
-{
-
-	if(dev >= UP_COMMU_DEV_ARRAY){
-		printf("dev num error.\n");
-		return ERR_1;
-	}
-
-	gXmlInfo[dev].FuncType = functype;
-	gXmlInfo[dev].OperType = opertype;
-	gXmlInfo[dev].appendix1 = app1;
-	gXmlInfo[dev].appendix2 = app2;
-	gXmlInfo[dev].appendix3 = app3;
-	gXmlInfo[dev].appendix4 = app4;
-
-	return NO_ERR;
-
-}
-
-/*
-  ******************************************************************************
-  * 函数名称： uint8 getXmlInfo(uint8 dev,XmlInfoRecord *xmlInfo)
-  * 说    明： 根据设备编号，获取对应的xmlInfo信息。
-  * 参    数： 
-  ******************************************************************************
-*/
-
-uint8 getXmlInfo(uint8 dev,XmlInfoRecord *xmlInfo)
-{
-
-	if(dev >= UP_COMMU_DEV_ARRAY){
-		printf("dev num error.\n");
-		return ERR_1;
-	}
-
-	memcpy((uint8 *)xmlInfo,(uint8 *)&gXmlInfo[dev].FuncType,sizeof(XmlInfoRecord));
-
-	return NO_ERR;
-
-}
-
-
-
-
-
-
-
 
 /*
 ******************************************************************************

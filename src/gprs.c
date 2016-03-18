@@ -760,10 +760,11 @@ uint8 ConnectConfirm(void)
 {
 	uint8 err = 0;
 	int ret = 0;
-    	uint8 TryT = 0;
+   uint8 TryT = 0;
 	uint8 lu8xmlIndex = 0;
 	uint8 lu8Dev = UP_COMMU_DEV_AT;  //固定使用UP_COMMU_DEV_AT设备对应数据。
-   	//int ret = 0;
+	pXml_info pXml_info = malloc(sizeof(xml_info_str));
+	memset(pXml_info, 0x00, sizeof(xml_info_str));
     
 	while(1){ 
 		if(TryT++ >= 5){
@@ -775,7 +776,10 @@ uint8 ConnectConfirm(void)
 		debug_err(gDebugModule[GPRS_MODULE],"GPRS Start Send Confirm frame !!!!\n");
 
 		//组建登录帧。
-		err = setXmlInfo(lu8Dev,ID_VALIDATE,OPER_READ,0,0,0,0);
+
+		pXml_info->func_type = em_FUNC_HEATBT;
+		pXml_info->func_type = em_OPER_RD;
+		err = setXmlInfo(lu8Dev,pXml_info);
 		if(err != NO_ERR){
 			printf("ConnectConfirm setXmlInfo ERR.\n");
 			return FALSE;
@@ -785,7 +789,7 @@ uint8 ConnectConfirm(void)
 			lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
 		}while(lu8xmlIndex == ERR_FF);
 
-		err = XmlInfo_Exec(lu8Dev,lu8xmlIndex);
+		err = parse_xml(lu8Dev,lu8xmlIndex);
 		Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 
 		//等待登录应答信号量,等待时间10秒。
@@ -1199,6 +1203,8 @@ void  GPRS_Mana_Proc(void *pdata)
 	int ReStartCounter = 0;
 	GPRS_RUN_STA GprsRunSta;
 	uint32 HeartFrmSndCycles = 0;
+	pXml_info pXml_info = malloc(sizeof(xml_info_str));
+	memset(pXml_info, 0x00, sizeof(xml_info_str));
 
 
 
@@ -1255,17 +1261,19 @@ void  GPRS_Mana_Proc(void *pdata)
 			HeartFrmSndCycles = (HeartFrmSndCycles + 1) % (GPRS_HEART_FRM_TIME / GPRS_CHECK_CYCLE);
 			if(HeartFrmSndCycles  == 0){
 				//发送心跳帧，并AddSndDog。
-				err = setXmlInfo(lu8Dev,HEART_BEAT,OPER_READ,0,0,0,0);
+				pXml_info->func_type = em_FUNC_HEATBT;
+				pXml_info->func_type = em_OPER_RD;
+				
+				err = setXmlInfo(lu8Dev,pXml_info);
 				if(err != NO_ERR){
 					printf("HEART_BEAT setXmlInfo ERR.\n");
 					break;
 				}
-		
 				do{
 					lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
 				}while(lu8xmlIndex == ERR_FF);
 
-				err = XmlInfo_Exec(lu8Dev,lu8xmlIndex);
+				err = parse_xml(lu8Dev,lu8xmlIndex);
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 		
 				
@@ -1677,8 +1685,8 @@ void pthread_GprsDataDeal(void)
 			err = UpGetXMLEnd(lu8xmlIndex,UP_COMMU_DEV_GPRS,lu16outtime);
 			if(err == NO_ERR){//说明接收到一帧完整的xml数据。
 				printf("pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = %d.\n",lu8xmlIndex);
-				err = XmlInfo_Analyze(UP_COMMU_DEV_GPRS, lu8xmlIndex);
-				
+				//err = XmlInfo_Analyze(UP_COMMU_DEV_GPRS, lu8xmlIndex);
+				err = parse_xml(UP_COMMU_DEV_GPRS, lu8xmlIndex);
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 
 			}

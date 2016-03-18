@@ -22,7 +22,7 @@ char *pXMLFileName[XML_BUF_FILE_NUM]={"buff0.xml","buff1.xml","buff2.xml","buff3
  		"buff13.xml","buff14.xml"};
 
 XML_FILE gXML_File[XML_BUF_FILE_NUM];  //定义xml文件相关变量。
-
+static xml_info_str g_xml_info[UP_COMMU_DEV_ARRAY];
 
 
 
@@ -244,7 +244,7 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
   *      		optype--操作类型
   ******************************************************************************
 */
-uint8 makexml(XmlInfoRecord *xmlInfo,uint8 xmlIndex)
+uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 {
 	FILE *fp;
 	int nRel;
@@ -261,8 +261,8 @@ uint8 makexml(XmlInfoRecord *xmlInfo,uint8 xmlIndex)
 	fp = fopen(gXML_File[xmlIndex].pXMLFile,"w+");
 	
 	
-	switch(xmlInfo->FuncType){
-		case ID_VALIDATE:
+	switch(xmlInfo->func_type){
+		case em_FUNC_ID:
 			//在common节点直接创建文本节点
     			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)"3706825001");
     			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)"3706820001");
@@ -281,7 +281,7 @@ uint8 makexml(XmlInfoRecord *xmlInfo,uint8 xmlIndex)
 			
 			break;
 
-		case HEART_BEAT:
+		case em_FUNC_HEATBT:
 			//在common节点直接创建文本节点
     			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)"3706825001");
     			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)"3706820001");
@@ -315,6 +315,7 @@ uint8 makexml(XmlInfoRecord *xmlInfo,uint8 xmlIndex)
 }
 
 
+#if 0
 
 /*
   ******************************************************************************
@@ -361,7 +362,7 @@ uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
 {
 	uint8 err = 0;
 	FILE *fp;
-	XmlInfoRecord l_xmlInfo;
+	xml_info_str l_xmlInfo;
 	
 
 
@@ -372,8 +373,8 @@ uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
 		return err;
 	}
 
-	switch(l_xmlInfo.FuncType){
-		case ID_VALIDATE:
+	switch(l_xmlInfo.func_type){
+		case em_FUNC_ID:
 			err = makexml(&l_xmlInfo,XmlIndex);
 			if(err == NO_ERR){
 				fp = fopen(gXML_File[XmlIndex].pXMLFile,"r");
@@ -383,7 +384,7 @@ uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
 
 			break;
 
-		case HEART_BEAT:
+		case em_FUNC_HEATBT:
 			err = makexml(&l_xmlInfo,XmlIndex);
 			if(err == NO_ERR){
 				fp = fopen(gXML_File[XmlIndex].pXMLFile,"r");
@@ -404,6 +405,53 @@ uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
 	return NO_ERR;
 }
 
+#endif
+/*
+  ******************************************************************************
+  * 函数名称： uint8 setXmlInfo()
+  * 说    明： 根据设备号，设置相应的gXmlInfo信息。
+  * 参    数： 
+  ******************************************************************************
+*/
+
+uint8 setXmlInfo(uint8 dev, pXml_info pXml_info)
+{
+
+	if(dev >= UP_COMMU_DEV_ARRAY){
+		printf("dev num error.\n");
+		return ERR_1;
+	}
+	if(NULL == pXml_info) {
+		printf("source info is NULL.\n");
+		return ERR_1;
+	}
+	memcpy((uint8 *)&g_xml_info[dev],(uint8 *)pXml_info,sizeof(xml_info_str));
+	return NO_ERR;
+}
+
+/*
+  ******************************************************************************
+  * 函数名称： uint8 getXmlInfo(uint8 dev,xml_info_str *xmlInfo)
+  * 说    明： 根据设备编号，获取对应的xmlInfo信息。
+  * 参    数： 
+  ******************************************************************************
+*/
+
+uint8 getXmlInfo(uint8 dev,xml_info_str *pXml_info)
+{
+
+	if(dev >= UP_COMMU_DEV_ARRAY){
+		printf("dev num error.\n");
+		return ERR_1;
+	}
+
+	memcpy((uint8 *)pXml_info,(uint8 *)&g_xml_info[dev],sizeof(xml_info_str));
+
+	return NO_ERR;
+
+}
+
+
 
 /*
  ******************************************************************************
@@ -412,7 +460,7 @@ uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
  ******************************************************************************
  */
 
-uint8 func_id(uint8 oper_idx)
+uint8 func_id(int dev)
 {
 		uint8 retErr = NO_ERR;
 		//下面只是测试用，正常sem_post(&Validate_sem);应该在检测到登录回应时才执行。
@@ -421,85 +469,42 @@ uint8 func_id(uint8 oper_idx)
 		return retErr;
 }
 
-uint8 func_heart_beat(uint8 oper_idx)
+uint8 func_heart_beat(int dev)
 {
 		uint8 retErr = NO_ERR;
 
 		return retErr;
 }
 
-uint8 func_sysconfig(uint8 oper_idx)
-{
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
-}
-
-uint8 func_rqdata(uint8 oper_idx)
+uint8 func_sysconfig(int dev)
 {
 		uint8 retErr = NO_ERR;
 		
 		return retErr;
 }
 
-uint8 func_tnode(uint8 oper_idx)
+uint8 func_rqdata(int dev)
 {
 		uint8 retErr = NO_ERR;
 		
 		return retErr;
 }
 
-uint8 func_minfo(uint8 oper_idx)
+uint8 func_tnode(int dev)
 {
 		uint8 retErr = NO_ERR;
 		
 		return retErr;
 }
 
-uint8 func_rptup(uint8 oper_idx)
+uint8 func_minfo(int dev)
 {
 		uint8 retErr = NO_ERR;
 		
 		return retErr;
 }
 
-
-uint8 func_rdstat(uint8 oper_idx)
-{
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
-}
-
-uint8 func_swip(uint8 oper_idx)
-{
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
-}
-
-uint8 func_dbmani(uint8 oper_idx)
-{
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
-}
-
-uint8 func_syscmd(uint8 oper_idx)
-{
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
-}
-
-uint8 func_codeup(uint8 oper_idx)
-{
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
-}
-
-uint8 func_prototrs(uint8 oper_idx)
+uint8 func_rptup(int dev)
 {
 		uint8 retErr = NO_ERR;
 		
@@ -507,7 +512,50 @@ uint8 func_prototrs(uint8 oper_idx)
 }
 
 
-uint8 (*xml_exec_array[])(uint8) = {
+uint8 func_rdstat(int dev)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_swip(int dev)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_dbmani(int dev)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_syscmd(int dev)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_codeup(int dev)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+uint8 func_prototrs(int dev)
+{
+		uint8 retErr = NO_ERR;
+		
+		return retErr;
+}
+
+
+uint8 (*xml_exec_array[])(int dev) = {
 func_id,//登录
 func_heart_beat,//心跳
 func_sysconfig,//系统参数配置
@@ -522,13 +570,17 @@ func_syscmd,//本地shell命令透传
 func_codeup,//程序更新
 func_prototrs//协议透传
 };
-xml_info_str g_xml_info;
 
-uint8 parse_common(xmlNodePtr root_node);
+uint8 parse_common(int dev, xmlNodePtr root_node);
 
-uint8 parse_xml(char *docname, int Dev)
+uint8 parse_xml(int dev, int xml_idx)
 {
-	if(Dev == UP_COMMU_DEV_GPRS)
+	if(dev >= UP_COMMU_DEV_ARRAY){
+		printf("dev num error.\n");
+		return ERR_1;
+	}
+	
+	if(dev == UP_COMMU_DEV_GPRS)
 			UpdGprsRunSta_FeedSndDog();  //有任何网络数据收到，都认为网络正常，清空GPRS心跳计数。如果连续几次心跳都不清空，则GPRS重启。
 	
 
@@ -536,14 +588,14 @@ uint8 parse_xml(char *docname, int Dev)
 	xmlDocPtr doc;
 	xmlNodePtr cur;
 	uint8 retErr;
-	doc = xmlParseFile(docname);
+	doc = xmlParseFile(gXML_File[xml_idx].pXMLFile);
 	if(doc == NULL) {
 		fprintf(stderr, "Document not open successfully. \n");
 		//sem_post(fd's xml_info_str read semaphore)
 		//Put_XMLBuf
 		return ERR_FF;
 	}
-	g_xml_info.doc = doc;
+	g_xml_info[dev].xmldoc = doc;
 
 	cur = xmlDocGetRootElement(doc);
 	if(cur == NULL) {
@@ -565,7 +617,7 @@ uint8 parse_xml(char *docname, int Dev)
 	cur = cur->xmlChildrenNode;
 	while(cur != NULL){
 		if(xmlStrEqual(cur->name, CONST_CAST NODE_COMMON)) {
-			retErr = parse_common(cur);
+			retErr = parse_common(dev, cur);
 			break;
 		}
 		cur = cur->next;
@@ -577,7 +629,7 @@ uint8 parse_xml(char *docname, int Dev)
 	return retErr;
 }
 
-uint8 parse_common(xmlNodePtr common_node)
+uint8 parse_common(int dev, xmlNodePtr common_node)
 {
 	uint8 retErr = NO_ERR;
 	xmlNodePtr cur_node;
@@ -587,22 +639,22 @@ uint8 parse_common(xmlNodePtr common_node)
 		printf("node name: %s\n", BAD_CAST cur_node->name);
 		if(xmlStrEqual(cur_node->name, CONST_CAST NODE_SRC_ADDR)){
 			pValue = xmlNodeGetContent(cur_node->xmlChildrenNode);
-			strcpy((char*)g_xml_info.sadd, (char*)pValue);
+			strcpy((char*)g_xml_info[dev].sadd, (char*)pValue);
 			xmlFree(pValue);
 		}
 		else if(xmlStrEqual(cur_node->name, CONST_CAST NODE_OBJ_ADDR)){
 			pValue = xmlNodeGetContent(cur_node->xmlChildrenNode);
-			strcpy((char*)g_xml_info.oadd, (char*)pValue);
+			strcpy((char*)g_xml_info[dev].oadd, (char*)pValue);
 			xmlFree(pValue);
 		}
 		else if(xmlStrEqual(cur_node->name, CONST_CAST NODE_FUNC_TYPE)){
 			pValue = xmlNodeGetContent(cur_node->xmlChildrenNode);
-			g_xml_info.func_type = atoi((char*)pValue);
+			g_xml_info[dev].func_type = atoi((char*)pValue);
 			xmlFree(pValue);
 		}
 		else if(xmlStrEqual(cur_node->name, CONST_CAST NODE_OPER_TYPE)){
 			pValue = xmlNodeGetContent(cur_node->xmlChildrenNode);
-			g_xml_info.oper_type = atoi((char*)pValue);
+			g_xml_info[dev].oper_type = atoi((char*)pValue);
 			xmlFree(pValue);
 		}
 		else{//异常情况
@@ -610,8 +662,9 @@ uint8 parse_common(xmlNodePtr common_node)
 		}
 		cur_node=cur_node->next;
 	}
-	//正常应该，先检查是不是发送给本集中器的数据，不是则舍弃，是的话才继续。
-	retErr = (*xml_exec_array[g_xml_info.func_type])(g_xml_info.oper_type);
+	//正常应该先检查是不是发送给本集中器的数据，不是则舍弃，是的话才继续。
+	//if (oadd is not me){return ERR_NOT_ME;}
+	retErr = (*xml_exec_array[g_xml_info[dev].func_type])(dev);
 	printf((retErr==NO_ERR)?"success\n":"fail\n");
 	return retErr;
 }

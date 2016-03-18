@@ -128,9 +128,8 @@ typedef unsigned int uint32;
 #define CONTROL_RET_FAIL 	-1
 #define CONTROL_RET_SUC  	0
 #define NO_ERR		0//成功
-#define ERR_1			1//解析文档格式
-#define ERR_FF		0xff//打开文档或者编码错误
-
+#define ERR_1			1//文档错误
+#define ERR_FF		0xff//致命错误
 
 //超时时间宏定义
 #define REC_TIMEOUT_SEC  	2 	//超时时间 秒
@@ -172,20 +171,19 @@ typedef struct
 	char  install_pos[LENGTH_F_INSTALL_POS];  //字符串
 }MeterFileType;
 
-
-
-//定义xml信息内容记录结构体。
-typedef struct
-{
-	uint8 FuncType; 	//功能类型
-	uint8 OperType;  	//操作类型
+#define LENGTH_ADDR	50//集中器号或者上位机ip的地址长度
+typedef struct{
+	uint8 sadd[LENGTH_ADDR];
+	uint8 oadd[LENGTH_ADDR];
+	uint8 func_type;
+	uint8 oper_type;
+	xmlDocPtr xmldoc;
 	uint8 appendix1; 	//附加内容1
 	uint8 appendix2;  	//附加内容2
 	uint8 appendix3;  	//附加内容3
 	uint8 appendix4;  	//附加内容4
-}XmlInfoRecord;
-
-
+} xml_info_str;
+typedef xml_info_str* pXml_info;
 
 
 

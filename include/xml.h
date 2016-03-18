@@ -32,20 +32,6 @@ typedef struct {
 } XML_FILE;
 
 
-//xml协议功能类型宏定义。
-#define ID_VALIDATE		0	//登录
-#define HEART_BEAT		1	//心跳
-
-
-//xml操作类型宏定义
-#define 	OPER_READ		0	//操作读
-#define 	OPER_WRITE	1	//操作写
-#define 	OPER_DO		2	//操作执行
-#define 	OPER_ANSWER	3	//应答
-
-
-
-
 
 
 
@@ -107,9 +93,6 @@ typedef struct {
 #define NODE_FUNC_TYPE		"func_type"
 #define NODE_OPER_TYPE		"oper_type"
 
-#define LENGTH_ADDR	50//集中器号或者上位机ip的地址长度
-
-
 extern char *pXMLFileName[XML_BUF_FILE_NUM];
 extern XML_FILE gXML_File[XML_BUF_FILE_NUM];
 
@@ -123,13 +106,12 @@ extern uint8 Put_XMLBuf(uint8 lu8BufIndex);
 extern uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime);
 extern uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime);
 
-extern uint8 makexml(XmlInfoRecord *xmlInfo,uint8 xmlIndex);
-extern uint8 XmlInfo_Analyze(uint8 Dev, uint8 XmlIndex);
-extern uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex);
-extern uint8 parse_xml(char *docname, int fd);
-
-
-
+extern uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex);
+//extern uint8 XmlInfo_Analyze(uint8 Dev, uint8 XmlIndex);
+//extern uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex);
+extern uint8 setXmlInfo(uint8 dev, pXml_info pXml_info);
+extern uint8 getXmlInfo(uint8 dev,pXml_info pXml_info);
+extern uint8 parse_xml(int dev, int xml_idx);
 
 
 typedef enum{//上,下位机直接下发function的类型编号
@@ -154,17 +136,6 @@ typedef enum{
 	em_OPER_DO,//操作
 	em_OPER_ASW//应答
 }oper_type_idx;
-
-typedef struct{
-	uint8 sadd[LENGTH_ADDR];
-	uint8 oadd[LENGTH_ADDR];
-	uint8 func_type;
-	uint8 oper_type;
-	xmlDocPtr doc;
-} xml_info_str;
-typedef xml_info_str* pXml_info;
-
-
 
 
 #endif  //_XML_H_

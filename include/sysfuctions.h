@@ -122,8 +122,6 @@ extern void OSSemPost(uint8 dev);
 extern int OSSem_timedwait (sem_t *pSem,uint32  timeout);
 extern uint8 Str2Bin(char *str, uint8 *array,uint16 lens);
 extern uint8 PUBLIC_CountCS(uint8* _data, uint16 _len);
-extern uint8 setXmlInfo(uint8 dev,uint8 functype,uint8 opertype,uint8 app1,uint8 app2,uint8 app3,uint8 app4);
-extern uint8 getXmlInfo(uint8 dev,XmlInfoRecord *xmlInfo);
 extern void FileSend(uint8 Dev, FILE *fp);
 
 
