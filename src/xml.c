@@ -266,8 +266,8 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 			//在common节点直接创建文本节点
     			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)"3706825001");
     			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)"3706820001");
-			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"id_validate");
-			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"read");
+			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"0");
+			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"0");
 
     			//debug_info(gDebugModule[XML_MODULE], "[%s][%s][%d] optype is %d\n",FILE_LINE, optype);
 
@@ -285,8 +285,8 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 			//在common节点直接创建文本节点
     			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)"3706825001");
     			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)"3706820001");
-			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"heart_beat");
-			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"read");
+			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"1");
+			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"0");
 
     			//debug_info(gDebugModule[XML_MODULE], "[%s][%s][%d] optype is %d\n",FILE_LINE, optype);
 
@@ -470,20 +470,21 @@ uint8 func_id(uint8 dev, uint8 xml_idx)
 		printf("XmlInfo_Exec getXmlInfo Err.\n");
 		return err;
 	}
-
+	printf("now in func_id().\n");
+	printf("g_xml_info[%d].func_type: %u, g_xml_info[%d].oper_type: %u\n", dev, g_xml_info[dev].func_type, dev, g_xml_info[dev].oper_type);
 	switch(g_xml_info[dev].oper_type){
 	case em_OPER_RD:
-		printf("current func is func_id, oper_type is: %u\n", g_xml_info[dev].oper_type);
 		err = makexml(&l_xmlInfo,xml_idx);
 		if(err == NO_ERR){
 			fp = fopen(gXML_File[xml_idx].pXMLFile,"r");
 			FileSend(dev, fp);
 			fclose(fp);
-		}
-		//下面只是测试用，正常sem_post(&Validate_sem);应该在检测到登录回应时才执行。
-		//sem_post(&Validate_sem);
-		err = NO_ERR;
+		}		
 	case em_OPER_WR:
+		break;
+	case em_OPER_ASW:
+		printf("have read func_id answer from server.\n");//接收到应答, 登录成功
+		sem_post(&Validate_sem);
 		break;
 	default:
 		err = ERR_FF;
@@ -493,9 +494,36 @@ uint8 func_id(uint8 dev, uint8 xml_idx)
 
 uint8 func_heart_beat(uint8 dev, uint8 xml_idx)
 {
-		uint8 retErr = NO_ERR;
-
-		return retErr;
+	uint8 err = NO_ERR;
+	FILE *fp;
+	xml_info_str l_xmlInfo;
+	err = getXmlInfo(dev,&l_xmlInfo);
+	if(err != NO_ERR){
+		printf("XmlInfo_Exec getXmlInfo Err.\n");
+		return err;
+	}
+	printf("now in func_heart_beat().\n");
+	printf("l_xmlInfo.func_type: %u, l_xmlInfo.oper_type: %u\n", l_xmlInfo.func_type, l_xmlInfo.oper_type);
+	switch(l_xmlInfo.oper_type){
+	case em_OPER_RD:
+		printf("now make heart_beat xml.\n");
+		err = makexml(&l_xmlInfo,xml_idx);
+		if(err == NO_ERR){
+			fp = fopen(gXML_File[xml_idx].pXMLFile,"r");
+			FileSend(dev, fp);
+			fclose(fp);
+		}		
+	case em_OPER_WR:
+		break;
+	case em_OPER_ASW:
+		printf("have read heart_beat answer from server.\n");//接收到应答, 本次心跳成功
+		//清空看门狗
+		UpdGprsRunSta_FeedSndDog();
+		break;
+	default:
+		err = ERR_FF;
+	}
+	return err;
 }
 
 uint8 func_sysconfig(uint8 dev, uint8 xml_idx)
@@ -601,6 +629,7 @@ uint8 xml_exec(uint8 dev, uint8 xml_idx)
 		printf("dev num error.\n");
 		return ERR_1;
 	}
+	printf("g_xml_info[dev].func_type: %u\n", g_xml_info[dev].func_type);
 	return (*xml_exec_array[g_xml_info[dev].func_type])(dev, xml_idx);
 }
 
@@ -667,7 +696,7 @@ uint8 parse_common(uint8 dev, uint8 xml_idx, xmlNodePtr common_node)
 	xmlChar* pValue;
 	cur_node = common_node->xmlChildrenNode;
 	while(cur_node != NULL){
-		printf("node name: %s\n", BAD_CAST cur_node->name);
+		//printf("node name: %s\n", BAD_CAST cur_node->name);
 		if(xmlStrEqual(cur_node->name, CONST_CAST NODE_SRC_ADDR)){
 			pValue = xmlNodeGetContent(cur_node->xmlChildrenNode);
 			strcpy((char*)g_xml_info[dev].sadd, (char*)pValue);
@@ -695,7 +724,7 @@ uint8 parse_common(uint8 dev, uint8 xml_idx, xmlNodePtr common_node)
 	}
 	//正常应该先检查是不是发送给本集中器的数据，不是则舍弃，是的话才继续。
 	//if (oadd is not me){return ERR_NOT_ME;}
-	retErr = (*xml_exec_array[g_xml_info[dev].func_type])(dev, xml_idx);
-	printf((retErr==NO_ERR)?"success\n":"fail\n");
+	retErr = xml_exec(dev, xml_idx);
+	printf((retErr==NO_ERR)?"parse xml success\n":"parse xml fail\n");
 	return retErr;
 }

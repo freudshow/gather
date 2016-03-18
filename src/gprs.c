@@ -1188,6 +1188,34 @@ uint8 GprsInit_xmz(void)
 
 
 
+/*
+  ******************************************************************************
+  * 函数名称： void  GPRS_Mana_Proc(void *pdata)
+  * 说    明： 发送心跳帧，并AddSndDog。
+  * 参    数： 无
+  ******************************************************************************
+*/
+
+uint8 send_hb_and_fdog(uint8 lu8Dev, uint8 lu8xmlIndex)//
+{
+	uint8 err = 0;
+	pXml_info pXml_info = malloc(sizeof(xml_info_str));
+	memset(pXml_info, 0x00, sizeof(xml_info_str));
+	pXml_info->func_type = em_FUNC_HEATBT;
+	pXml_info->func_type = em_OPER_RD;
+
+	err = setXmlInfo(lu8Dev,pXml_info);
+
+	do{
+		lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
+	}while(lu8xmlIndex == ERR_FF);
+	printf("send_hb_and_fdog: now begin exec xml_exec(lu8Dev, lu8xmlIndex)\n");
+	err = xml_exec(lu8Dev, lu8xmlIndex);
+	Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
+	UpdGprsRunSta_AddSndDog();
+	return err;
+}
+
 
 
 /*
@@ -1201,18 +1229,14 @@ uint8 GprsInit_xmz(void)
 uint8 gGprsFirst;  //标记GPRS模块是不是第一次初始化。
 void  GPRS_Mana_Proc(void *pdata)
 {
-	uint8 err = 0;
+	uint8 err;
 	uint8 lu8xmlIndex = 0;
 	uint8 lu8Dev = UP_COMMU_DEV_AT;  //本任务中设备都使用UP_COMMU_DEV_AT。
 	uint8 tmpmid = 0;
 	int ReStartCounter = 0;
 	GPRS_RUN_STA GprsRunSta;
 	uint32 HeartFrmSndCycles = 0;
-	pXml_info pXml_info = malloc(sizeof(xml_info_str));
-	memset(pXml_info, 0x00, sizeof(xml_info_str));
-
-
-
+	
 	pdata = pdata;
 
 	do{
@@ -1265,25 +1289,11 @@ void  GPRS_Mana_Proc(void *pdata)
 
 			HeartFrmSndCycles = (HeartFrmSndCycles + 1) % (GPRS_HEART_FRM_TIME / GPRS_CHECK_CYCLE);
 			if(HeartFrmSndCycles  == 0){
-				//发送心跳帧，并AddSndDog。
-				pXml_info->func_type = em_FUNC_HEATBT;
-				pXml_info->func_type = em_OPER_RD;
-				
-				err = setXmlInfo(lu8Dev,pXml_info);
+				err = send_hb_and_fdog(lu8Dev, lu8xmlIndex);
 				if(err != NO_ERR){
 					printf("HEART_BEAT setXmlInfo ERR.\n");
 					break;
 				}
-				do{
-					lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
-				}while(lu8xmlIndex == ERR_FF);
-				
-				err = xml_exec(lu8Dev, lu8xmlIndex);
-				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
-		
-				
-				UpdGprsRunSta_AddSndDog();
-
 			}
 
 			ReadGprsRunSta(&GprsRunSta);
@@ -1291,14 +1301,11 @@ void  GPRS_Mana_Proc(void *pdata)
 				UpdGprsRunSta_Connect(FALSE);    //GPRS 断线
 				break;
 			}
-
-         
 	  	} 
 		
 	}
 
 }
-
 
 
 uint8 gpHexToAscii(uint8 x)
@@ -1689,7 +1696,7 @@ void pthread_GprsDataDeal(void)
 			printf("pthread_GprsDataDeal UpGetXMLStart OK.\n");
 			err = UpGetXMLEnd(lu8xmlIndex,UP_COMMU_DEV_GPRS,lu16outtime);
 			if(err == NO_ERR){//说明接收到一帧完整的xml数据。
-				//printf("pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = %d.\n",lu8xmlIndex);
+				printf("pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = %d.\n",lu8xmlIndex);
 				//err = XmlInfo_Analyze(UP_COMMU_DEV_GPRS, lu8xmlIndex);
 				err = parse_xml(UP_COMMU_DEV_GPRS, lu8xmlIndex);
 				
