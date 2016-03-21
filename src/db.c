@@ -26,9 +26,11 @@
 sqlite3 *g_pDB = NULL;//数据库指针, 私有变量, 只允许通过本文件提供的函数操作, 不允许外部代码操作
 
 /**********************
- ** 读取系统配置相关 **
+ ** 系统配置相关 **
  **********************/
 static sys_config_str sys_config_array[SYS_CONFIG_COUNT];//基本配置列表, 私有变量
+static sys_config_list list_set_sysconf = NULL;//上位机设置系统参数的列表
+static int set_sysconf_idx;//设置系统参数的索引号
 static int config_idx;//基本配置的个数索引, 私有变量
 static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 
@@ -316,12 +318,14 @@ static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, ch
 	for (i=0; i<f_cnt; i++) {
 		if (0 == strcmp(f_name[i], FIELD_REQUEST_ID))//数据项ID
 			tmp_request->f_id  = atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_REQUEST_MTYPE))//仪表类型
-			tmp_request->f_meter_type= atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_REQUEST_ITEMIDX)) {//仪表数据项的索引号
+		else if(0 == strcmp(f_name[i], FIELD_REQUEST_MTYPE)){//仪表类型(Hex String)
+			tmp_request->f_meter_type = (Ascii2Hex(f_value[i][0])<<LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
+			printf("meter type after convert: %02x\n", tmp_request->f_meter_type);
+		}
+		else if(0 == strcmp(f_name[i], FIELD_REQUEST_ITEMIDX)) {//仪表数据项的索引号(Dec String)
 			tmp_request->f_item_index = atoi(f_value[i]);
 		}
-		else if(0 == strcmp(f_name[i], FIELD_REQUEST_COLNAME))//仪表数据项的列名
+		else if(0 == strcmp(f_name[i], FIELD_REQUEST_COLNAME))//仪表数据项的列名(Dec String)
 			strcpy(tmp_request->f_col_name, f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_COLTYPE))//列名的类型
 			strcpy(tmp_request->f_col_type, f_value[i]);
@@ -346,18 +350,10 @@ void retrieve_request_data_list(int (*read_one_item)(pRequest_data), enum meter_
 	if(!read_one_item)
 		return;
 
-	int i;
 	pRequest_data rt_request  = malloc(sizeof(struct request_data_str));
 	pRequest_data tmp_request = arrayRequest_list[type_idx];
 	while(tmp_request) {
-		rt_request->f_id	 = 	tmp_request->f_id;
-		rt_request->f_meter_type	 = 	tmp_request->f_meter_type;
-		rt_request->f_item_index	 = 	tmp_request->f_item_index;
-
-		for(i=0;i<LENGTH_F_COL_NAME;i++)
-			rt_request->f_col_name[i]  = 	tmp_request->f_col_name[i];
-		for(i=0;i<LENGTH_F_COL_TYPE;i++)
-			rt_request->f_col_type[i]  = 	tmp_request->f_col_type[i];		
+		memcpy(rt_request, tmp_request, sizeof(struct request_data_str));
 		rt_request->pPrev = NULL;
 		rt_request->pNext = NULL;
 		read_one_item(rt_request);
@@ -424,7 +420,7 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 	for (i=0; i<f_cnt; i++) {
 		if (0 == strcmp(f_name[i], FIELD_MINFO_ID))//仪表ID
 			tmp_info->f_id  = atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_ADDRESS)) {//仪表地址BCD
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_ADDRESS)) {//仪表地址(BCD String)
 			length = strlen(f_value[i]);
 			for (j=0; j<(length+1)/BYTE_BCD_CNT;j++) {
 				low_idx = length-BYTE_BCD_CNT*j-2;
@@ -434,20 +430,20 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 					(((low_idx < 0) ? 0: Ascii2Hex(f_value[i][low_idx])) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][low_idx+1]));
 			}
 		}
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码(BCD), 固定为两个字符
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码(HEX String), 固定为两个字符
 			if (strlen(f_value[i]) == BYTE_BCD_CNT) {
 				tmp_info->f_meter_type = (Ascii2Hex(f_value[i][0]) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
 			}
 			else {//异常情况
 			}
 		}
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_CHANNEL))//仪表通道
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_CHANNEL))//仪表通道(Dec String)
 			tmp_info->f_meter_channel = atoi(f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_POS))//仪表安装位置
 			strcpy(tmp_info->f_install_pos, f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_DEVICE_ID))//仪表的设备编号
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_DEVICE_ID))//仪表的设备编号(Dec String)
 			tmp_info->f_device_id = atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_MINFO_PROTO_TYPE))//仪表的协议编码
+		else if(0 == strcmp(f_name[i], FIELD_MINFO_PROTO_TYPE))//仪表的协议编码(Dec String)
 			tmp_info->f_meter_proto_type = atoi(f_value[i]);
 		else {//异常情况
 
@@ -486,23 +482,11 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
 	if(!read_one_meter)
 		return;
 	
-	int i;
 	pMeter_info pInfo_return = malloc(sizeof(struct meter_info_str));//回传一个独立的结构体, 保证原始数据的安全
 	pMeter_info pInfo = list_meter_info;
 
 	while(pInfo) {
-		pInfo_return->f_id 					= pInfo->f_id;
-		pInfo_return->f_meter_type 		= pInfo->f_meter_type;
-		pInfo_return->f_meter_channel 	= pInfo->f_meter_channel;
-		pInfo_return->f_device_id 			= pInfo->f_device_id;
-		pInfo_return->f_meter_proto_type	= pInfo->f_meter_proto_type;
-		
-		for(i=0; i<LENGTH_B_METER_ADDRESS;i++)
-			pInfo_return->f_meter_address[i]	= pInfo->f_meter_address[i];
-		
-		for(i=0; i<LENGTH_F_INSTALL_POS;i++)
-			pInfo_return->f_install_pos[i] = pInfo->f_install_pos[i];
-		
+		memcpy(pInfo_return, pInfo, sizeof(struct meter_info_str));
 		pInfo_return->pNext = NULL;
 		pInfo_return->pPrev = NULL;
 		read_one_meter(pInfo_return);
@@ -517,15 +501,6 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
  **	 函数名: read_sys_config
  ** 功能	: 从数据库中读取基本参数, 放到sys_config_array中
  ********************************************************************************/
-uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig)
-{
-	if(NULL==pConfig || idx<0 || idx>=SYS_CONFIG_COUNT)
-		return ERR_FF;
-	
-	memcpy((uint8*)pConfig, (uint8*)&sys_config_array[idx], sizeof(sys_config_str));
-	return NO_ERR;
-}
-
 void read_sys_config(char *pErr)
 {
 	if(NULL == g_pDB) {
@@ -567,6 +542,83 @@ int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 int get_sys_config_cnt()
 {
 	return config_idx;
+}
+
+uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig)
+{
+	if(NULL==pConfig || idx<0 || idx>=SYS_CONFIG_COUNT)
+		return ERR_FF;
+	
+	memcpy((uint8*)pConfig, (uint8*)&sys_config_array[idx], sizeof(sys_config_str));
+	return NO_ERR;
+}
+
+int del_sysconf(char* pId, char* pErr)
+{
+	int err=0;
+	char *sql_buf = malloc(LENGTH_SQLBUF);
+	strcpy(sql_buf, SQL_DELETE);
+	strcat(sql_buf, " ");
+	strcat(sql_buf, SQL_FROM);
+	strcat(sql_buf, " ");
+	strcat(sql_buf, TABLE_BASE_DEF);
+
+	if(NULL != pId) {
+		strcat(sql_buf, " ");
+		strcat(sql_buf, SQL_WHERE);
+		strcat(sql_buf, " ");
+		strcat(sql_buf, FIELD_BASE_DEF_ID);
+		strcat(sql_buf, SQL_EQUAL);
+		strcat(sql_buf, pId);
+	}
+	printf("%s\n", sql_buf);
+	err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+	free(sql_buf);
+	return err;
+}
+
+//清空系统配置信息
+static void empty_sysconf_list()
+{
+	pSys_config tmp_info;
+	while(list_set_sysconf) {
+		tmp_info = list_set_sysconf;
+		list_set_sysconf = list_set_sysconf->pNext;
+		free(tmp_info);
+	}
+}
+
+uint8 insert_sysconf(pSys_config pConf)
+{
+	pSys_config pConfig = malloc(sizeof(sys_config_str));
+	memcpy(pConfig, pConf, sizeof(sys_config_str));
+	pConfig->pPrev = NULL;
+	pConfig->pNext = list_set_sysconf;
+	if (list_set_sysconf) {
+		list_set_sysconf->pPrev = pConfig;
+	}
+	list_set_sysconf = pConfig;
+	set_sysconf_idx++;	
+	return NO_ERR;
+}
+
+int add_one_config(pSys_config pConf)
+{
+	return 0;
+}
+
+int set_sysconf()
+{
+	pSys_config pTmp_conf;
+	
+	empty_sysconf_list();
+
+	pTmp_conf = list_set_sysconf;
+	while(pTmp_conf) {
+
+		pTmp_conf = pTmp_conf->pNext;
+	}
+	return NO_ERR;
 }
 
 

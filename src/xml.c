@@ -24,6 +24,38 @@ char *pXMLFileName[XML_BUF_FILE_NUM]={"buff0.xml","buff1.xml","buff2.xml","buff3
 XML_FILE gXML_File[XML_BUF_FILE_NUM];  //定义xml文件相关变量。
 static xml_info_str g_xml_info[UP_COMMU_DEV_ARRAY];
 
+uint8 func_id(uint8 dev, uint8 xml_idx);
+
+uint8 func_id(uint8 dev, uint8 xml_idx);
+uint8 func_heart_beat(uint8 dev, uint8 xml_idx);
+uint8 func_sysconfig(uint8 dev, uint8 xml_idx);
+uint8 func_rqdata(uint8 dev, uint8 xml_idx);
+uint8 func_tnode(uint8 dev, uint8 xml_idx);
+uint8 func_minfo(uint8 dev, uint8 xml_idx);
+uint8 func_rptup(uint8 dev, uint8 xml_idx);
+uint8 func_rdstat(uint8 dev, uint8 xml_idx);
+uint8 func_swip(uint8 dev, uint8 xml_idx);
+uint8 func_dbmani(uint8 dev, uint8 xml_idx);
+uint8 func_syscmd(uint8 dev, uint8 xml_idx);
+uint8 func_codeup(uint8 dev, uint8 xml_idx);
+uint8 func_prototrs(uint8 dev, uint8 xml_idx);
+
+
+static uint8 (*xml_exec_array[])(uint8 dev, uint8 xml_idx) = {
+func_id,//登录
+func_heart_beat,//心跳
+func_sysconfig,//系统参数配置
+func_rqdata,//仪表的数据项配置
+func_tnode,//抄表与上报时间点配置
+func_minfo,//表地址配置
+func_rptup,//上传历史数据
+func_rdstat,//读取集中器状态
+func_swip,//切换ip
+func_dbmani,//数据库透传
+func_syscmd,//本地shell命令透传
+func_codeup,//程序更新
+func_prototrs//协议透传
+};
 
 
 /*
@@ -531,27 +563,28 @@ uint8 func_heart_beat(uint8 dev, uint8 xml_idx)
 	
 }
 
+//3．配置信息(sys_config)
 uint8 func_sysconfig(uint8 dev, uint8 xml_idx)
 {
 		uint8 retErr = NO_ERR;
 		
 		return retErr;
 }
-
+//4. 配置需要哪些物理量(request_data)
 uint8 func_rqdata(uint8 dev, uint8 xml_idx)
 {
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
+	uint8 err = NO_ERR;
+	
+	return err;
 }
-
+//5. 配置抄表时间点(time_node)
 uint8 func_tnode(uint8 dev, uint8 xml_idx)
 {
 		uint8 retErr = NO_ERR;
 		
 		return retErr;
 }
-
+//6. 操作表地址信息(meter_info)
 uint8 func_minfo(uint8 dev, uint8 xml_idx)
 {
 		uint8 retErr = NO_ERR;
@@ -610,23 +643,6 @@ uint8 func_prototrs(uint8 dev, uint8 xml_idx)
 }
 
 
-uint8 (*xml_exec_array[])(uint8 dev, uint8 xml_idx) = {
-func_id,//登录
-func_heart_beat,//心跳
-func_sysconfig,//系统参数配置
-func_rqdata,//仪表的数据项配置
-func_tnode,//抄表与上报时间点配置
-func_minfo,//表地址配置
-func_rptup,//上传历史数据
-func_rdstat,//读取集中器状态
-func_swip,//切换ip
-func_dbmani,//数据库透传
-func_syscmd,//本地shell命令透传
-func_codeup,//程序更新
-func_prototrs//协议透传
-};
-
-uint8 parse_common(uint8 dev, uint8 xml_idx, xmlNodePtr root_node);
 
 uint8 xml_exec(uint8 dev, uint8 xml_idx)
 {
@@ -638,62 +654,6 @@ uint8 xml_exec(uint8 dev, uint8 xml_idx)
 	printf("g_xml_info[dev].func_type: %u\n", g_xml_info[dev].func_type);
 	
 	return (*xml_exec_array[g_xml_info[dev].func_type])(dev, xml_idx);
-}
-
-uint8 parse_xml(uint8 dev, uint8 xml_idx)
-{
-	if(dev >= UP_COMMU_DEV_ARRAY){
-		printf("dev num error.\n");
-		return ERR_1;
-	}
-	
-	if(dev == UP_COMMU_DEV_GPRS)
-			UpdGprsRunSta_FeedSndDog();  //有任何GPRS网络数据收到，都认为网络正常，清空GPRS心跳计数。如果连续几次心跳都不清空，则GPRS重启。
-	
-
-	//sem_wait(fd's xml_info_str read semaphore)
-	xmlDocPtr doc;
-	xmlNodePtr cur;
-	uint8 retErr;
-	doc = xmlParseFile(gXML_File[xml_idx].pXMLFile);
-	if(doc == NULL) {
-		fprintf(stderr, "Document not open successfully. \n");
-		//sem_post(fd's xml_info_str read semaphore)
-		//Put_XMLBuf
-		return ERR_FF;
-	}
-	g_xml_info[dev].xmldoc = doc;
-
-	cur = xmlDocGetRootElement(doc);
-	if(cur == NULL) {
-		fprintf(stderr, "empty document\n");
-		xmlFreeDoc(doc);
-		//sem_post(fd's xml_info_str read semaphore)
-		//Put_XMLBuf
-		return ERR_FF;
-	}
-
-	if(!xmlStrEqual(cur->name, CONST_CAST NODE_ROOT)) {
-		fprintf(stderr, "root node not found");
-		xmlFreeDoc(doc);
-		//sem_post(fd's xml_info_str read semaphore)
-		//Put_XMLBuf
-		return ERR_1;
-	}
-
-	cur = cur->xmlChildrenNode;
-	while(cur != NULL){
-		if(xmlStrEqual(cur->name, CONST_CAST NODE_COMMON)) {
-			retErr = parse_common(dev, xml_idx, cur);
-			break;
-		}
-		cur = cur->next;
-	}
-	//sem_post(fd's xml_info_str read semaphore)
-	//Put_XMLBuf
-	xmlFreeDoc(doc);
-	
-	return retErr;
 }
 
 uint8 parse_common(uint8 dev, uint8 xml_idx, xmlNodePtr common_node)
@@ -751,12 +711,60 @@ uint8 parse_common(uint8 dev, uint8 xml_idx, xmlNodePtr common_node)
 }
 
 
+uint8 parse_xml(uint8 dev, uint8 xml_idx)
+{
+	if(dev >= UP_COMMU_DEV_ARRAY){
+		printf("dev num error.\n");
+		return ERR_1;
+	}
+	
+	if(dev == UP_COMMU_DEV_GPRS)
+			UpdGprsRunSta_FeedSndDog();  //有任何GPRS网络数据收到，都认为网络正常，清空GPRS心跳计数。如果连续几次心跳都不清空，则GPRS重启。
+	
 
+	//sem_wait(fd's xml_info_str read semaphore)
+	xmlDocPtr doc;
+	xmlNodePtr cur;
+	uint8 retErr;
+	doc = xmlParseFile(gXML_File[xml_idx].pXMLFile);
+	if(doc == NULL) {
+		fprintf(stderr, "Document not open successfully. \n");
+		//sem_post(fd's xml_info_str read semaphore)
+		//Put_XMLBuf
+		return ERR_FF;
+	}
+	g_xml_info[dev].xmldoc = doc;
 
+	cur = xmlDocGetRootElement(doc);
+	if(cur == NULL) {
+		fprintf(stderr, "empty document\n");
+		xmlFreeDoc(doc);
+		//sem_post(fd's xml_info_str read semaphore)
+		//Put_XMLBuf
+		return ERR_FF;
+	}
 
+	if(!xmlStrEqual(cur->name, CONST_CAST NODE_ROOT)) {
+		fprintf(stderr, "root node not found");
+		xmlFreeDoc(doc);
+		//sem_post(fd's xml_info_str read semaphore)
+		//Put_XMLBuf
+		return ERR_1;
+	}
 
-
-
-
+	cur = cur->xmlChildrenNode;
+	while(cur != NULL){
+		if(xmlStrEqual(cur->name, CONST_CAST NODE_COMMON)) {
+			retErr = parse_common(dev, xml_idx, cur);
+			break;
+		}
+		cur = cur->next;
+	}
+	//sem_post(fd's xml_info_str read semaphore)
+	//Put_XMLBuf
+	xmlFreeDoc(doc);
+	
+	return retErr;
+}
 
 

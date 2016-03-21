@@ -141,12 +141,20 @@ enum T_System_Config {
 
 };
 
-typedef struct {
+struct sys_config_structure;
+typedef struct sys_config_structure sys_config_str;
+typedef sys_config_str *pSys_config;
+typedef pSys_config sys_config_list;
+
+struct sys_config_structure{
 	char f_config_name[LENGTH_F_CONFIG_NAME];
 	char f_config_value[LENGTH_F_CONFIG_VALUE];
 	int f_id;
-} sys_config_str;
-typedef sys_config_str *pSys_config;
+	pSys_config pNext;
+	pSys_config pPrev;
+};
+
+
 /********************************************************************************
  **	 t_meter_info
  ** 设备地址信息表
@@ -292,6 +300,8 @@ void get_delete_sql(char *table_name, char **condition, int con_count, char *sql
 void read_sys_config(char *pErr);//从数据库读取基本配置
 uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig);//读取单独一条配置
 int get_sys_config_cnt();//读取系统配置参数的个数
+int del_sysconf();//删除所有系统参数
+int set_sysconf();//设置系统参数
 
 /**********************
  ** 仪表地址信息相关 **
