@@ -553,7 +553,7 @@ uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig)
 	return NO_ERR;
 }
 
-int del_sysconf(char* pId, char* pErr)
+uint8 del_sysconf(char* pId, char* pErr)
 {
 	int err=0;
 	char *sql_buf = malloc(LENGTH_SQLBUF);
@@ -571,14 +571,17 @@ int del_sysconf(char* pId, char* pErr)
 		strcat(sql_buf, SQL_EQUAL);
 		strcat(sql_buf, pId);
 	}
-	printf("%s\n", sql_buf);
 	err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
 	free(sql_buf);
-	return err;
+	return err==SQLITE_OK ? NO_ERR:ERR_FF;
 }
 
-//清空系统配置信息
-static void empty_sysconf_list()
+/*
+ * 清空系统配置信息
+ * 注意: 此函数应该由调用者在向列表插入数据前调用一次,
+ * 否则将出现错误(如将以前的信息插入到数据表中, 或者出现主键冲突)
+ */
+uint8 empty_sysconf_list()
 {
 	pSys_config tmp_info;
 	while(list_set_sysconf) {
@@ -586,36 +589,56 @@ static void empty_sysconf_list()
 		list_set_sysconf = list_set_sysconf->pNext;
 		free(tmp_info);
 	}
+	return NO_ERR;
 }
 
 uint8 insert_sysconf(pSys_config pConf)
 {
-	pSys_config pConfig = malloc(sizeof(sys_config_str));
-	memcpy(pConfig, pConf, sizeof(sys_config_str));
+	pSys_config pConfig = malloc(sizeof(sys_config_str));//为了安全起见, 不直接使用传递进来的参数
+	if(NULL != pConf) {
+		memcpy(pConfig, pConf, sizeof(sys_config_str));
+	}
+	else {
+		return ERR_1;
+	}
+	
 	pConfig->pPrev = NULL;
 	pConfig->pNext = list_set_sysconf;
 	if (list_set_sysconf) {
 		list_set_sysconf->pPrev = pConfig;
 	}
 	list_set_sysconf = pConfig;
-	set_sysconf_idx++;	
+	set_sysconf_idx++;
 	return NO_ERR;
 }
 
-int add_one_config(pSys_config pConf)
+uint8 add_one_config(pSys_config pConf, char* pErr)
 {
-	return 0;
+	if(NULL == pConf) {
+		return ERR_1;
+	}
+	uint8 err = NO_ERR;
+	char *sql_buf = malloc(LENGTH_SQLBUF);
+	char *table_name = TABLE_BASE_DEF;
+	char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
+	char pIdstr[LENGTH_F_CONFIG_VALUE];
+	sprintf(pIdstr, "%d", pConf->f_id);
+	char *val_buf[LENGTH_F_CONFIG_VALUE] = {pIdstr, pConf->f_config_name, pConf->f_config_value};
+	
+	get_insert_sql(table_name, col_buf, 3, val_buf, sql_buf, 1);
+	err =  sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+	free(sql_buf);	
+	return err==SQLITE_OK ? NO_ERR : ERR_1;
 }
 
-int set_sysconf()
+uint8 set_sysconf(char* pErr)
 {
-	pSys_config pTmp_conf;
-	
-	empty_sysconf_list();
-
-	pTmp_conf = list_set_sysconf;
+	pSys_config pTmp_conf = list_set_sysconf;
+	del_sysconf(NULL, pErr);//先清空原有的表数据
 	while(pTmp_conf) {
-
+		if(NO_ERR != add_one_config(pTmp_conf, pErr)) {
+			return ERR_1;
+		}
 		pTmp_conf = pTmp_conf->pNext;
 	}
 	return NO_ERR;
@@ -702,7 +725,7 @@ void get_update_sql(char *table_name, char **sets, int set_cnt, char **condition
  ** 功能	: 组合插入语句, 可以有where从句
  ** 由于列的数量必须与value的数量相等, 所以只输入列数量即可
  ********************************************************************************/
-void get_insert_sql(char *table_name, char **cols, int col_cnt, char **values,char *sql)
+void get_insert_sql(char *table_name, char **cols, int col_cnt, char **values,char *sql, int add_quote)
 {
 	int i;
 
@@ -726,13 +749,24 @@ void get_insert_sql(char *table_name, char **cols, int col_cnt, char **values,ch
 	//values
 	strcat(sql, SQL_VALUES);
 	strcat(sql, SQL_LEFT_PARENTHESIS);
-		for(i=0;i<col_cnt-1;i++) {
+	for(i=0;i<col_cnt-1;i++) {
+		if(add_quote){
+			strcat(sql, SQL_SINGLE_QUOTES);
+		}
 		strcat(sql, values[i]);
+		if(add_quote){
+			strcat(sql, SQL_SINGLE_QUOTES);
+		}
 		strcat(sql, ", ");
 	}
+	if(add_quote){
+		strcat(sql, SQL_SINGLE_QUOTES);
+	}
 	strcat(sql, values[i]);
+	if(add_quote){
+		strcat(sql, SQL_SINGLE_QUOTES);
+	}
 	strcat(sql, SQL_RIGHT_PARENTHESIS);
-
 	strcat(sql, ";");
 }
 

@@ -291,7 +291,7 @@ void get_select_sql(char *table_name, char **cols, int col_count, char *sql);
 void get_where_sql(char **condition, int con_count, char *sql);
 void get_orderby_sql(char **fields, int f_cnt, int asc, char *sql);
 void get_query_sql(char *table_name, char **cols, int col_count, char **condition, int con_count, char *sql);
-void get_insert_sql(char *table_name, char **cols, int col_count, char **values,char *sql);
+void get_insert_sql(char *table_name, char **cols, int col_count, char **values,char *sql, int add_quote);
 void get_update_sql(char *table_name, char **sets, int set_count, char **condition, int con_count, char *sql);
 void get_delete_sql(char *table_name, char **condition, int con_count, char *sql);
 /**********************
@@ -300,8 +300,10 @@ void get_delete_sql(char *table_name, char **condition, int con_count, char *sql
 void read_sys_config(char *pErr);//从数据库读取基本配置
 uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig);//读取单独一条配置
 int get_sys_config_cnt();//读取系统配置参数的个数
-int del_sysconf();//删除所有系统参数
-int set_sysconf();//设置系统参数
+uint8 insert_sysconf(pSys_config pConf);//插入单个系统配置
+uint8 empty_sysconf_list();//情况配置列表
+uint8 del_sysconf();//删除所有系统参数
+uint8 set_sysconf();//设置系统参数
 
 /**********************
  ** 仪表地址信息相关 **
