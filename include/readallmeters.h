@@ -29,6 +29,7 @@ extern struct tm *p_gTimeNode;
 
 
 
+
 extern uint8 ReaOneMeter(MeterFileType *pmf);
 extern void pthread_ReadAllMeters(void);
 extern uint8 METER_ChangeChannel(uint8 Channel);

@@ -17,7 +17,9 @@
 
 
 
-struct tm *p_gTimeNode;  //记录当前抄表时间节点信息。
+struct tm gTimeNode;  //记录当前抄表时间节点信息。
+struct tm *p_gTimeNode = &gTimeNode;
+
 
 
 
@@ -150,7 +152,8 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 
 void pthread_ReadAllMeters(void)
 {
-		time_t timep;
+	time_t timep;
+	struct tm nowTime;
 
 
 	while(1){
@@ -158,11 +161,13 @@ void pthread_ReadAllMeters(void)
 
 		time(&timep); 
 		p_gTimeNode = localtime(&timep);  
-		//p_gTimeNode->tm_year += 1900;
-		//p_gTimeNode->tm_mon += 1;  //转换成当前年和月。
 		p_gTimeNode->tm_sec = 0;   //定时抄表节点，秒数固定写0.
-		printf("%d %d %d \n",p_gTimeNode->tm_year, p_gTimeNode->tm_mon,p_gTimeNode->tm_mday); 
-		printf("%d:%d:%d\n", p_gTimeNode->tm_hour, p_gTimeNode->tm_min, p_gTimeNode->tm_sec); 
+		memcpy((uint8 *)&nowTime,(uint8 *)p_gTimeNode,sizeof(struct tm));
+		nowTime.tm_year +=  1900;
+		nowTime.tm_mon += 1;  //转换成当前年和月。
+		
+		printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday); 
+		printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec); 
 
 
 		//retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
