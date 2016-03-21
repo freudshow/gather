@@ -246,6 +246,7 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 */
 uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 {
+	sys_config_str sysConfig;
 	FILE *fp;
 	int nRel;
 	//定义文档和指针
@@ -264,8 +265,9 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 	switch(xmlInfo->func_type){
 		case em_FUNC_ID:
 			//在common节点直接创建文本节点
-    			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)"3706825001");
-    			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)"3706820001");
+			get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
+    			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)sysConfig.f_config_value);
+    			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)sysConfig.f_config_value);  //目的地址以后改成服务器地址。
 			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"0");
 			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"0");
 
@@ -283,8 +285,9 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 
 		case em_FUNC_HEATBT:
 			//在common节点直接创建文本节点
-    			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)"3706825001");
-    			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)"3706820001");
+			get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
+    			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)sysConfig.f_config_value);
+    			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)sysConfig.f_config_value);//目的地址以后改成服务器地址。
 			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"1");
 			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"0");
 
@@ -497,6 +500,7 @@ uint8 func_heart_beat(uint8 dev, uint8 xml_idx)
 	uint8 err = NO_ERR;
 	FILE *fp;
 	xml_info_str l_xmlInfo;
+	
 	err = getXmlInfo(dev,&l_xmlInfo);
 	if(err != NO_ERR){
 		printf("XmlInfo_Exec getXmlInfo Err.\n");
@@ -524,6 +528,7 @@ uint8 func_heart_beat(uint8 dev, uint8 xml_idx)
 		err = ERR_FF;
 	}
 	return err;
+	
 }
 
 uint8 func_sysconfig(uint8 dev, uint8 xml_idx)
@@ -629,7 +634,9 @@ uint8 xml_exec(uint8 dev, uint8 xml_idx)
 		printf("dev num error.\n");
 		return ERR_1;
 	}
+	
 	printf("g_xml_info[dev].func_type: %u\n", g_xml_info[dev].func_type);
+	
 	return (*xml_exec_array[g_xml_info[dev].func_type])(dev, xml_idx);
 }
 
@@ -641,7 +648,7 @@ uint8 parse_xml(uint8 dev, uint8 xml_idx)
 	}
 	
 	if(dev == UP_COMMU_DEV_GPRS)
-			UpdGprsRunSta_FeedSndDog();  //有任何网络数据收到，都认为网络正常，清空GPRS心跳计数。如果连续几次心跳都不清空，则GPRS重启。
+			UpdGprsRunSta_FeedSndDog();  //有任何GPRS网络数据收到，都认为网络正常，清空GPRS心跳计数。如果连续几次心跳都不清空，则GPRS重启。
 	
 
 	//sem_wait(fd's xml_info_str read semaphore)
@@ -694,6 +701,8 @@ uint8 parse_common(uint8 dev, uint8 xml_idx, xmlNodePtr common_node)
 	uint8 retErr = NO_ERR;
 	xmlNodePtr cur_node;
 	xmlChar* pValue;
+	sys_config_str sysConfig;
+		
 	cur_node = common_node->xmlChildrenNode;
 	while(cur_node != NULL){
 		//printf("node name: %s\n", BAD_CAST cur_node->name);
@@ -724,7 +733,30 @@ uint8 parse_common(uint8 dev, uint8 xml_idx, xmlNodePtr common_node)
 	}
 	//正常应该先检查是不是发送给本集中器的数据，不是则舍弃，是的话才继续。
 	//if (oadd is not me){return ERR_NOT_ME;}
-	retErr = xml_exec(dev, xml_idx);
-	printf((retErr==NO_ERR)?"parse xml success\n":"parse xml fail\n");
+	retErr = get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
+	if(retErr == NO_ERR){
+		if(0 == strcmp((char *)sysConfig.f_config_value, (char *)g_xml_info[dev].oadd)){  //只有是发给本集中器的数据才处理。
+			printf("start  xml_exec().\n");			
+			retErr = xml_exec(dev, xml_idx);
+			printf((retErr==NO_ERR)?"parse xml success\n":"parse xml fail\n");
+
+		}
+		else{
+			//不是给本集中器的，则空处理即可，舍弃。
+		}
+
+	}	
+
 	return retErr;
 }
+
+
+
+
+
+
+
+
+
+
+

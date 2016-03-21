@@ -91,6 +91,7 @@ extern GPRS_RUN_STA gGprsRunSta;
 
 
 extern void UpdGprsRunSta_FeedSndDog(void);
+extern uint8 AsciiDec(char* str,uint16* result);
 
 extern int pthread_GPRS_Mana(void);
 extern int pthread_GPRS_IPD(void);

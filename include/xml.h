@@ -116,9 +116,9 @@ extern uint8 xml_exec(uint8 dev, uint8 xml_idx);
 
 
 typedef enum{//上,下位机直接下发function的类型编号
-	em_FUNC_ID=0,//登录
-	em_FUNC_HEATBT,//心跳
-	em_FUNC_SYSCONF,//系统参数配置
+	em_FUNC_ID 			= 0,//登录
+	em_FUNC_HEATBT,		    //心跳
+	em_FUNC_SYSCONF,		     //系统参数配置
 	em_FUNC_RQDATA,//仪表的数据项配置
 	em_FUNC_TNODE,//抄表与上报时间点配置
 	em_FUNC_MINFO,//表地址配置

@@ -999,7 +999,7 @@ uint8 GprsInit_xmz(void)
 	uint8 err;
 	uint32 i, n=0;
     	printf("[%s][%s][%d] \n",FILE_LINE);
-    pSys_config pSyscon = malloc(sizeof(sys_config_str));
+	sys_config_str sysconfig;
 	//++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 	while(1){
 		n++;
@@ -1146,14 +1146,15 @@ uint8 GprsInit_xmz(void)
 		}
 		debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_SISS_conId CMD OK!\n");
 
-		get_sys_config(CONFIG_PRIMARY_SERVER, pSyscon);
+
+		get_sys_config(CONFIG_PRIMARY_SERVER, &sysconfig);
 	 	strcpy(Ats_SISS_address,Ats_SISS_address_h);
-		printf("PRIMARY_SERVER: %s\n", pSyscon->f_config_value);
-     	strcat(Ats_SISS_address,pSyscon->f_config_value);
+		printf("PRIMARY_SERVER: %s\n", sysconfig.f_config_value);
+     	strcat(Ats_SISS_address,sysconfig.f_config_value);
      	strcat(Ats_SISS_address,colon);
-		get_sys_config(CONFIG_PRIMARY_PORT, pSyscon);
-		printf("PRIMARY_PORT: %s\n", pSyscon->f_config_value);
-     	strcat(Ats_SISS_address,pSyscon->f_config_value);
+		get_sys_config(CONFIG_PRIMARY_PORT, &sysconfig);
+		printf("PRIMARY_PORT: %s\n", sysconfig.f_config_value);
+     	strcat(Ats_SISS_address,sysconfig.f_config_value);
      	strcat(Ats_SISS_address,over124);
 		printf("Ats_SISS_address: %s\n", Ats_SISS_address);
      	err = CMD_AT_RP(Ats_SISS_address,Ata_OK123,NULL,OS_TICKS_PER_SEC*3,3,FALSE);
@@ -1196,15 +1197,17 @@ uint8 GprsInit_xmz(void)
   ******************************************************************************
 */
 
-uint8 send_hb_and_fdog(uint8 lu8Dev, uint8 lu8xmlIndex)//
+uint8 send_hb_and_fdog(uint8 lu8Dev)//
 {
 	uint8 err = 0;
-	pXml_info pXml_info = malloc(sizeof(xml_info_str));
-	memset(pXml_info, 0x00, sizeof(xml_info_str));
-	pXml_info->func_type = em_FUNC_HEATBT;
-	pXml_info->func_type = em_OPER_RD;
+	uint8 lu8xmlIndex = 0;
+	xml_info_str Xml_info;
+	
+	memset((uint8 *)&Xml_info, 0x00, sizeof(xml_info_str));
+	Xml_info.func_type = em_FUNC_HEATBT;
+	Xml_info.oper_type = em_OPER_RD;
 
-	err = setXmlInfo(lu8Dev,pXml_info);
+	err = setXmlInfo(lu8Dev,&Xml_info);
 
 	do{
 		lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
@@ -1212,6 +1215,7 @@ uint8 send_hb_and_fdog(uint8 lu8Dev, uint8 lu8xmlIndex)//
 	printf("send_hb_and_fdog: now begin exec xml_exec(lu8Dev, lu8xmlIndex)\n");
 	err = xml_exec(lu8Dev, lu8xmlIndex);
 	Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
+	
 	UpdGprsRunSta_AddSndDog();
 	return err;
 }
@@ -1230,12 +1234,13 @@ uint8 gGprsFirst;  //标记GPRS模块是不是第一次初始化。
 void  GPRS_Mana_Proc(void *pdata)
 {
 	uint8 err;
-	uint8 lu8xmlIndex = 0;
 	uint8 lu8Dev = UP_COMMU_DEV_AT;  //本任务中设备都使用UP_COMMU_DEV_AT。
 	uint8 tmpmid = 0;
 	int ReStartCounter = 0;
 	GPRS_RUN_STA GprsRunSta;
+	sys_config_str sysConfig;
 	uint32 HeartFrmSndCycles = 0;
+	uint16 lu16HeartCycle = 0;  //心跳周期，单位分钟。
 	
 	pdata = pdata;
 
@@ -1287,12 +1292,28 @@ void  GPRS_Mana_Proc(void *pdata)
 	  	while(1){
 			DlyGprsCheck(GPRS_CHECK_CYCLE);
 
-			HeartFrmSndCycles = (HeartFrmSndCycles + 1) % (GPRS_HEART_FRM_TIME / GPRS_CHECK_CYCLE);
+			get_sys_config(CONFIG_BEAT_CYCLE,&sysConfig);
+			err = AsciiDec((char*)sysConfig.f_config_value, &lu16HeartCycle);  //字符转换成数字。
+			if(err == NO_ERR){
+				if(lu16HeartCycle < 1)  //心跳周期范围1-10分钟，防止超限。
+					lu16HeartCycle = 1;
+				else if(lu16HeartCycle > 10)
+					lu16HeartCycle = 10;
+				else
+					lu16HeartCycle = lu16HeartCycle;
+
+
+			}
+			else{
+				lu16HeartCycle = 2;  //默认心跳周期2分钟。
+			}
+
+			HeartFrmSndCycles = (HeartFrmSndCycles + 1) % ((lu16HeartCycle*60) / GPRS_CHECK_CYCLE);
 			if(HeartFrmSndCycles  == 0){
-				err = send_hb_and_fdog(lu8Dev, lu8xmlIndex);
+				err = send_hb_and_fdog(lu8Dev);
 				if(err != NO_ERR){
 					printf("HEART_BEAT setXmlInfo ERR.\n");
-					break;
+					
 				}
 			}
 

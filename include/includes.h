@@ -29,8 +29,9 @@
 #include <errno.h> /*´íÎóºÅ¶¨Òå*/ 
 #include <semaphore.h>
 #include <pthread.h>
-#include<libxml/xmlmemory.h>
-#include<libxml/parser.h>
+#include <libxml/xmlmemory.h>
+#include <libxml/parser.h>
+#include <string.h>
 
 
 
