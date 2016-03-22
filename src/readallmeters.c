@@ -18,8 +18,6 @@
 
 
 struct tm gTimeNode;  //记录当前抄表时间节点信息。
-struct tm *p_gTimeNode = &gTimeNode;
-
 
 
 
@@ -150,12 +148,11 @@ void ReadAllMeters(void)
 {
 	time_t timep;
 	struct tm nowTime;
-	
 
-	time(&timep); 
-	p_gTimeNode = localtime(&timep);  
-	p_gTimeNode->tm_sec = 0;   //定时抄表节点，秒数固定写0.
-	memcpy((uint8 *)&nowTime,(uint8 *)p_gTimeNode,sizeof(struct tm));
+	time(&timep); 	
+	localtime_r(&timep, &gTimeNode); 
+	gTimeNode.tm_sec = 0;   //定时抄表节点，秒数固定写0.
+	memcpy((uint8 *)&nowTime,(uint8 *)&gTimeNode,sizeof(struct tm));
 	nowTime.tm_year +=	1900;
 	nowTime.tm_mon += 1;  //转换成当前年和月。
 	

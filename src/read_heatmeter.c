@@ -413,7 +413,7 @@ uint8 Read_HeatMeter(MeterFileType *pmf)
 	uint8 lu8retrytimes = 0;
 	//DELU_Protocol	ProtocoalInfo;
 	CJ188_Format CJ188_Data;
-	struct tm *pNowTime;
+	struct tm NowTime;
 	time_t timep;
 
 	
@@ -437,13 +437,9 @@ uint8 Read_HeatMeter(MeterFileType *pmf)
 	if(err == NO_ERR){
 		//获取当前时间				
 		time(&timep); 
-		pNowTime = localtime(&timep);  
-		//pNowTime->tm_year += 1900;  //转换成当前年和月。
-		//pNowTime->tm_mon += 1;  	   //转换成当前年和月。
-		//printf("%d %d %d \n",pNowTime->tm_year, pNowTime->tm_mon,pNowTime->tm_mday); 
-		//printf("%d:%d:%d\n", pNowTime->tm_hour, pNowTime->tm_min, pNowTime->tm_sec); 
+		localtime_r(&timep, &NowTime); 
 		
-		insert_his_data(pmf,&CJ188_Data,pNowTime,p_gTimeNode,lcRet);
+		insert_his_data(pmf,&CJ188_Data,&NowTime,&gTimeNode,lcRet);
 		//printf("insert_his_data over.\n");
 	}
 

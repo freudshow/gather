@@ -22,7 +22,8 @@
 
 
 
-extern struct tm *p_gTimeNode;
+extern struct tm gTimeNode; 
+
 
 
 
