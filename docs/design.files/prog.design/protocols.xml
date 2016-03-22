@@ -32,7 +32,7 @@
 			<func_type>功能类型</func_type>
 			<oper_type>read/write/do/answer</oper_type>
 	</common>
-	<!-- 以下各项的字段, 不同功能类型不同，须对应具体的功能类型添加, 详见下文。
+	<!-- 以下各项的字段, 不同功能类型不同，须对应具体的功能类型添加, 详见下文。-->
 	
 	
 	
