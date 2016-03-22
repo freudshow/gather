@@ -137,7 +137,7 @@ enum T_System_Config {
 	CONFIG_COLLECT_MODE,		//自动抄表方式，0-根据collect_cycle周期设置抄表，1-定点抄表。
 	CONFIG_COLLECT_CYCLE,		//自动采集周期，当COLLECT_MODE为0时有效。
 	CONFIG_REPORT_MODE,			//数据上报模式,0-主动上报，1-被动请求。
-	CONFIG_BEAT_CYCLE			//心跳周期
+	CONFIG_BEAT_CYCLE			//心跳周期，范围1-10分钟。
 
 };
 
