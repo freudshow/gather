@@ -290,4 +290,104 @@ void sqldb_init(void)
 
 
 
+/*
+  ******************************************************************************
+  * 函数名称： void sysConfig_Ascii2hex(void)
+  * 说    明： 部分系统参数(如系统网络类型、自动抄表方式、自动采集周期、心跳周期，在数据库及链表中都是ASC码)，
+  			本函数将这些参数从ASC码转换成数值，以便系统调用判断。
+  * 参    数： 
+  ******************************************************************************
+*/
+SysConfig_ASC2HEX_T g_sysConfigHex;
+void sysConfig_Ascii2hex(void)
+{
+	uint8 err = 0;
+	uint16 lu16tmp = 0;
+	sys_config_str sysConfig;
+
+	//心跳周期。
+	get_sys_config(CONFIG_BEAT_CYCLE,&sysConfig);
+	err = AsciiDec((char*)sysConfig.f_config_value, &lu16tmp);  //字符转换成数字。
+	if(err == NO_ERR){
+		if(lu16tmp < 1)  //心跳周期范围1-10分钟，防止超限。
+			lu16tmp = 1;
+		else if(lu16tmp > 10)
+			lu16tmp = 10;
+		else
+			lu16tmp = lu16tmp;	
+	}
+	else{
+		lu16tmp = 2;  //默认心跳周期2分钟。
+	}
+
+	g_sysConfigHex.heartBeatCycle = lu16tmp;
+
+
+	//网络类型。
+	get_sys_config(CONFIG_NET_TYPE,&sysConfig);
+	err = AsciiDec((char*)sysConfig.f_config_value, &lu16tmp);  //字符转换成数字。
+	if(err == NO_ERR){
+		if(lu16tmp != 0)
+			lu16tmp = 1;   //0-GPRS网络，非0则人为485网络。
+	
+	}
+	else{
+		lu16tmp = 0;  //默认GPRS网络。
+	}
+
+	g_sysConfigHex.netType = lu16tmp;
+
+	//自动抄表方式。
+	get_sys_config(CONFIG_COLLECT_MODE,&sysConfig);
+	err = AsciiDec((char*)sysConfig.f_config_value, &lu16tmp);  //字符转换成数字。
+	if(err == NO_ERR){
+		if(lu16tmp != 0)
+			lu16tmp = 1;
+	}
+	else{
+		lu16tmp = 0;  //默认按照设定周期自动抄表。
+	}
+
+	g_sysConfigHex.collectMode = lu16tmp;
+
+
+	//自动抄表周期。
+	get_sys_config(CONFIG_COLLECT_CYCLE,&sysConfig);
+	err = AsciiDec((char*)sysConfig.f_config_value, &lu16tmp);  //字符转换成数字。
+	if(err == NO_ERR){
+		if(lu16tmp == 0)
+			lu16tmp = 30;
+		else
+			lu16tmp = lu16tmp;  
+	
+	}
+	else{
+		lu16tmp = 30;  //默认抄表周期30分钟。
+	}
+
+	g_sysConfigHex.collectCycle = lu16tmp;
+
+
+	//数据上报方式。
+	get_sys_config(CONFIG_REPORT_MODE,&sysConfig);
+	err = AsciiDec((char*)sysConfig.f_config_value, &lu16tmp);  //字符转换成数字。
+	if(err == NO_ERR){
+		if(lu16tmp != 0)
+			lu16tmp = 1;
+		
+	}
+	else{
+		lu16tmp = 0;  //默认自动上报。
+	}
+
+	g_sysConfigHex.reportMode = lu16tmp;
+
+
+
+}
+
+
+
+
+
 

@@ -522,6 +522,9 @@ void read_sys_config(char *pErr)
 	sqlite3_exec(g_pDB, sql_buf, each_config, NULL, &pErr);
 	free(sql_buf);
 	free(order_buf);
+
+	sysConfig_Ascii2hex();
+	
 }
 
 int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)

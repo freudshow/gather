@@ -138,7 +138,35 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 
 
 
+/*
+  ******************************************************************************
+  * 函数名称：void ReadAllMeters(void)
+  * 说    明： 抄所有表。
+  * 参    数： 无
+  ******************************************************************************
+*/
 
+void ReadAllMeters(void)
+{
+	time_t timep;
+	struct tm nowTime;
+	
+
+	time(&timep); 
+	p_gTimeNode = localtime(&timep);  
+	p_gTimeNode->tm_sec = 0;   //定时抄表节点，秒数固定写0.
+	memcpy((uint8 *)&nowTime,(uint8 *)p_gTimeNode,sizeof(struct tm));
+	nowTime.tm_year +=	1900;
+	nowTime.tm_mon += 1;  //转换成当前年和月。
+	
+	printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday); 
+	printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec); 
+	
+	
+	retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
+
+
+}
 
 
 
@@ -152,28 +180,33 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 
 void pthread_ReadAllMeters(void)
 {
-	time_t timep;
-	struct tm nowTime;
+	uint16 lu16ReadmeterMode = 0;
+	uint16 lu16ReadmeterCycle = 0;
+	uint32 lu32CheckCyc_S = 30;  //检测周期，单位秒。
+	uint32 lu32CheckCnt = 0;  //检测周期计数。
 
 
 	while(1){
 		//检测抄表信号，如果抄表信号有效，则开始全抄表，否则，等待30s吧，这些以后要补充，现在下面测试用。
+		lu16ReadmeterMode = g_sysConfigHex.collectMode;
+		lu16ReadmeterCycle = g_sysConfigHex.collectCycle;
 
-		time(&timep); 
-		p_gTimeNode = localtime(&timep);  
-		p_gTimeNode->tm_sec = 0;   //定时抄表节点，秒数固定写0.
-		memcpy((uint8 *)&nowTime,(uint8 *)p_gTimeNode,sizeof(struct tm));
-		nowTime.tm_year +=  1900;
-		nowTime.tm_mon += 1;  //转换成当前年和月。
+		if(lu16ReadmeterMode == 0){  //按周期自动抄表。
+			lu32CheckCnt = lu32CheckCnt % ((lu16ReadmeterCycle*60)/lu32CheckCyc_S);  //初始化后立即抄读一次。
+
+			if(lu32CheckCnt == 0){
+				ReadAllMeters();
+			}
+
+			lu32CheckCnt += 1;
+			
+		}
+		else{  //按抄表时间节点抄表。
+
+
+		}
 		
-		printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday); 
-		printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec); 
-
-
-		//retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
-
-
-		OSTimeDly(10000);
+		OSTimeDly(lu32CheckCyc_S*1000);//固定延时30秒钟一次检测。
 
 		
 	}

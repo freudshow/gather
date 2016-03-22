@@ -1238,7 +1238,6 @@ void  GPRS_Mana_Proc(void *pdata)
 	uint8 tmpmid = 0;
 	int ReStartCounter = 0;
 	GPRS_RUN_STA GprsRunSta;
-	sys_config_str sysConfig;
 	uint32 HeartFrmSndCycles = 0;
 	uint16 lu16HeartCycle = 0;  //心跳周期，单位分钟。
 	
@@ -1292,21 +1291,7 @@ void  GPRS_Mana_Proc(void *pdata)
 	  	while(1){
 			DlyGprsCheck(GPRS_CHECK_CYCLE);
 
-			get_sys_config(CONFIG_BEAT_CYCLE,&sysConfig);
-			err = AsciiDec((char*)sysConfig.f_config_value, &lu16HeartCycle);  //字符转换成数字。
-			if(err == NO_ERR){
-				if(lu16HeartCycle < 1)  //心跳周期范围1-10分钟，防止超限。
-					lu16HeartCycle = 1;
-				else if(lu16HeartCycle > 10)
-					lu16HeartCycle = 10;
-				else
-					lu16HeartCycle = lu16HeartCycle;
-
-
-			}
-			else{
-				lu16HeartCycle = 2;  //默认心跳周期2分钟。
-			}
+			lu16HeartCycle = g_sysConfigHex.heartBeatCycle;  //单位分钟。
 
 			HeartFrmSndCycles = (HeartFrmSndCycles + 1) % ((lu16HeartCycle*60) / GPRS_CHECK_CYCLE);
 			if(HeartFrmSndCycles  == 0){
