@@ -514,7 +514,10 @@ void read_sys_config(char *pErr)
 	char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
 	int	col_cnt = 3;
 
+	memset(sys_config_array, 0, SYS_CONFIG_COUNT*sizeof(sys_config_str));//清空原有配置
 	config_idx = 0;
+
+	//读取数据表内的配置
 	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
 	get_orderby_sql(col_buf, 1, 0, order_buf);
 	strcat(sql_buf, " ");
@@ -524,7 +527,7 @@ void read_sys_config(char *pErr)
 	free(order_buf);
 }
 
-int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
+static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 {
 	int i;
 	for (i=0; i<f_cnt; i++) {
@@ -547,13 +550,13 @@ int get_sys_config_cnt()
 uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig)
 {
 	if(NULL==pConfig || idx<0 || idx>=SYS_CONFIG_COUNT)
-		return ERR_FF;
+		return ERR_1;
 	
 	memcpy((uint8*)pConfig, (uint8*)&sys_config_array[idx], sizeof(sys_config_str));
 	return NO_ERR;
 }
 
-uint8 del_sysconf(char* pId, char* pErr)
+static uint8 del_sysconf(char* pId, char* pErr)
 {
 	int err=0;
 	char *sql_buf = malloc(LENGTH_SQLBUF);
@@ -589,6 +592,7 @@ uint8 empty_sysconf_list()
 		list_set_sysconf = list_set_sysconf->pNext;
 		free(tmp_info);
 	}
+	set_sysconf_idx = 0;
 	return NO_ERR;
 }
 
@@ -641,7 +645,12 @@ uint8 set_sysconf(char* pErr)
 		}
 		pTmp_conf = pTmp_conf->pNext;
 	}
-	return NO_ERR;
+	empty_sysconf_list();//清空设置列表
+
+	
+	//重新读取数据库里的信息
+	read_sys_config(pErr);
+	return (strlen(pErr) ? ERR_1 : NO_ERR );
 }
 
 
