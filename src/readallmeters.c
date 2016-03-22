@@ -40,7 +40,7 @@ static int CallBack_ReadAllMeters(pMeter_info pMeterInfo)
 	printf("MeterID = %d  .",pMeterInfo->f_device_id);
 	printf("MeterAddr = ");
 	for(i=0;i<7;i++)
-		printf("%x",pMeterInfo->f_meter_address[i]);
+		printf("%02x",pMeterInfo->f_meter_address[i]);
 	
 	printf("  MeterType = %x  .",pMeterInfo->f_meter_type);
 	printf("Protocol = %x  .",pMeterInfo->f_meter_proto_type);
@@ -147,22 +147,20 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 void ReadAllMeters(void)
 {
 	time_t timep;
-	struct tm nowTime;
+        struct tm nowTime;
 
-	time(&timep); 	
-	localtime_r(&timep, &gTimeNode); 
-	gTimeNode.tm_sec = 0;   //定时抄表节点，秒数固定写0.
-	memcpy((uint8 *)&nowTime,(uint8 *)&gTimeNode,sizeof(struct tm));
-	nowTime.tm_year +=	1900;
-	nowTime.tm_mon += 1;  //转换成当前年和月。
-	
-	printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday); 
-	printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec); 
-	
-	
-	retrieve_meter_info_list(CallBack_ReadAllMeters);  //遍历抄全表。
+        time(&timep);
+        localtime_r(&timep, &gTimeNode);
+        gTimeNode.tm_sec = 0;   //露篓脢卤鲁颅卤铆陆脷碌茫拢卢脙毛脢媒鹿脤露篓脨麓0.
+        memcpy((uint8 *)&nowTime,(uint8 *)&gTimeNode,sizeof(struct tm));
+        nowTime.tm_year +=      1900;
+        nowTime.tm_mon += 1;  //脳陋禄禄鲁脡碌卤脟掳脛锚潞脥脭脗隆拢
+
+        printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday);
+        printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
 
 
+        retrieve_meter_info_list(CallBack_ReadAllMeters);  //卤茅脌煤鲁颅脠芦卤铆隆拢
 }
 
 

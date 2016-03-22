@@ -47,7 +47,7 @@ static void empty_meter_info_list();
 
 //u8Meter_type和aItems_list的索引顺序不能搞乱, 须以enum meter_type_idx规定的顺序为准
 static uint8 u8Meter_type[] = {HEATMETER, WATERMETER, ELECTMETER, GASMETER};
-static request_data_list arrayRequest_list[MTYPE_CNT]={0};//仪表信息列表的数组, 私有变量
+static request_data_list arrayRequest_list[MTYPE_CNT]={NULL};//仪表信息列表的数组, 私有变量
 
 static int request_data_idx[MTYPE_CNT]={0};//配置数据项数量的索引, 私有变量
 static int each_request_data(void *type_idx, int f_cnt, char **f_value, char **f_name);
@@ -252,6 +252,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	
 	sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
 	printf("sql_buf: %s, sql_buf length: %d, pErr: %s\n", sql_buf, strlen(sql_buf), pErr);
+	free(tmp_data);
 	free(col_buf);
 	free(sql_buf);
 	
@@ -263,8 +264,11 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 void read_all_request_data(char	*pErr)
 {
 	int i;
-	for(i=0;i<MTYPE_CNT;i++)
+	for(i=0;i<MTYPE_CNT;i++){//读取t_request_data的所有数据, 如果当前t_request_data没有燃气表的信息, 
+								//那么也不会读取到arrayRequest_list中, 因为数据库在查询燃气表信息时, 不会返回结果, 
+								//也就把arrayRequest_list[燃气]的数据置之不理
 		read_request_data(pErr, i);
+	}
 }
 
 void read_request_data(char *pErr, enum meter_type_idx type_idx)
@@ -303,10 +307,11 @@ void read_request_data(char *pErr, enum meter_type_idx type_idx)
 	strcat(sql_buf, ";");
 
 	sqlite3_exec(g_pDB, sql_buf, each_request_data, (void*)(&type_idx), &pErr);
+	free(con_buf);
 	free(m_type);
 	free(order_buf);
-	free(sql_buf);
 	free(where_buf);
+	free(sql_buf);	
 }
 
 static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name)

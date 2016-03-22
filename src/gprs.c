@@ -805,7 +805,7 @@ uint8 ConnectConfirm(void)
 	}
 
 	printf("ConnectConfirm success.\n");
-	
+	free(pXml_info);
 	return TRUE;
 }
 
