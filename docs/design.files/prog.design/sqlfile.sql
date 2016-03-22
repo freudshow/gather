@@ -10,13 +10,13 @@ create table t_base_define
 	f_config_value	varchar(50)
 );
 
-insert into t_base_define(f_config_name, f_config_value)values('primary_server', '219.140.0.136');
-insert into t_base_define(f_config_name, f_config_value)values('primary_dns', '219.141.0.131');
-insert into t_base_define(f_config_name, f_config_value)values('primary_port', '4439');
-insert into t_base_define(f_config_name, f_config_value)values('second_server', '220.54.1.21');
-insert into t_base_define(f_config_name, f_config_value)values('second_dns', '213.5.1.2');
-insert into t_base_define(f_config_name, f_config_value)values('second_port', '9001');
-insert into t_base_define(f_config_name, f_config_value)values('gateway_id', '9403');
+insert into t_base_define(f_config_name, f_config_value)values('primary_server', '122.5.18.174');
+insert into t_base_define(f_config_name, f_config_value)values('primary_dns', '219.146.0.130');
+insert into t_base_define(f_config_name, f_config_value)values('primary_port', '9026');
+insert into t_base_define(f_config_name, f_config_value)values('second_server', '219.146.0.130');
+insert into t_base_define(f_config_name, f_config_value)values('second_dns', '219.146.0.130');
+insert into t_base_define(f_config_name, f_config_value)values('second_port', '9027');
+insert into t_base_define(f_config_name, f_config_value)values('gateway_id', '5001');
 insert into t_base_define(f_config_name, f_config_value)values('net_type', '0/1/2');
 insert into t_base_define(f_config_name, f_config_value)values('md5_key', '863CA654');
 insert into t_base_define(f_config_name, f_config_value)values('aes_key', 'd41d8cd98f00b204e9800998ecf8427e');
