@@ -267,6 +267,24 @@ int hisdata_idx_array[MTYPE_CNT];
 char his_sql_array[MTYPE_CNT][LENGTH_SQLBUF];
 int len_his_str = sizeof(struct his_data_str);
 
+uint8 data_item_idx;//data item's index
+int read_one_item_info(pRequest_data pReques, void* pHisData)
+{
+    pMeter_item pItem = (pMeter_item) pHisData;
+    pItem += data_item_idx*sizeof(struct meter_item);
+    strcpy(pItem->field_name, pReques->f_col_name);
+    pItem->item_index = pReques->f_item_index;
+    data_item_idx++;
+    return NO_ERR;
+}
+
+uint8 init_value_list(pMeter_item pHisData, int item_cnt, mtype_idx type_idx)
+{
+    data_item_idx = 0;//before read each data item, init index to 0
+    retrieve_request_data_list(read_one_item_info, type_idx, (void*)pHisData);
+    return NO_ERR;
+}
+
 int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name)
 {
     int i;
@@ -277,6 +295,8 @@ int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name
     tmp_his->value_cnt = get_request_data_cnt(idx);
     tmp_his->value_list = malloc(tmp_his->value_cnt*len_his_str);
     memset(tmp_his, 0, len_his_str);
+
+    init_value_list(tmp_his->value_list, tmp_his->value_cnt, *((mtype_idx*)meter_type_idx));
     
     for (i=0; i<f_cnt; i++) {
         if (0 == strcmp(f_name[i], FIELD_REQUEST_ID))//数据项ID
@@ -309,8 +329,8 @@ uint8 read_his_data(char* timenode, char* pErr)
      * 放在sql语句数组(his_sql_array[MTYPE_CNT])里.
      * 逐个执行his_sql_array里的sql语句, 
      * sqlite3_exec(g_pDB, his_sql_array[i], each_his_data, i, &pErr);
-     * 当执行到his_sql_array[i]语句时, callback()向链表his_data_list_array[i]插入数据.
-     *  当执行到callback函数时, 申请内存空间
+     * 当执行到his_sql_array[i]语句时, each_his_data()向链表his_data_list_array[i]插入数据.
+     *  当执行到each_his_data函数时, 申请内存空间
      *  pHis_tmp = malloc(sizeof(struct his_data_str));
      *  pHis_tmp->value_list = malloc(sizeof(struct meter_item));
      *  按照{"f_id", "f_meter_address", "f_meter_type", 
@@ -333,7 +353,7 @@ void read_all_request_data(char	*pErr)
 	}
 }
 
-void read_request_data(char *pErr, enum meter_type_idx type_idx)
+void read_request_data(char *pErr, mtype_idx type_idx)
 {
 	if(NULL == g_pDB) {
 		pErr = "database not open";
@@ -407,7 +427,7 @@ static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, ch
 }
 
 
-void retrieve_request_data_list(int (*read_one_item)(pRequest_data), enum meter_type_idx type_idx)
+void retrieve_request_data_list(int (*read_one_item)(pRequest_data, void *), mtype_idx type_idx, void *pVoid)
 {
 	if(!read_one_item)
 		return;
@@ -418,23 +438,19 @@ void retrieve_request_data_list(int (*read_one_item)(pRequest_data), enum meter_
 		memcpy(rt_request, tmp_request, sizeof(struct request_data_str));
 		rt_request->pPrev = NULL;
 		rt_request->pNext = NULL;
-		read_one_item(rt_request);
+		read_one_item(rt_request, pVoid);
 		tmp_request = tmp_request->pNext;
 	}
 	free(rt_request);
 }
 
-static void empty_request_data_list(enum meter_type_idx type_idx)
+static void empty_request_data_list(mtype_idx type_idx)
 {
-	pRequest_data tmp_request;
-	while(arrayRequest_list[type_idx]) {
-		tmp_request = arrayRequest_list[type_idx];
-		arrayRequest_list[type_idx] = arrayRequest_list[type_idx]->pNext;
-		free(tmp_request);
-	}
+    empty_list(pRequest_data, arrayRequest_list[type_idx])
+    request_data_idx[type_idx] = 0;
 }
 
-int  get_request_data_cnt(enum meter_type_idx idx)
+int  get_request_data_cnt(mtype_idx idx)
 {
 	return request_data_idx[idx];
 }
@@ -486,8 +502,6 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 			length = strlen(f_value[i]);
 			for (j=0; j<(length+1)/BYTE_BCD_CNT;j++) {
 				low_idx = length-BYTE_BCD_CNT*j-2;
-				/*tmp_info->f_meter_address[LENGTH_B_METER_ADDRESS-1-j] = \
-					(((low_idx < 0) ? 0: (f_value[i][low_idx]-ZERO_CHAR)) << LEN_HALF_BYTE | (f_value[i][low_idx+1]-ZERO_CHAR));*/
 				tmp_info->f_meter_address[j] = \
 					(((low_idx < 0) ? 0: Ascii2Hex(f_value[i][low_idx])) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][low_idx+1]));
 			}
@@ -526,12 +540,8 @@ int get_meter_info_cnt()
 //此函数运行的基础是, list必须先初始化为NULL
 static void empty_meter_info_list()
 {
-	pMeter_info tmp_info;
-	while(list_meter_info) {
-		tmp_info = list_meter_info;
-		list_meter_info = list_meter_info->pNext;
-		free(tmp_info);
-	}
+    empty_list(pMeter_info, list_meter_info)
+    meter_info_idx = 0;
 }
 
 //遍历仪表信息, 对每一个表进行read_one_meter操作
@@ -583,9 +593,7 @@ void read_sys_config(char *pErr)
 	sqlite3_exec(g_pDB, sql_buf, each_config, NULL, &pErr);
 	free(sql_buf);
 	free(order_buf);
-
 	sysConfig_Ascii2hex();
-	
 }
 
 static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
@@ -647,12 +655,7 @@ static uint8 del_sysconf(char* pId, char* pErr)
  */
 uint8 empty_sysconf_list()
 {
-	pSys_config tmp_info;
-	while(list_set_sysconf) {
-		tmp_info = list_set_sysconf;
-		list_set_sysconf = list_set_sysconf->pNext;
-		free(tmp_info);
-	}
+    empty_list(pSys_config, list_set_sysconf)
 	set_sysconf_idx = 0;
 	return NO_ERR;
 }
@@ -761,7 +764,6 @@ void get_update_sql(char *table_name, char **sets, int set_cnt, char **condition
 	char *where_buf;
 	
 	if(set_cnt <= 0) {
-		memset(sql, 0, sizeof(sql));
 		return;
 	}
 
@@ -800,7 +802,6 @@ void get_insert_sql(char *table_name, char **cols, int col_cnt, char **values,ch
 	int i;
 
 	if(col_cnt <= 0) {
-		memset(sql, 0, sizeof(sql));
 		return;
 	}
 	
@@ -872,7 +873,6 @@ void get_select_sql(char *table_name, char **cols, int con_cnt, char *sql)
 {
 	int i;
 	if(con_cnt <= 0) {
-		memset(sql, 0, sizeof(sql));
 		return;
 	}
 	
@@ -900,7 +900,6 @@ void get_orderby_sql(char **fields, int f_cnt, int asc, char *sql)
 {
 	int i;
 	if(f_cnt <= 0){
-		memset(sql, 0, sizeof(sql));
 		return;
 	}
 	strcpy(sql, SQL_ORDER);
@@ -923,7 +922,6 @@ void get_where_sql(char **condition, int con_cnt, char *sql)
 {
 	int i;
 	if(con_cnt <= 0) {
-		memset(sql, 0, sizeof(sql));
 		return;
 	}
 	

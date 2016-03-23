@@ -47,6 +47,13 @@
                             pNode->pPrev = pNode;\
                     }\
                     pListHead = pNode;
+
+#define empty_list(listType, list)   listType tmpNode;\
+                                    while(list) {\
+                                        tmpNode = list;\
+                                        list = list->pNext;\
+                                        free(tmpNode);\
+                                    }
 /********************************************************************************
  ** SQL动词
  ********************************************************************************/
@@ -136,6 +143,8 @@
  ** 仪表种类
  ********************************************************************************/
 #define MTYPE_CNT	4//挂载的仪表类型数量
+enum meter_type_idx;
+typedef enum meter_type_idx mtype_idx;
 enum meter_type_idx{
 	em_heat=0,//热表索引
 	em_water,//水表索引
@@ -232,6 +241,12 @@ struct meter_info_str{
 #define FIELD_REQUEST_COLNAME		"f_col_name"
 #define FIELD_REQUEST_COLTYPE		"f_col_type"
 
+typedef enum Type_His_Data{//历史数据的存储数据类型
+    STRING = 0,
+    INT,
+    FLOAT
+}EM_DType;
+
 struct request_data_str;
 typedef struct request_data_str* pRequest_data;
 typedef pRequest_data request_data_list;
@@ -256,20 +271,13 @@ struct request_data_str{
 #define FIELD_HIS_TSTAMP		"f_timestamp"
 #define FIELD_HIS_TNODE		"f_time"
 
-typedef enum Type_His_Data{//历史数据的存储数据类型
-	STRING = 0,
-	INT,
-	FLOAT
-}EM_DType;
-
 struct meter_item;
 typedef struct meter_item *pMeter_item;
 typedef pMeter_item meter_item_list;
 struct meter_item{
-    uint8 u8Item_index;//历史数据索引
-    uint8 field_value[LENGTH_F_VALUE];//历史数据
-    uint8 field_name[LENGTH_F_COL_NAME];//历史数据对应的列名
-    EM_DType    emData_type;
+    uint8 item_index;//数据项索引
+    char field_value[LENGTH_F_VALUE];//历史数据
+    char field_name[LENGTH_F_COL_NAME];//历史数据对应的列名
     pMeter_item pNext;
     pMeter_item pPrev;
 };
@@ -348,9 +356,9 @@ int  get_meter_info_cnt();//读取仪表地址信息的个数
  ** 读取数据项相关 **
  **********************/
 void read_all_request_data(char	*pErr);
-void read_request_data(char	*pErr, enum meter_type_idx type_idx);//按照仪表类型读取数据项
-void retrieve_request_data_list(int (*read_one_item)(pRequest_data), enum meter_type_idx type_idx);//顺序遍历数据项信息
-int  get_request_data_cnt(enum meter_type_idx);//读取仪表数据项的个数
+void read_request_data(char	*pErr, mtype_idx type_idx);//按照仪表类型读取数据项
+void retrieve_request_data_list(int (*read_one_item)(pRequest_data, void*), mtype_idx type_idx, void* pVar);//顺序遍历数据项信息
+int  get_request_data_cnt(mtype_idx);//读取仪表数据项的个数
 
 /**********************
  ** 仪表历史数据相关 **
