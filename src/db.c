@@ -23,14 +23,14 @@
 
 #include "db.h"
 
-sqlite3 *g_pDB = NULL;//数据库指针, 私有变量, 只允许通过本文件提供的函数操作, 不允许外部代码操作
+sqlite3 *g_pDB = NULL;//数据库指针, 私有变量
 
 /**********************
  ** 系统配置相关 **
  **********************/
 static sys_config_str sys_config_array[SYS_CONFIG_COUNT];//基本配置列表, 私有变量
-static sys_config_list list_set_sysconf = NULL;//上位机设置系统参数的列表
-static int set_sysconf_idx;//设置系统参数的索引号
+static sys_config_list list_set_sysconf = NULL;//上位机设置系统参数的列表, 私有变量
+static int set_sysconf_idx;//设置系统参数的索引号, 私有变量
 static int config_idx;//基本配置的个数索引, 私有变量
 static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 
@@ -55,7 +55,11 @@ static void empty_request_data_list(enum meter_type_idx type_idx);
 /**********************
  ** 仪表历史数据相关 **
  **********************/
-static char* tablename_array[] = {TABLE_HEAT, TABLE_WATER, TABLE_ELEC, TABLE_GAS};//索引顺序同u8Meter_type和arrayRequest_list
+ 
+//索引顺序同enum meter_type_idx
+static char* tablename_array[] = {TABLE_HEAT, TABLE_WATER, TABLE_ELEC, TABLE_GAS};
+
+
 
 
 /********************************************************************************
@@ -79,6 +83,7 @@ int close_db(void)
 /********************************************************************************
  ** 功能区域	: 仪表历史数据相关 
  ********************************************************************************/
+
 void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr)
 {
 	if(NULL == g_pDB) {
@@ -255,7 +260,64 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	free(tmp_data);
 	free(col_buf);
 	free(sql_buf);
-	
+}
+his_data_list his_data_list_array[MTYPE_CNT] = {NULL};
+int hisdata_idx_array[MTYPE_CNT];
+
+char his_sql_array[MTYPE_CNT][LENGTH_SQLBUF];
+int len_his_str = sizeof(struct his_data_str);
+
+int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name)
+{
+    int i;
+    int idx = *((int*)meter_type_idx);
+
+    pHis_data tmp_his = malloc(len_his_str);
+    memset(tmp_his->value_list, 0,sizeof(struct meter_item));
+    tmp_his->value_cnt = get_request_data_cnt(idx);
+    tmp_his->value_list = malloc(tmp_his->value_cnt*len_his_str);
+    memset(tmp_his, 0, len_his_str);
+    
+    for (i=0; i<f_cnt; i++) {
+        if (0 == strcmp(f_name[i], FIELD_REQUEST_ID))//数据项ID
+            strcpy(tmp_his->f_id, f_value[i]);
+        else if(0 == strcmp(f_name[i], FIELD_REQUEST_MTYPE)){//仪表类型(Hex String)
+            strcpy(tmp_his->f_meter_type, f_value[i]);
+        }
+        else if(0 == strcmp(f_name[i], FIELD_REQUEST_ITEMIDX)) {//仪表设备编号的索引号(Dec String)
+            strcpy(tmp_his->f_device_id, f_value[i]);
+        }
+        else {//异常情况
+
+        }
+    }
+    
+    add_node(his_data_list_array[idx], tmp_his)
+    hisdata_idx_array[idx]++;
+
+    return 0;
+}
+
+uint8 read_his_data(char* timenode, char* pErr)
+{
+    int err = NO_ERR;
+    
+    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
+     * 预设一个链表数组his_data_list his_data_list_array[MTYPE_CNT] = {NULL},
+     * 存储指向热水电气四表的历史数据链表的头指针.
+     * 根据时间点参数, 组织MTYPE_CNT(4)个sql语句, 
+     * 放在sql语句数组(his_sql_array[MTYPE_CNT])里.
+     * 逐个执行his_sql_array里的sql语句, 
+     * sqlite3_exec(g_pDB, his_sql_array[i], each_his_data, i, &pErr);
+     * 当执行到his_sql_array[i]语句时, callback()向链表his_data_list_array[i]插入数据.
+     *  当执行到callback函数时, 申请内存空间
+     *  pHis_tmp = malloc(sizeof(struct his_data_str));
+     *  pHis_tmp->value_list = malloc(sizeof(struct meter_item));
+     *  按照{"f_id", "f_meter_address", "f_meter_type", 
+     *  "f_device_id", "f_timestamp", "f_time"}+{datalist}的顺序将返回的数据
+     *  插入对应的结构体中.
+     */
+    return (uint8)err;
 }
 
 /********************************************************************************
@@ -325,7 +387,6 @@ static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, ch
 			tmp_request->f_id  = atoi(f_value[i]);
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_MTYPE)){//仪表类型(Hex String)
 			tmp_request->f_meter_type = (Ascii2Hex(f_value[i][0])<<LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
-			printf("meter type after convert: %02x\n", tmp_request->f_meter_type);
 		}
 		else if(0 == strcmp(f_name[i], FIELD_REQUEST_ITEMIDX)) {//仪表数据项的索引号(Dec String)
 			tmp_request->f_item_index = atoi(f_value[i]);
@@ -338,12 +399,8 @@ static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, ch
 			
 		}
 	}
-	tmp_request->pPrev = NULL;
-	tmp_request->pNext = arrayRequest_list[idx];
-	if (arrayRequest_list[idx]) {
-		arrayRequest_list[idx]->pPrev = tmp_request;
-	}
-	arrayRequest_list[idx] = tmp_request;
+
+	add_node(arrayRequest_list[idx], tmp_request)
 	request_data_idx[idx]++;
 
 	return 0;
@@ -454,12 +511,8 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 
 		}
 	}
-	tmp_info->pPrev = NULL;
-	tmp_info->pNext = list_meter_info;
-	if (list_meter_info) {
-		list_meter_info->pPrev = tmp_info;
-	}
-	list_meter_info = tmp_info;
+
+    add_node(list_meter_info, tmp_info)
 	meter_info_idx++;
 	return 0;
 }

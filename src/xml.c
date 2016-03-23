@@ -560,7 +560,6 @@ uint8 func_heart_beat(uint8 dev, uint8 xml_idx)
 		err = ERR_FF;
 	}
 	return err;
-	
 }
 
 //3．配置信息(sys_config)
@@ -591,12 +590,55 @@ uint8 func_minfo(uint8 dev, uint8 xml_idx)
 		
 		return retErr;
 }
-
+//抄表数据上传
 uint8 func_rptup(uint8 dev, uint8 xml_idx)
 {
-		uint8 retErr = NO_ERR;
+	uint8 err = NO_ERR;
+	FILE *fp;
+	xml_info_str l_xmlInfo;
+	
+	err = getXmlInfo(dev,&l_xmlInfo);
+	if(err != NO_ERR){
+		printf("getXmlInfo Error.\n");
+		return err;
+	}
+	printf("now in func_rptup().\n");
+	printf("l_xmlInfo.func_type: %u, l_xmlInfo.oper_type: %u\n", l_xmlInfo.func_type, l_xmlInfo.oper_type);
+	switch(l_xmlInfo.oper_type){
+	case em_OPER_RD:
+		printf("now make his data xml.\n");
+		//一次性读取所有满足条件的历史放到临时链表里
+		//	解析到时间点信息, 传入read_his_data()
+		//每次只遍历5个
+		//每遍历一行数据, 就形成一帧xml
+		//待5个全部组帧完毕, 或到达链表底层, 加上帧尾
+		//发送到上位机
+		//等待上位机返回成功应答, 否则一直发送本包, 重复5次(约定)
+		//进行下一包的组合
 		
-		return retErr;
+		//获取共有多少行数据
+		//按照每包插入的条数(预先约定), 拆分成多少包
+		while(1/*数据没有发送完成*/){
+			
+			err = makexml(&l_xmlInfo,xml_idx);
+			if(err == NO_ERR){
+				fp = fopen(gXML_File[xml_idx].pXMLFile,"r");
+				FileSend(dev, fp);
+				fclose(fp);
+			}
+		}
+			
+	case em_OPER_WR:
+		break;
+	case em_OPER_ASW:
+		printf("have read heart_beat answer from server.\n");//接收到应答, 本次心跳成功
+		//清空看门狗
+		UpdGprsRunSta_FeedSndDog();
+		break;
+	default:
+		err = ERR_FF;
+	}
+	return err;
 }
 
 

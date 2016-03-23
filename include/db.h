@@ -29,6 +29,24 @@
 #include "globaldefine.h"
 #include "readallmeters.h"
 #include "read_heatmeter.h"
+
+/*添加链表节点的通用模式, 前提是链表结构体内的元素指针必须命名为pNext和pPrev
+ *首先, 被添加节点的后继指针肯定要指向当前的链表头.
+ *如果当前的链表头为空, 那么被添加的节点的前序指针就指向自己, 即自己就是表尾.
+ *如果当前的链表头不空, 那么当前链表的前序指针必指向表尾, 就把这个表尾的地址
+ *赋给被添加节点的前序指针, 然后再把被添加节点的地址赋给当前链表头结点的前序指针.
+ *最后, 把当前链表头指向被添加节点的地址.
+ *这样操作下来, 链表的头和尾可以很方便的找到
+ */
+#define add_node(pListHead, pNode)  pNode->pNext = pListHead;\
+                    if (pListHead) {\
+                        pNode->pPrev = pListHead->pPrev;/*链表尾部*/\
+                        pListHead->pPrev = pNode;\
+                    }\
+                    else {\
+                            pNode->pPrev = pNode;\
+                    }\
+                    pListHead = pNode;
 /********************************************************************************
  ** SQL动词
  ********************************************************************************/
@@ -95,6 +113,9 @@
 #define LENGTH_F_METER_ADDRESS	14//在数据表中存储的仪表地址长度, 最大14个字符
 #define LENGTH_F_METER_TYPE		2//在数据表中存储的仪表类型长度, 最大2个字符
 
+#define LENGTH_F_ID                 6//行索引号的最大长度
+#define LENGTH_F_MTYPE              2//仪表类型编号的长度
+#define LENGTH_F_DEVID              3//设备编号的最大长度
 #define LENGTH_F_TIMESTAMP			50//时间戳长度
 #define LENGTH_F_TIME				50//抄表时间点长度
 #define LENGTH_F_COL_NAME			20//抄表项列名长度
@@ -111,6 +132,16 @@
 #define LENGTH_SQLSET		200//一条set从句的最大长度
 #define LENGTH_SQLORDER		200//一条order by从句的最大长度
 
+/********************************************************************************
+ ** 仪表种类
+ ********************************************************************************/
+#define MTYPE_CNT	4//挂载的仪表类型数量
+enum meter_type_idx{
+	em_heat=0,//热表索引
+	em_water,//水表索引
+	em_elect,//电表索引
+	em_gas//燃气表索引
+};
 
 /********************************************************************************
  ** t_base_define
@@ -167,6 +198,10 @@ struct sys_config_structure{
 #define FIELD_MINFO_DEVICE_ID		"f_device_id"
 #define FIELD_MINFO_PROTO_TYPE	"f_meter_proto_type"
 
+struct meter_info_str;
+typedef struct meter_info_str *pMeter_info;
+typedef pMeter_info meter_info_List;
+
 struct meter_info_str{
 	uint32 f_id;//行索引, 声明放到前面, 以免值被uint8[]类型的溢出改写HEX
 	uint8 f_meter_address[LENGTH_B_METER_ADDRESS];//表地址7字节BCD
@@ -182,11 +217,10 @@ struct meter_info_str{
 	//所以"安装位置"溢出后一般不会引起指针类型成员的值变化
 	char f_install_pos[LENGTH_F_INSTALL_POS];
 	
-	struct meter_info_str* pNext;//下个元素
-	struct meter_info_str* pPrev;//上个元素
+	pMeter_info pNext;//下个元素
+	pMeter_info pPrev;//上个元素
 };
-typedef struct meter_info_str *pMeter_info;
-typedef pMeter_info meter_info_List;
+
 
 /********************************************************************************
  **	 t_request_data
@@ -197,85 +231,84 @@ typedef pMeter_info meter_info_List;
 #define FIELD_REQUEST_ITEMIDX		"f_item_index"
 #define FIELD_REQUEST_COLNAME		"f_col_name"
 #define FIELD_REQUEST_COLTYPE		"f_col_type"
-///////////////////////////////////////////
-#define MTYPE_CNT	4//挂载的仪表类型数量
-enum meter_type_idx{
-	em_heat=0,//热表索引
-	em_water,//水表索引
-	em_elect,//电表索引
-	em_gas//燃气表索引
-};
 
-struct meter_type{//仪表类型数据结构
-	uint8 u8type;//仪表类型编码, 如0x40, 0x10等
-	struct meter_type* pNext;
-	struct meter_type* pPrev;
-};
-typedef struct meter_type* pMeter_type;
-typedef pMeter_type meter_type_list;
-///////////////////////////////////////////
+struct request_data_str;
+typedef struct request_data_str* pRequest_data;
+typedef pRequest_data request_data_list;
+
 struct request_data_str{
 	int32 f_id;
 	uint8 f_meter_type;
 	uint8 f_item_index;
 	char f_col_name[LENGTH_F_COL_NAME];
 	char f_col_type[LENGTH_F_COL_TYPE];
-	struct request_data_str *pNext;
-	struct request_data_str *pPrev;
+	pRequest_data pNext;
+	pRequest_data pPrev;
 };
-typedef struct request_data_str* pRequest_data;
-typedef pRequest_data request_data_list;
 
-/********************************************************************************
- **	 t_time_node
- ** 时间点配置表
- ********************************************************************************/
- typedef struct {
-	char f_time_name[LENGTH_F_TIME_NAME];
-	char f_time_node[LENGTH_F_TIME_NODE];
-	int f_id;
-}time_node_str;
-typedef time_node_str *pTime_node;
 /********************************************************************************
  ** 仪表历史数据项
  ********************************************************************************/
 #define FIELD_HIS_ID			"f_id"
 #define FIELD_HIS_ADDRESS		"f_meter_address"
 #define FIELD_HIS_TYPE			"f_meter_type"
-#define FIELD_HIS_DEVID			"f_device_id"
+#define FIELD_HIS_DEVID		"f_device_id"
 #define FIELD_HIS_TSTAMP		"f_timestamp"
-#define FIELD_HIS_TNODE			"f_time"
+#define FIELD_HIS_TNODE		"f_time"
 
-enum T_His_Field{
+typedef enum Type_His_Data{//历史数据的存储数据类型
 	STRING = 0,
 	INT,
 	FLOAT
-};
+}EM_DType;
 
-struct meter_item{
-	char *pData;
-	char field_name[LENGTH_F_COL_NAME];
-	enum T_His_Field eData_type;
-	struct his_field_data *pNext;
-	struct his_field_data *pPrev;
-};
+struct meter_item;
 typedef struct meter_item *pMeter_item;
 typedef pMeter_item meter_item_list;
-
-struct his_data_str{
-	char f_timestamp[LENGTH_F_TIMESTAMP];//时间戳
-	char f_time[LENGTH_F_TIME];//抄表时间点
-	char f_meter_address[LENGTH_F_METER_ADDRESS];//仪表地址
-	int  f_device_id;//仪表的设备编号
-	int  f_id;//索引值
-	uint8  f_meter_type;//仪表类型
-	meter_item_list value_list;//数据项链表
-	int value_cnt;//数据项的数量
-	struct his_data_str* pNext;//下个元素
-	struct his_data_str* pPrev;//上个元素
+struct meter_item{
+    uint8 u8Item_index;//历史数据索引
+    uint8 field_value[LENGTH_F_VALUE];//历史数据
+    uint8 field_name[LENGTH_F_COL_NAME];//历史数据对应的列名
+    EM_DType    emData_type;
+    pMeter_item pNext;
+    pMeter_item pPrev;
 };
+
+struct his_data_str;
 typedef struct his_data_str *pHis_data;
-typedef pHis_data his_data_List;
+typedef pHis_data his_data_list;
+struct his_data_str{//历史数据一行数据的格式
+    char   f_timestamp[LENGTH_F_TIMESTAMP];//时间戳
+    char   f_time[LENGTH_F_TIME];//抄表时间点
+    char   f_meter_address[LENGTH_F_METER_ADDRESS];//仪表地址
+    char   f_device_id[LENGTH_F_DEVID];//仪表的设备编号
+    char   f_id[LENGTH_F_ID];//索引值
+    char   f_meter_type[LENGTH_F_MTYPE];//仪表类型
+    int  value_cnt;//数据项的数量
+    
+    
+    //使用数组, 每次开辟固定大小(value_cnt, 可以从get_request_data_cnt()获取)的空间
+    //避免了每次操作一行数据, 就重新生成一个链表, 比较费时
+    pMeter_item value_list;//数据项数组, 需要动态开辟, 
+    pHis_data   pNext;//下个元素
+    pHis_data   pPrev;//上个元素
+};
+
+/********************************************************************************
+ **	 t_time_node
+ ** 时间点配置表
+ ********************************************************************************/
+ struct time_node_str;
+ typedef struct time_node_str *pTime_node;
+ typedef pTime_node time_node_list;
+ struct time_node_str{
+	char f_time_name[LENGTH_F_TIME_NAME];
+	char f_time_node[LENGTH_F_TIME_NODE];
+	int f_id;
+    pTime_node pNext;
+    pTime_node pPrev;
+};
+
 
 
 /********************************************************************************
