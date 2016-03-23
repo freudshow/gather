@@ -426,7 +426,6 @@ static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, ch
 	return 0;
 }
 
-
 void retrieve_request_data_list(int (*read_one_item)(pRequest_data, void *), mtype_idx type_idx, void *pVoid)
 {
 	if(!read_one_item)
