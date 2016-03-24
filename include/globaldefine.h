@@ -45,7 +45,7 @@ typedef unsigned int uint32;
 #define	HITEM_ACCUM_FLOW			0x05//累积流量
 #define	HITEM_IN_TEMP				0x06//供水温度
 #define	HITEM_OUT_TEMP			0x07//回水温度
-#define	HITEM_ACCUM_WORK_TIME	0x08//累计工作时间
+#define	HITEM_ACCUM_WORK_TIME	    0x08//累计工作时间
 #define	HITEM_REAL_TIME			0x09//实时时间
 #define	HITEM_STATE				0x0a//状态ST
 //水表需要的数据项索引
@@ -61,17 +61,11 @@ typedef unsigned int uint32;
 #define	EITEM_CUR_ACTIVE_POWER				0x04//当前有功功率值
 #define	EITEM_CUR_FREQ						0x05//当前频率值
 #define	EITEM_CUR_REACTIVE_POWER			0x06//当前无功功率值
-#define	EITEM_CUR_ APPARENT_POWER			0x07//当前视在功率值
+#define	EITEM_CUR_APPARENT_POWER			0x07//当前视在功率值
 #define	EITEM_CUR_POWER_FACTOR				0x08//当前功率因数值
 
 #define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
 #define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
-
-
-
-#define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
-#define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
-
 
 
 //定义设备文件名称

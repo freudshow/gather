@@ -117,7 +117,7 @@
  ********************************************************************************/
 #define LENGTH_F_CONFIG_NAME		16//配置名长度
 #define LENGTH_F_CONFIG_VALUE		50//配置值长度
-#define LENGTH_F_METER_ADDRESS	14//在数据表中存储的仪表地址长度, 最大14个字符
+#define LENGTH_F_METER_ADDRESS	    15//在数据表中存储的仪表地址长度, 最大14个字符, 加上结束符'\0', 就是15个字符
 #define LENGTH_F_METER_TYPE		2//在数据表中存储的仪表类型长度, 最大2个字符
 
 #define LENGTH_F_ID                 6//行索引号的最大长度
@@ -264,12 +264,12 @@ struct request_data_str{
 /********************************************************************************
  ** 仪表历史数据项
  ********************************************************************************/
-#define FIELD_HIS_ID			"f_id"
-#define FIELD_HIS_ADDRESS		"f_meter_address"
-#define FIELD_HIS_TYPE			"f_meter_type"
-#define FIELD_HIS_DEVID		"f_device_id"
-#define FIELD_HIS_TSTAMP		"f_timestamp"
-#define FIELD_HIS_TNODE		"f_time"
+#define FIELD_HIS_ID			"f_id"//行索引号
+#define FIELD_HIS_ADDRESS		"f_meter_address"//表地址
+#define FIELD_HIS_MTYPE		"f_meter_type"//表类型
+#define FIELD_HIS_DEVID		"f_device_id"//设备编号
+#define FIELD_HIS_TSTAMP		"f_timestamp"//时间戳
+#define FIELD_HIS_TNODE		"f_time"//抄表时间点
 
 struct meter_item;
 typedef struct meter_item *pMeter_item;

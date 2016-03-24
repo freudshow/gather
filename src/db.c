@@ -55,7 +55,12 @@ static void empty_request_data_list(enum meter_type_idx type_idx);
 /**********************
  ** 仪表历史数据相关 **
  **********************/
- 
+his_data_list his_data_list_array[MTYPE_CNT] = {NULL};
+int hisdata_idx_array[MTYPE_CNT];
+
+char his_sql_array[MTYPE_CNT][LENGTH_SQLBUF];
+int len_his_str = sizeof(struct his_data_str);
+
 //索引顺序同enum meter_type_idx
 static char* tablename_array[] = {TABLE_HEAT, TABLE_WATER, TABLE_ELEC, TABLE_GAS};
 
@@ -106,7 +111,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 			type_idx = em_gas;
 			break;
 		default:
-			pErr = "meter type error";
+			strcpy(pErr, "meter type error");//不能直接赋值, 否则函数运行结束后, 常量字符串的空间就被销毁
 			return;
 	}
 	
@@ -137,7 +142,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	//固定项
 	strcat(sql_buf, FIELD_HIS_ADDRESS);//表地址
 	strcat(sql_buf, ",");
-	strcat(sql_buf, FIELD_HIS_TYPE);//表类型
+	strcat(sql_buf, FIELD_HIS_MTYPE);//表类型
 	strcat(sql_buf, ",");
 	strcat(sql_buf, FIELD_HIS_DEVID);//设备编号
 	strcat(sql_buf, ",");
@@ -146,11 +151,11 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	strcat(sql_buf, FIELD_HIS_TNODE);//抄表时间点
 	strcat(sql_buf, ",");
 	for(i=0;i<item_cnt-1;i++, tmp_col_buf += LENGTH_F_COL_NAME) {
-		printf("tmp_col_buf: %s\n", tmp_col_buf);
+		//printf("tmp_col_buf: %s\n", tmp_col_buf);
 		strcat(sql_buf, tmp_col_buf);
 		strcat(sql_buf, ",");
 	}
-	printf("tmp_col_buf: %s\n", tmp_col_buf);
+	//printf("tmp_col_buf: %s\n", tmp_col_buf);
 	strcat(sql_buf, tmp_col_buf);
 	strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
 	tmp_col_buf = col_buf;//指向第一个元素
@@ -167,17 +172,24 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	sprintf(tmp_data, "%02x",type_idx);
 	strcat(sql_buf, tmp_data);//表类型
 	strcat(sql_buf, ",");
-	sprintf(tmp_data, "%s", "NULL");
+	sprintf(tmp_data, "%s", "NULL");//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!暂时为NULL, 后期完善!!!!!!!!!!!!!!!!!!!!!
 	strcat(sql_buf, tmp_data);//设备编号
 	strcat(sql_buf, ",");
-	sprintf(tmp_data, "%s", asctime(pNowTime));
+
+    //asctime_r与asctime返回固定格式'DDD MMM dd hh:mm:ss YYYY',星期 月份 日期 时间 年
+	asctime_r(pNowTime, tmp_data);//与sqlite3的时间戳格式不兼容,需转换为'YYYY-MM-DD hh:mm:ss'
+    char dest[25]={0};
+    asc_to_datestr(tmp_data, dest);
 	strcat(sql_buf, SQL_SINGLE_QUOTES);
-	strcat(sql_buf, tmp_data);//时间戳
+	strcat(sql_buf, dest);//时间戳
 	strcat(sql_buf, SQL_SINGLE_QUOTES);
 	strcat(sql_buf, ",");
-	sprintf(tmp_data, "%s", asctime(pTimeNode));
+    
+    asctime_r(pTimeNode, tmp_data);
+    memset(dest, 0, 25);
+    asc_to_datestr(tmp_data, dest);
 	strcat(sql_buf, SQL_SINGLE_QUOTES);
-	strcat(sql_buf, tmp_data);//抄表时间点
+	strcat(sql_buf, dest);//抄表时间点
 	strcat(sql_buf, SQL_SINGLE_QUOTES);
 	strcat(sql_buf, ",");
 	item_list = arrayRequest_list[type_idx];
@@ -261,19 +273,15 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	free(col_buf);
 	free(sql_buf);
 }
-his_data_list his_data_list_array[MTYPE_CNT] = {NULL};
-int hisdata_idx_array[MTYPE_CNT];
 
-char his_sql_array[MTYPE_CNT][LENGTH_SQLBUF];
-int len_his_str = sizeof(struct his_data_str);
 
-uint8 data_item_idx;//data item's index
+uint8 data_item_idx;//数据项的下标号, 用于指针移位, 不是线程安全的
 int read_one_item_info(pRequest_data pReques, void* pHisData)
 {
     pMeter_item pItem = (pMeter_item) pHisData;
-    pItem += data_item_idx*sizeof(struct meter_item);
-    strcpy(pItem->field_name, pReques->f_col_name);
-    pItem->item_index = pReques->f_item_index;
+    pItem += data_item_idx*sizeof(struct meter_item);//移步
+    strcpy(pItem->field_name, pReques->f_col_name);//列名
+    pItem->item_index = pReques->f_item_index;//数据项索引
     data_item_idx++;
     return NO_ERR;
 }
@@ -299,16 +307,26 @@ int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name
     init_value_list(tmp_his->value_list, tmp_his->value_cnt, *((mtype_idx*)meter_type_idx));
     
     for (i=0; i<f_cnt; i++) {
-        if (0 == strcmp(f_name[i], FIELD_REQUEST_ID))//数据项ID
+        if (0 == strcmp(f_name[i], FIELD_HIS_ID))//数据项ID
             strcpy(tmp_his->f_id, f_value[i]);
-        else if(0 == strcmp(f_name[i], FIELD_REQUEST_MTYPE)){//仪表类型(Hex String)
+        else if(0 == strcmp(f_name[i], FIELD_HIS_MTYPE)){//仪表类型(Hex String)
             strcpy(tmp_his->f_meter_type, f_value[i]);
         }
-        else if(0 == strcmp(f_name[i], FIELD_REQUEST_ITEMIDX)) {//仪表设备编号的索引号(Dec String)
+        else if(0 == strcmp(f_name[i], FIELD_HIS_DEVID)) {//仪表设备编号的索引号(Dec String)
             strcpy(tmp_his->f_device_id, f_value[i]);
         }
-        else {//异常情况
-
+        else if(0 == strcmp(f_name[i], FIELD_HIS_ADDRESS)){//表地址(BCD String)
+            strcpy(tmp_his->f_meter_address, f_value[i]);
+        }
+        else if(0 == strcmp(f_name[i], FIELD_HIS_TNODE)){//抄表时间点(String)
+            strcpy(tmp_his->f_time, f_value[i]);
+        }
+        else if(0 == strcmp(f_name[i], FIELD_HIS_TSTAMP)){//时间戳(String)
+            strcpy(tmp_his->f_meter_address, f_value[i]);
+        }
+        else {//数据项
+            //tmp_his->value_cnt
+            //tmp_his->value_list
         }
     }
     
@@ -367,7 +385,7 @@ void read_request_data(char *pErr, mtype_idx type_idx)
 	//char *con_buf[LENGTH_SQLCONS] = {FIELD_REQUEST_MTYPE};//这样初始化后, con_buf[0]指向const char*, 不能再进行连接, copy等操作
 	char *con_buf = malloc(LENGTH_SQLCONS);
 	char *table_name = TABLE_REQUEST_DATA;
-	char *col_buf[LENGTH_F_COL_NAME] =  {FIELD_REQUEST_ID, \
+	char *col_buf[5] =  {FIELD_REQUEST_ID, \
 				FIELD_REQUEST_MTYPE, FIELD_REQUEST_ITEMIDX, FIELD_REQUEST_COLNAME,\
 				FIELD_REQUEST_COLTYPE};
 	int  col_cnt = 5;
@@ -470,9 +488,9 @@ void read_meter_info(char	*pErr)
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	char *order_buf = malloc(LENGTH_SQLORDER);
 	char *table_name = TABLE_METER_INFO;
-	char *col_buf[LENGTH_F_COL_NAME] =  {FIELD_MINFO_ID, \
+	char *col_buf[7] =  {FIELD_MINFO_ID, \
 				FIELD_MINFO_ADDRESS, FIELD_MINFO_TYPE, FIELD_MINFO_CHANNEL,\
-				FIELD_MINFO_POS, FIELD_MINFO_DEVICE_ID, FIELD_MINFO_PROTO_TYPE};
+				FIELD_MINFO_POS, FIELD_MINFO_DEVICE_ID, FIELD_MINFO_PROTO_TYPE};//指针数组
 	int  col_cnt = 7;
 	
 	meter_info_idx = 0;
@@ -578,7 +596,7 @@ void read_sys_config(char *pErr)
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	char *order_buf = malloc(LENGTH_SQLORDER);
 	char *table_name = TABLE_BASE_DEF;
-	char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
+	char *col_buf[3] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
 	int	col_cnt = 3;
 
 	memset(sys_config_array, 0, SYS_CONFIG_COUNT*sizeof(sys_config_str));//清空原有配置

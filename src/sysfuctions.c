@@ -254,3 +254,33 @@ void FileSend(uint8 Dev, FILE *fp)
 }
 
 
+uint8 asc_to_datestr(char* src, char* dest)
+{
+    int i=0;
+    char *pTimeStr[6]={NULL};  
+    char *buf=src;  
+    char *saveptr=NULL;
+    char *monEng[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+    char *monDec[12]={"01","02","03","04","05","06","07","08","09","10","11","12"};
+
+    printf("src: %s\n", src);
+    i=0;
+    while((pTimeStr[i] = strtok_r(buf, " ", &saveptr)))
+    {   
+        i++;
+        buf=NULL;
+    }
+
+    strncpy(dest, pTimeStr[4], 4);//year
+    strcat(dest, "-");
+    for(i=0;i<12;i++)
+        if(strcmp(pTimeStr[1], monEng[i])==0)
+            strcat(dest, monDec[i]);//mon
+    
+    strcat(dest, "-");
+    strcat(dest, pTimeStr[2]);//day
+    strcat(dest, " ");
+    strcat(dest, pTimeStr[3]);//time
+    //printf("dest: %s\n", dest);
+    return NO_ERR;
+}
