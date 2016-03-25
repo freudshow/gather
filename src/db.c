@@ -59,7 +59,7 @@ his_data_list his_data_list_array[MTYPE_CNT] = {NULL};
 int hisdata_idx_array[MTYPE_CNT];
 
 char his_sql_array[MTYPE_CNT][LENGTH_SQLBUF];
-int len_his_str = sizeof(struct his_data_str);
+static uint8 data_item_idx;//数据项的下标号, 用于指针移位, 不是线程安全的
 
 //索引顺序同enum meter_type_idx
 static char* tablename_array[] = {TABLE_HEAT, TABLE_WATER, TABLE_ELEC, TABLE_GAS};
@@ -169,7 +169,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	pmf->u8MeterAddr[2], pmf->u8MeterAddr[1], pmf->u8MeterAddr[0]);
 	strcat(sql_buf, tmp_data);//表地址
 	strcat(sql_buf, ",");
-	sprintf(tmp_data, "%02x",type_idx);
+	sprintf(tmp_data, "%d",pmf->u8MeterType);
 	strcat(sql_buf, tmp_data);//表类型
 	strcat(sql_buf, ",");
 	sprintf(tmp_data, "%s", "NULL");//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!暂时为NULL, 后期完善!!!!!!!!!!!!!!!!!!!!!
@@ -274,14 +274,11 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	free(sql_buf);
 }
 
-
-uint8 data_item_idx;//数据项的下标号, 用于指针移位, 不是线程安全的
 int read_one_item_info(pRequest_data pReques, void* pHisData)
 {
     pMeter_item pItem = (pMeter_item) pHisData;
-    pItem += data_item_idx*sizeof(struct meter_item);//移步
-    strcpy(pItem->field_name, pReques->f_col_name);//列名
-    pItem->item_index = pReques->f_item_index;//数据项索引
+    strcpy(pItem[data_item_idx].field_name, pReques->f_col_name);//列名
+    pItem[data_item_idx].item_index = pReques->f_item_index;//数据项索引
     data_item_idx++;
     return NO_ERR;
 }
@@ -295,71 +292,126 @@ uint8 init_value_list(pMeter_item pHisData, int item_cnt, mtype_idx type_idx)
 
 int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name)
 {
-    int i;
+    
+    int i, j;
     int idx = *((int*)meter_type_idx);
 
-    pHis_data tmp_his = malloc(len_his_str);
-    memset(tmp_his->value_list, 0,sizeof(struct meter_item));
+    pHis_data tmp_his = malloc(sizeof(struct his_data_str));
+    memset(tmp_his, 0, sizeof(struct his_data_str));
     tmp_his->value_cnt = get_request_data_cnt(idx);
-    tmp_his->value_list = malloc(tmp_his->value_cnt*len_his_str);
-    memset(tmp_his, 0, len_his_str);
-
+    tmp_his->value_list = malloc(tmp_his->value_cnt*sizeof(struct meter_item));
+    memset(tmp_his->value_list, 0, tmp_his->value_cnt*sizeof(struct meter_item));
     init_value_list(tmp_his->value_list, tmp_his->value_cnt, *((mtype_idx*)meter_type_idx));
-    
     for (i=0; i<f_cnt; i++) {
-        if (0 == strcmp(f_name[i], FIELD_HIS_ID))//数据项ID
-            strcpy(tmp_his->f_id, f_value[i]);
+        if (0 == strcmp(f_name[i], FIELD_HIS_ID)){//数据项ID
+            strcpy(tmp_his->f_id, f_value[i]==NULL?"NULL":f_value[i]);
+        }
         else if(0 == strcmp(f_name[i], FIELD_HIS_MTYPE)){//仪表类型(Hex String)
-            strcpy(tmp_his->f_meter_type, f_value[i]);
+            strcpy(tmp_his->f_meter_type, f_value[i]==NULL?"NULL":f_value[i]);
         }
         else if(0 == strcmp(f_name[i], FIELD_HIS_DEVID)) {//仪表设备编号的索引号(Dec String)
-            strcpy(tmp_his->f_device_id, f_value[i]);
+            strcpy(tmp_his->f_device_id, f_value[i]==NULL?"NULL":f_value[i]);
         }
         else if(0 == strcmp(f_name[i], FIELD_HIS_ADDRESS)){//表地址(BCD String)
-            strcpy(tmp_his->f_meter_address, f_value[i]);
+            strcpy(tmp_his->f_meter_address, f_value[i]==NULL?"NULL":f_value[i]);
         }
         else if(0 == strcmp(f_name[i], FIELD_HIS_TNODE)){//抄表时间点(String)
-            strcpy(tmp_his->f_time, f_value[i]);
+            strcpy(tmp_his->f_time, f_value[i]==NULL?"NULL":f_value[i]);
         }
         else if(0 == strcmp(f_name[i], FIELD_HIS_TSTAMP)){//时间戳(String)
-            strcpy(tmp_his->f_meter_address, f_value[i]);
+            strcpy(tmp_his->f_timestamp, f_value[i]==NULL?"NULL":f_value[i]);
         }
         else {//数据项
-            //tmp_his->value_cnt
-            //tmp_his->value_list
+            for(j=0;j<tmp_his->value_cnt;j++)
+                if(0 == strcmp(tmp_his->value_list[j].field_name, f_name[i]))
+                    strcpy(tmp_his->value_list[j].field_value, f_value[i]==NULL?"NULL":f_value[i]);
         }
     }
-    
     add_node(his_data_list_array[idx], tmp_his)
     hisdata_idx_array[idx]++;
 
     return 0;
 }
 
-uint8 read_his_data(char* timenode, char* pErr)
+uint8 empty_hist_data(mtype_idx idx)
 {
-    int err = NO_ERR;
+    pHis_data tmpNode;
+    while(his_data_list_array[idx]) {
+        tmpNode = his_data_list_array[idx];
+        his_data_list_array[idx] = his_data_list_array[idx]->pNext;
+        if(tmpNode->value_list)
+            free(tmpNode->value_list);
+        free(tmpNode);
+    }
+    hisdata_idx_array[idx] = 0;
+    return NO_ERR;
+}
+
+uint8 get_his_sql(char* timenode, mtype_idx type_idx)
+{
+    strcpy(his_sql_array[type_idx], "select * from ");
+    strcat(his_sql_array[type_idx], " ");
+    strcat(his_sql_array[type_idx], tablename_array[type_idx]);
+    strcat(his_sql_array[type_idx], " ");    
+    strcat(his_sql_array[type_idx], SQL_WHERE);
+    strcat(his_sql_array[type_idx], " ");
+    strcat(his_sql_array[type_idx], FIELD_HIS_TNODE);
+    strcat(his_sql_array[type_idx], SQL_EQUAL);
+    strcat(his_sql_array[type_idx], SQL_SINGLE_QUOTES);
+    strcat(his_sql_array[type_idx], timenode);
+    strcat(his_sql_array[type_idx], SQL_SINGLE_QUOTES);
+    //printf("his_sql_array[%d]: %s\n", type_idx, his_sql_array[type_idx]);
+    return NO_ERR;
+}
+
+uint8 read_his_data(char* timenode, mtype_idx idx, char* pErr)
+{
+    uint8 err = NO_ERR;
+    empty_hist_data(idx);
+    get_his_sql(timenode, idx);
+    err = sqlite3_exec(g_pDB, his_sql_array[idx], each_his_data, &idx, &pErr);
+    return (err==SQLITE_OK?NO_ERR:ERR_1);
+}
+
+uint8 read_all_his_data(char* timenode, char* pErr)
+{
+    int i;
+    for(i=0;i<MTYPE_CNT;i++) {
+        if(read_his_data(timenode, i, pErr))
+            return ERR_1;
+    }
+    return NO_ERR;
+}
+
+int get_his_cnt(mtype_idx idx)
+{
+    return hisdata_idx_array[idx];
+}
+
+uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data))
+{
+    int i=0;
+    pHis_data pTmp_his = his_data_list_array[idx];
+    pHis_data pRtn_his = malloc(sizeof(struct his_data_str));
+    memset(pRtn_his, 0, sizeof(struct his_data_str));
     
-    /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * 
-     * 预设一个链表数组his_data_list his_data_list_array[MTYPE_CNT] = {NULL},
-     * 存储指向热水电气四表的历史数据链表的头指针.
-     * 根据时间点参数, 组织MTYPE_CNT(4)个sql语句, 
-     * 放在sql语句数组(his_sql_array[MTYPE_CNT])里.
-     * 逐个执行his_sql_array里的sql语句, 
-     * sqlite3_exec(g_pDB, his_sql_array[i], each_his_data, i, &pErr);
-     * 当执行到his_sql_array[i]语句时, each_his_data()向链表his_data_list_array[i]插入数据.
-     *  当执行到each_his_data函数时, 申请内存空间
-     *  pHis_tmp = malloc(sizeof(struct his_data_str));
-     *  pHis_tmp->value_list = malloc(sizeof(struct meter_item));
-     *  按照{"f_id", "f_meter_address", "f_meter_type", 
-     *  "f_device_id", "f_timestamp", "f_time"}+{datalist}的顺序将返回的数据
-     *  插入对应的结构体中.
-     */
-    return (uint8)err;
+    while(pTmp_his && (i<cnt)) {
+        memcpy(pRtn_his, pTmp_his, sizeof(struct his_data_str));
+        pRtn_his->pNext = NULL;
+        pRtn_his->pPrev= NULL;
+        pRtn_his->value_list = malloc(pTmp_his->value_cnt*sizeof(struct meter_item));    
+        memcpy(pRtn_his->value_list, pTmp_his->value_list, pTmp_his->value_cnt*sizeof(struct meter_item));
+        read_one_his(pRtn_his);
+        free(pRtn_his->value_list);
+        pTmp_his = pTmp_his->pNext;
+        i++;
+    }
+    free(pRtn_his);
+    return NO_ERR;
 }
 
 /********************************************************************************
- ** 功能区域	: 读取数据项
+ ** 功能区域	: 读取数据项配置
  ********************************************************************************/
 void read_all_request_data(char	*pErr)
 {

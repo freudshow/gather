@@ -288,8 +288,8 @@ typedef pHis_data his_data_list;
 
 struct his_data_str{//历史数据一行数据的格式, 每个数据域的长度都要比约定长度至少大1, 用于存储strcpy添加的'\0'
     char   f_id[LENGTH_F_ID];//索引值
-    char   f_device_id[5];//仪表的设备编号, 程序里有可能添加"NULL", 故流出5个字符
-    char   f_meter_type[3];//仪表类型
+    char   f_device_id[5];//仪表的设备编号, 程序里有可能添加"NULL", 故设置为5个字符
+    char   f_meter_type[5];//仪表类型
     char   f_meter_address[LENGTH_F_METER_ADDRESS];//仪表地址
     char   f_timestamp[LENGTH_F_TIMESTAMP];//时间戳
     char   f_time[LENGTH_F_TIME];//抄表时间点
