@@ -285,16 +285,15 @@ struct meter_item{
 struct his_data_str;
 typedef struct his_data_str *pHis_data;
 typedef pHis_data his_data_list;
-struct his_data_str{//历史数据一行数据的格式
+
+struct his_data_str{//历史数据一行数据的格式, 每个数据域的长度都要比约定长度至少大1, 用于存储strcpy添加的'\0'
+    char   f_id[LENGTH_F_ID];//索引值
+    char   f_device_id[5];//仪表的设备编号, 程序里有可能添加"NULL", 故流出5个字符
+    char   f_meter_type[3];//仪表类型
+    char   f_meter_address[LENGTH_F_METER_ADDRESS];//仪表地址
     char   f_timestamp[LENGTH_F_TIMESTAMP];//时间戳
     char   f_time[LENGTH_F_TIME];//抄表时间点
-    char   f_meter_address[LENGTH_F_METER_ADDRESS];//仪表地址
-    char   f_device_id[LENGTH_F_DEVID];//仪表的设备编号
-    char   f_id[LENGTH_F_ID];//索引值
-    char   f_meter_type[LENGTH_F_MTYPE];//仪表类型
     int  value_cnt;//数据项的数量
-    
-    
     //使用数组, 每次开辟固定大小(value_cnt, 可以从get_request_data_cnt()获取)的空间
     //避免了每次操作一行数据, 就重新生成一个链表, 比较费时
     pMeter_item value_list;//数据项数组, 需要动态开辟, 
@@ -364,6 +363,11 @@ int  get_request_data_cnt(mtype_idx);//读取仪表数据项的个数
  ** 仪表历史数据相关 **
  **********************/
 void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr);
+uint8 read_his_data(char* timenode, mtype_idx idx, char* pErr);
+uint8 read_all_his_data(char* timenode, char* pErr);
+int get_his_cnt(mtype_idx idx);
+uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data));
+
 
 
 #endif  //_DB_H_
