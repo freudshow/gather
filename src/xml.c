@@ -318,12 +318,12 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 		case em_FUNC_HEATBT:
 			//在common节点直接创建文本节点
 			get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-    			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)sysConfig.f_config_value);
-    			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)sysConfig.f_config_value);//目的地址以后改成服务器地址。
+            xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)sysConfig.f_config_value);
+            xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)sysConfig.f_config_value);//目的地址以后改成服务器地址。
 			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"1");
 			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"0");
 
-    			//debug_info(gDebugModule[XML_MODULE], "[%s][%s][%d] optype is %d\n",FILE_LINE, optype);
+            //debug_info(gDebugModule[XML_MODULE], "[%s][%s][%d] optype is %d\n",FILE_LINE, optype);
 
 			nRel = xmlSaveFileEnc(gXML_File[xmlIndex].pXMLFile,doc,"utf-8");
 			fclose(fp);
@@ -335,7 +335,31 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 
 
 			break;
-
+        case em_FUNC_RPTUP:
+            /*in the beginning, state = init state;
+            switch (state) {
+            case init:
+                write common;
+                state = row;
+                break;
+            case trans:
+                write total cnt;
+                write frame_idx;
+                write this frame_cnt;
+                break;
+            case row:
+                write one row(row's id and datas);
+                row_idx++;
+                if(row_idx == this_frame_cnt)
+                    state = row_end;
+                break;
+            case row_end:
+                write end root node;
+                break;
+            default:
+                break;
+            }
+        */
 		default:
 			fclose(fp);
 			break;
@@ -349,98 +373,6 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
   	return ERR_1;
 }
 
-
-#if 0
-
-/*
-  ******************************************************************************
-  * 函数名称： uint8 XmlInfo_Analyze(uint8 Dev, uint8 XmlIndex)
-  * 说    明： 解析接收到的xml信息。
-  * 参    数： uint8 Dev 此xml信息来自哪个设备。
-  *      		uint8 XmlIndex 此xml信息存放索引号。
-  ******************************************************************************
-*/
-
-uint8 XmlInfo_Analyze(uint8 Dev, uint8 XmlIndex)
-{
-	if(Dev == UP_COMMU_DEV_GPRS)
-		UpdGprsRunSta_FeedSndDog();  //有任何网络数据收到，都认为网络正常，清空GPRS心跳计数。如果连续几次心跳都不清空，则GPRS重启。
-
-
-
-
-	//正常应该，先检查是不是发送给本集中器的数据，不是则舍弃，是的话才继续。
-
-
-	//下面只是测试用，正常sem_post(&Validate_sem);应该在检测到登录回应时才执行。
-	sem_post(&Validate_sem);
-
-
-
-
-
-	return NO_ERR;
-}
-
-
-
-/*
-  ******************************************************************************
-  * 函数名称： uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
-  * 说    明： 根据解析到的信息，执行xml请求。
-  * 参    数： uint8 Dev 此xml信息去往哪个设备。
-  *      		uint8 XmlIndex 此xml信息存放索引号。
-  ******************************************************************************
-*/
-
-uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
-{
-	uint8 err = 0;
-	FILE *fp;
-	xml_info_str l_xmlInfo;
-	
-
-
-
-	err = getXmlInfo(Dev,&l_xmlInfo);
-	if(err != NO_ERR){
-		printf("XmlInfo_Exec getXmlInfo Err.\n");
-		return err;
-	}
-
-	switch(l_xmlInfo.func_type){
-		case em_FUNC_ID:
-			err = makexml(&l_xmlInfo,XmlIndex);
-			if(err == NO_ERR){
-				fp = fopen(gXML_File[XmlIndex].pXMLFile,"r");
-				FileSend(Dev, fp);
-				fclose(fp);
-			}
-
-			break;
-
-		case em_FUNC_HEATBT:
-			err = makexml(&l_xmlInfo,XmlIndex);
-			if(err == NO_ERR){
-				fp = fopen(gXML_File[XmlIndex].pXMLFile,"r");
-				FileSend(Dev, fp);
-				fclose(fp);
-			}
-
-			break;
-
-
-		default:
-			break;
-			
-	}
-	
-
-
-	return NO_ERR;
-}
-
-#endif
 /*
   ******************************************************************************
   * 函数名称： uint8 setXmlInfo()
@@ -451,7 +383,6 @@ uint8 XmlInfo_Exec(uint8 Dev, uint8 XmlIndex)
 
 uint8 setXmlInfo(uint8 dev, pXml_info pXml_info)
 {
-
 	if(dev >= UP_COMMU_DEV_ARRAY){
 		printf("dev num error.\n");
 		return ERR_1;
@@ -628,14 +559,10 @@ uint8 func_rptup(uint8 dev, uint8 xml_idx)
         }
         
         read_his_data(timenode,em_heat,pErr);//每个线程读取历史数据时, 都会创建独立的链表
-        
         total_row = get_his_cnt(em_heat);
-        
         retrieve_his_data(em_heat,5,one_his_data);
         
-        
         while(1/*数据没有发送完成*/){
-			
 			err = makexml(&l_xmlInfo,xml_idx);
 			if(err == NO_ERR){
 				fp = fopen(gXML_File[xml_idx].pXMLFile,"r");
