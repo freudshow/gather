@@ -40,9 +40,9 @@ create table t_meter_info
 	f_install_pos	varchar(50)
 );
 
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (10, 1, '11110052310291', 7, 1, '6#管道井');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (10, 1, '11110021147872', 1, 0, '6#管道井');
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (10, 2, '11110052310292', 7, 1, '5#管道井');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (20, 3, '11110053110201', 6, 2, '3#地下室');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (20, 3, '11110021147872', 1, 0, '3#地下室');--德鲁热表
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (20, 4, '11110053110202', 0, 3, '3#地下室');
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 5, '1', 7, 6, '2#电表间');
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values (40, 5, '12', 7, 6, '2#电表间');
@@ -62,8 +62,8 @@ create table t_elect_data
 	f_meter_type	integer,
 	f_device_id	integer,
 	f_meter_address	varchar(50),
-	f_timestamp	varchar(50),
-	f_time	varchar(50),
+	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_total_active_power	float,
 	f_maximum_demand	float,
 	f_overall_power_factor	float
@@ -80,8 +80,8 @@ create table t_water_data
 	f_meter_type	integer,
 	f_device_id	integer,
 	f_meter_address	varchar(50),
-	f_timestamp	varchar(50),
-	f_time	varchar(50),
+	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_accum_flow	float
 );
 
@@ -96,9 +96,18 @@ create table t_heat_data
 	f_meter_type	integer,
 	f_device_id	integer,
 	f_meter_address	varchar(50),
-	f_timestamp	varchar(50),
-	f_time	varchar(50),
-	f_accum_heat	float
+	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_cur_cold_E	varchar(10), 
+	f_cur_heat_E	varchar(10), 
+	f_heat_power	varchar(10), 
+	f_flowrate	varchar(10), 
+	f_accum_flow	varchar(10), 
+	f_in_temp	varchar(6), 
+	f_out_temp	varchar(6), 
+	f_accum_work_time	varchar(10), 
+	f_cur_time	varchar(14), 
+	f_state	varchar(4)
 );
 
 ---------------------------------
@@ -124,7 +133,7 @@ insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)va
 insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '07', 'f_out_temp', 'float');
 insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '08', 'f_accum_work_time', 'varchar(20)');
 insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '09', 'f_cur_time', 'varchar(20)');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '0a', 'f_state', 'varchar(20)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '10', 'f_state', 'varchar(20)');
 insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '01', 'f_cur_accum_flow', 'float');
 insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '02', 'f_flowrate', 'float');
 insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '03', 'f_settle_date_accum_flow', 'float');

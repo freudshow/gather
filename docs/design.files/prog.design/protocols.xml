@@ -1,4 +1,5 @@
-<!-- Linux集中器XML通讯基本格式 -->
+<!-- linux集中器xml通讯基本格式 -->
+<!-- 所有字符统一使用小写英文, 避免造成字符判断的麻烦-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<!-- 通用部分
@@ -14,7 +15,7 @@
 			6.	操作表地址信息(meter_info)
 			7.	抄表数据上传(report_update)
 			8.	查询集中器状态(read_stat)(集中器正常/异常，如异常具体是什么异常)
-			9.	IP切换通知(switch_IP)
+			9.	ip切换通知(switch_ip)
 			10.	数据库操作相关(db_mani)
 			11.	执行本地系统命令或程序(local_sys_command)
 			12.	远程升级(code_updata)
@@ -27,8 +28,8 @@
 			   操作对：读-应答、写-应答、操作-应答
     -->
 	<common>
-			<sadd>XXXXXX</sadd>
-			<oadd>XXXXXX</oadd>
+			<sadd>xxxxxx</sadd>
+			<oadd>xxxxxx</oadd>
 			<func_type>功能类型</func_type>
 			<oper_type>read/write/do/answer</oper_type>
 	</common>
@@ -55,7 +56,7 @@
 		string：当前传输的字符串;
      -->
 	<state>request_string->dispatch_string->hash_result->id_result</state>
-	<string>XXXXXXXX</string>
+	<string>xxxxxxxx</string>
 </root>
 
 <!-- 下位机请求上位机的"当前系统时间字符串" -->
@@ -106,7 +107,7 @@
 			<oper_type>answer</oper_type>
 	</common>
 	<state>id_result</state>
-	<string>SUCCESS/FAIL</string>
+	<string>success/fail</string>
 </root>
 
 
@@ -224,7 +225,7 @@
 		<func_type>sys_config</func_type>
 		<oper_type>answer</oper_type>
 	</common>
-	<result>SUCCESS/FAIL</result>
+	<result>success/fail</result>
 </root>
 
 
@@ -266,7 +267,7 @@
 		<func_type>request_data</func_type>
 		<oper_type>answer</oper_type>
 	</common>
-	<result>SUCCESS/FAIL</result>
+	<result>success/fail</result>
 </root>
 
 
@@ -331,7 +332,7 @@
 		<func_type>time_node</func_type>
 		<oper_type>answer</oper_type>
 	</common>
-	<result>SUCCESS/FAIL</result>
+	<result>success/fail</result>
 </root>
 
 
@@ -359,7 +360,7 @@
 		<f_meter_proto_type></f_meter_proto_type>
 		<f_meter_channel></f_meter_channel>		
 		<f_install_pos></f_install_pos>		
-	</<row>
+	</row>
 	<row id="2">
 		<!--列名可用宏定义替代具体字符串，以减少传输的数据量-->
 		<f_device_id></f_device_id>
@@ -368,7 +369,7 @@
 		<f_meter_proto_type></f_meter_proto_type>
 		<f_meter_channel></f_meter_channel>		
 		<f_install_pos></f_install_pos>	
-	</<row>
+	</row>
 </root>
 
 <!-- 下位机的执行结果 -->
@@ -380,7 +381,7 @@
 		<func_type>meter_info</func_type>
 		<oper_type>answer</oper_type>
 	</common>
-	<result>SUCCESS/FAIL</result>
+	<result>success/fail</result>
 </root>
 
 <!-- 上位机查询下位机表地址信息 -->
@@ -420,7 +421,7 @@
 		<f_meter_proto_type></f_meter_proto_type>
 		<f_meter_channel></f_meter_channel>		
 		<f_install_pos></f_install_pos>	
-	</<row>
+	</row>
 	<row id="2">
 		<!--列名可用宏定义替代具体字符串，以减少传输的数据量-->
 		<f_device_id></f_device_id>
@@ -429,7 +430,7 @@
 		<f_meter_proto_type></f_meter_proto_type>
 		<f_meter_channel></f_meter_channel>		
 		<f_install_pos></f_install_pos>	
-	</<row>
+	</row>
 </root>
 
 
@@ -463,7 +464,7 @@
 		.
 		.
 		.
-	</<row>
+	</row>
 	.
 	.
 	.
@@ -482,7 +483,7 @@
 		<func_type>report_update</func_type>
 		<oper_type>answer</oper_type>
 	</common>
-	<result>SUCCESS/FAIL</result>
+	<result>success/fail</result>
 </root>
 
 
@@ -528,7 +529,7 @@
 		.
 		.
 		.
-	</<row>
+	</row>
 	.
 	.
 	.
@@ -564,41 +565,41 @@
 </root>
 
 
-<!--9.集中器上报通知IP切换,上位机收到这条信息后要标记当前集中器IP不在，不能进行任何操作，一直等到集中器再次上线-->
+<!--9.集中器上报通知ip切换,上位机收到这条信息后要标记当前集中器ip不在，不能进行任何操作，一直等到集中器再次上线-->
 
-<!-- 集中器上报切换IP -->
+<!-- 集中器上报切换ip -->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
 		<sadd>5001</sadd>
 		<oadd>0001</oadd>
-		<func_type>switch_IP</func_type>
+		<func_type>switch_ip</func_type>
 		<oper_type>write</oper_type>
 	</common>
 </root>
 
-<!-- 上位机返回切换IP -->
+<!-- 上位机返回切换ip -->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
 		<sadd>0001</sadd>
 		<oadd>5001</oadd>
-		<func_type>switch_IP</func_type>
+		<func_type>switch_ip</func_type>
 		<oper_type>answer</oper_type>
 	</common>
 </root>
 
 <!---------------- 10. 数据库操作相关(db_mani) ---------------->
-<!--sql_stmt, 需要下位机执行的SQL语句, 
+<!--sql_stmt, 需要下位机执行的sql语句, 
 		id属性指定本语句的序列号, 
 		本语句只对上位机组帧和下位机解帧有效;
-	sql_result, 下位机执行SQL语句后的结果, 
-		id属性指定本结果对应的SQL系列号, 
+	sql_result, 下位机执行sql语句后的结果, 
+		id属性指定本结果对应的sql系列号, 
 		本语句只对下位机组帧和上位机解帧有效;
 -->
 
-<!--上位机直接下发SQL语句, 交由数据库执行;
-	可同时下发多条SQL指令, 以id属性作为索引.
+<!--上位机直接下发sql语句, 交由数据库执行;
+	可同时下发多条sql指令, 以id属性作为索引.
 -->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
@@ -632,11 +633,11 @@
 		id属性指定本语句的序列号, 
 		本语句只对上位机组帧和下位机解帧有效;
 	exec_result, 下位机执行系统语句后的结果, 
-		id属性指定本结果对应的SQL系列号, 
+		id属性指定本结果对应的sql系列号, 
 		本语句只对下位机组帧和上位机解帧有效;
 -->
 
-<!--上位机下发下位机系统命令, 交由下位机的Linux执行.-->
+<!--上位机下发下位机系统命令, 交由下位机的linux执行.-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
@@ -648,7 +649,7 @@
 	<local_command id="1">pwd</local_command><!--只用于上位机下发-->
 </root>
 
-<!-- 下位机执行上位机下发的Linux命令后的结果 -->
+<!-- 下位机执行上位机下发的linux命令后的结果 -->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
