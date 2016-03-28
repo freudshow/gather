@@ -10,7 +10,9 @@
   * 无返回值.
   * 如果给出的[列名/条件]数量小于等于0, 那么就将传入的SQL指向的内存区域全部设置为
   * 空字符'\0', sql在传入之前要提前指向有效的内存区, 在函数内不再初始化.
-  * 本模块内的函数基本不是线程安全的, 使用之前需对每项操作进行信号量的匹配和检测
+  * 本模块内的函数基本不是线程安全的, 使用之前需对每项操作进行信号量的匹配和检测,
+  * 或者仿照xml模块, 给每一种设备都设置一个对应的数据库对象, 避免多个线程对同一个
+  * 数据库对象进行读写(未实现).
   *******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
@@ -170,7 +172,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	pmf->u8MeterAddr[2], pmf->u8MeterAddr[1], pmf->u8MeterAddr[0]);
 	strcat(sql_buf, tmp_data);//表地址
 	strcat(sql_buf, ",");
-	sprintf(tmp_data, "%d",pmf->u8MeterType);
+	sprintf(tmp_data, "%02x",pmf->u8MeterType);
 	strcat(sql_buf, tmp_data);//表类型
 	strcat(sql_buf, ",");
 	sprintf(tmp_data, "%s", "NULL");//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!暂时为NULL, 后期完善!!!!!!!!!!!!!!!!!!!!!
@@ -389,20 +391,21 @@ int get_his_cnt(mtype_idx idx)
     return hisdata_idx_array[idx];
 }
 
-uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data))
+uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev)
 {
     int i=0;
     pHis_data pTmp_his = his_data_list_array[idx];
     pHis_data pRtn_his = malloc(sizeof(struct his_data_str));
     memset(pRtn_his, 0, sizeof(struct his_data_str));
     
-    while(pTmp_his && (i<cnt)) {
+    while(pTmp_his && (i<cnt)) {//要读取的行数不能大于剩下的行数
         memcpy(pRtn_his, pTmp_his, sizeof(struct his_data_str));
         pRtn_his->pNext = NULL;
         pRtn_his->pPrev= NULL;
+        pRtn_his->value_cnt = pTmp_his->value_cnt;
         pRtn_his->value_list = malloc(pTmp_his->value_cnt*sizeof(struct meter_item));    
         memcpy(pRtn_his->value_list, pTmp_his->value_list, pTmp_his->value_cnt*sizeof(struct meter_item));
-        read_one_his(pRtn_his);
+        read_one_his(pRtn_his, dev);
         free(pRtn_his->value_list);
         pTmp_his = pTmp_his->pNext;
         i++;
@@ -410,6 +413,37 @@ uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data))
     free(pRtn_his);
     return NO_ERR;
 }
+
+uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev)
+{
+    int i=0;
+    pHis_data pTmp_his = his_data_list_array[idx];
+    pHis_data pRtn_his = malloc(sizeof(struct his_data_str));
+    memset(pRtn_his, 0, sizeof(struct his_data_str));
+    
+    while(pTmp_his && (i<cnt)) {//要读取的行数不能大于剩下的行数
+        memcpy(pRtn_his, pTmp_his, sizeof(struct his_data_str));
+        pRtn_his->pNext = NULL;
+        pRtn_his->pPrev= NULL;
+        pRtn_his->value_cnt = pTmp_his->value_cnt;
+        pRtn_his->value_list = malloc(pTmp_his->value_cnt*sizeof(struct meter_item));    
+        memcpy(pRtn_his->value_list, pTmp_his->value_list, pTmp_his->value_cnt*sizeof(struct meter_item));
+        read_one_his(pRtn_his, dev);
+        free(pRtn_his->value_list);
+        //删除已读取的节点
+        his_data_list_array[idx] = his_data_list_array[idx]->pNext;
+        his_data_list_array[idx]->pPrev = pTmp_his->pPrev;
+        free(pTmp_his->value_list);
+        free(pTmp_his);
+        pTmp_his = his_data_list_array[idx];//指向下一个节点
+        i++;
+    }
+    free(pRtn_his);
+
+    
+    return NO_ERR;
+}
+
 
 /********************************************************************************
  ** 功能区域	: 读取数据项配置

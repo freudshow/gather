@@ -93,6 +93,8 @@ typedef struct {
 #define NODE_FUNC_TYPE		"func_type"
 #define NODE_OPER_TYPE		"oper_type"
 
+#define ROW_PER_FRAME   5//上报长数据时, 每帧发送的最大行数
+
 extern char *pXMLFileName[XML_BUF_FILE_NUM];
 extern XML_FILE gXML_File[XML_BUF_FILE_NUM];
 
@@ -131,7 +133,7 @@ typedef enum{//上,下位机直接下发function的类型编号
 	em_FUNC_PROTOTRS//协议透传
 }func_type_idx;
 
-typedef enum{
+typedef enum{//上下位机操作类型编号
 	em_OPER_RD=0,//读取
 	em_OPER_WR,//写入
 	em_OPER_DO,//操作
