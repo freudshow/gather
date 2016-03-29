@@ -140,19 +140,6 @@
 #define LENGTH_SQLORDER		200//一条order by从句的最大长度
 
 /********************************************************************************
- ** 仪表种类
- ********************************************************************************/
-#define MTYPE_CNT	4//挂载的仪表类型数量
-enum meter_type_idx;
-typedef enum meter_type_idx mtype_idx;
-enum meter_type_idx{
-	em_heat=0,//热表索引
-	em_water,//水表索引
-	em_elect,//电表索引
-	em_gas//燃气表索引
-};
-
-/********************************************************************************
  ** t_base_define
  ** 基础配置信息表, 用t_base_define.f_id来索引对应的配置
  ********************************************************************************/
@@ -366,7 +353,8 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 uint8 read_his_data(char* timenode, mtype_idx idx, char* pErr);
 uint8 read_all_his_data(char* timenode, char* pErr);
 int get_his_cnt(mtype_idx idx);
-uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data));
+uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev);
+uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev);
 
 
 

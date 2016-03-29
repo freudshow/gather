@@ -165,24 +165,51 @@ typedef struct
 	char  install_pos[LENGTH_F_INSTALL_POS];  //字符串
 }MeterFileType;
 
+typedef enum{//写入历史数据协议的当前状态
+    stat_his_init=0,//初始状态, 文件空白
+    stat_his_result,//结果状态
+    stat_his_trans,//传输相关数据状态
+    stat_his_data,//row data状态
+    stat_his_end//结束状态
+}wr_his_stat;
+
 #define LENGTH_ADDR	50//集中器号或者上位机ip的地址长度
 typedef struct{
-	uint8 sadd[LENGTH_ADDR];
-	uint8 oadd[LENGTH_ADDR];
-	uint8 func_type;
-	uint8 oper_type;
-	xmlDocPtr xmldoc;
-	uint8 appendix1; 	//附加内容1
-	uint8 appendix2;  	//附加内容2
-	uint8 appendix3;  	//附加内容3
-	uint8 appendix4;  	//附加内容4
+    uint8 sadd[LENGTH_ADDR];
+    uint8 oadd[LENGTH_ADDR];
+    uint8 func_type;
+    uint8 oper_type;
+    char timenode[30];
+    xmlDocPtr xmldoc_rd;//从上位机下发的xmlDoc
+    xmlDocPtr xmldoc_wr;//需要向上位机发送的xmlDoc
+    uint8 xml_rd_file_idx;//上位机下发的xml文件索引
+    uint8 xml_wr_file_idx;//要写入历史数据的xml文件索引
+    int total_rows;//总共的行数
+    int cur_cnt;//当前帧有几行数据, cur_cnt= (cur_frame<=(total_rows/ROW_PER_FRAME) ? ROW_PER_FRAME:(total_rows%ROW_PER_FRAME));
+    int cur_frame;//当前第几帧, 从1开始
+    int cur_rows;//已经发送了多少行数据 if(read answer OK) cur_rows += cur_cnt;
+    int mod;//总共的行数 mod ROW_PER_FRAME的余数, 用于计算总共的帧数和最后一帧的行数
+    int total_frame;//总共需要发多少帧
+    int cur_row_idx;//每一帧发送的行的索引
+    wr_his_stat cur_wr_state;//当前xml所处的状态
 } xml_info_str;
 typedef xml_info_str* pXml_info;
 
+/*****************************************
+ ** 仪表种类
+ *****************************************/
+#define MTYPE_CNT	4//挂载的仪表类型数量
+enum meter_type_idx;
+typedef enum meter_type_idx mtype_idx;
+enum meter_type_idx{
+	em_heat=0,//热表索引
+	em_water,//水表索引
+	em_elect,//电表索引
+	em_gas//燃气表索引
+};
 
 
 
 
 
 #endif  //_GLOBALDEFINE_H_
-
