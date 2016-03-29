@@ -173,28 +173,6 @@ typedef enum{//写入历史数据协议的当前状态
     stat_his_end//结束状态
 }wr_his_stat;
 
-#define LENGTH_ADDR	50//集中器号或者上位机ip的地址长度
-typedef struct{
-    uint8 sadd[LENGTH_ADDR];
-    uint8 oadd[LENGTH_ADDR];
-    uint8 func_type;
-    uint8 oper_type;
-    char timenode[30];
-    xmlDocPtr xmldoc_rd;//从上位机下发的xmlDoc
-    xmlDocPtr xmldoc_wr;//需要向上位机发送的xmlDoc
-    uint8 xml_rd_file_idx;//上位机下发的xml文件索引
-    uint8 xml_wr_file_idx;//要写入历史数据的xml文件索引
-    int total_rows;//总共的行数
-    int cur_cnt;//当前帧有几行数据, cur_cnt= (cur_frame<=(total_rows/ROW_PER_FRAME) ? ROW_PER_FRAME:(total_rows%ROW_PER_FRAME));
-    int cur_frame;//当前第几帧, 从1开始
-    int cur_rows;//已经发送了多少行数据 if(read answer OK) cur_rows += cur_cnt;
-    int mod;//总共的行数 mod ROW_PER_FRAME的余数, 用于计算总共的帧数和最后一帧的行数
-    int total_frame;//总共需要发多少帧
-    int cur_row_idx;//每一帧发送的行的索引
-    wr_his_stat cur_wr_state;//当前xml所处的状态
-} xml_info_str;
-typedef xml_info_str* pXml_info;
-
 /*****************************************
  ** 仪表种类
  *****************************************/
@@ -209,7 +187,60 @@ enum meter_type_idx{
 };
 
 
+#define LENGTH_ADDR	50//集中器号或者上位机ip的地址长度
+typedef struct{
+    uint8 sadd[LENGTH_ADDR];
+    uint8 oadd[LENGTH_ADDR];
+    uint8 func_type;
+    uint8 oper_type;
+    char timenode[30];
+    xmlDocPtr xmldoc_rd;//从上位机下发的xmlDoc
+    xmlDocPtr xmldoc_wr;//需要向上位机发送的xmlDoc
+    uint8 xml_rd_file_idx;//上位机下发的xml文件索引
+    uint8 xml_wr_file_idx;//要写入历史数据的xml文件索引
 
+    
+    int cur_cnt;//当前帧有几行数据, , 仪表类型相关的
+    int mod[MTYPE_CNT];//总共的行数 mod ROW_PER_FRAME的余数, 用于计算总共的帧数和最后一帧的行数, 仪表类型相关的
+    int total_frame[MTYPE_CNT];//总共需要发多少帧, 仪表类型相关的
+    int cur_frame[MTYPE_CNT];//当前第几帧, 从1开始, 仪表类型相关的
+
+    
+    int total_rows;//总共的行数, 与表类型无关的
+    int total_frames;//所有类型的表, 总共需要发多少行历史数据
+    int cur_frame_indep;//与表类型无关的帧索引
+    int cur_rows;//已经发送了多少行数据 if(read answer OK) cur_rows += cur_cnt;
+    int cur_row_idx;//每一帧发送的行的索引
+    wr_his_stat cur_wr_state;//当前xml所处的状态
+} xml_info_str;
+typedef xml_info_str* pXml_info;
+
+
+
+
+typedef enum{//上,下位机直接下发function的类型编号
+	em_FUNC_ID = 0,//登录
+	em_FUNC_HEATBT,//心跳
+	em_FUNC_SYSCONF,//系统参数配置
+	em_FUNC_RQDATA,//仪表的数据项配置
+	em_FUNC_TNODE,//抄表与上报时间点配置
+	em_FUNC_MINFO,//表地址配置
+	em_FUNC_RPTUP,//上传历史数据
+	em_FUNC_RDSTAT,//读取集中器状态
+	em_FUNC_SWIP,//切换ip
+	em_FUNC_DBMANI,//数据库透传
+	em_FUNC_SYSCMD,//本地shell命令透传
+	em_FUNC_CODEUP,//程序更新
+	em_FUNC_PROTOTRS,//协议透传
+	em_FUNC_CLOCK_SET//集中器校时
+}func_type_idx;
+
+typedef enum{//上下位机操作类型编号
+	em_OPER_RD=0,//读取
+	em_OPER_WR,//写入
+	em_OPER_DO,//操作
+	em_OPER_ASW//应答
+}oper_type_idx;
 
 
 #endif  //_GLOBALDEFINE_H_

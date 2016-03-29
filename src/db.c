@@ -439,8 +439,6 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         i++;
     }
     free(pRtn_his);
-
-    
     return NO_ERR;
 }
 
