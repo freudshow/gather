@@ -554,6 +554,7 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
         g_xml_info[dev].cur_wr_state = stat_his_data;
         break;
     case stat_his_data:
+        printf("now state: stat_his_data\n");
         g_xml_info[dev].cur_row_idx++;
         root_node = xmlDocGetRootElement(g_xml_info[dev].xmldoc_wr);
         row_node = xmlNewNode(NULL,BAD_CAST "row");
@@ -567,13 +568,18 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
         xmlNewTextChild(row_node, NULL, CONST_CAST "f_meter_address", CONST_CAST pHis->f_meter_address);//表地址
         xmlNewTextChild(row_node, NULL, CONST_CAST "f_timestamp", CONST_CAST pHis->f_timestamp);//时间戳
         xmlNewTextChild(row_node, NULL, CONST_CAST "f_time", CONST_CAST pHis->f_time);//抄表时间点
+        printf("insert stick fields over!!!!!!\n");
         for(val_idx=0;val_idx<pHis->value_cnt;val_idx++) {//数据项
             xmlNewTextChild(row_node, NULL, CONST_CAST pHis->value_list[val_idx].field_name, \
             CONST_CAST pHis->value_list[val_idx].field_value);
         }
-        
-        if(g_xml_info[dev].cur_row_idx == g_xml_info[dev].cur_cnt)
+        printf("g_xml_info[dev].cur_row_idx: %d,  g_xml_info[dev].cur_cnt: %d\n", g_xml_info[dev].cur_row_idx, g_xml_info[dev].cur_cnt);
+        if(g_xml_info[dev].cur_row_idx == g_xml_info[dev].cur_cnt) {
             g_xml_info[dev].cur_wr_state = stat_his_end;
+            printf("insert all row over!!!\n");
+            printf("point to next state stat_his_end\n");
+        }
+        printf("insert one row over!!!\n");
         break;
     case stat_his_end:
         printf("now in stat_his_end, and write to xmlfile: %s\n", gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile);
@@ -614,15 +620,19 @@ uint8 func_rptup(uint8 dev, uint8 xml_idx)
         read_all_his_data(g_xml_info[dev].timenode, pErr);
         for(type_idx=0;type_idx<MTYPE_CNT;type_idx++)
         {
-            g_xml_info[dev].total_rows += get_his_cnt(type_idx);
-            g_xml_info[dev].mod[type_idx] = g_xml_info[dev].total_rows%ROW_PER_FRAME;
+            printf("--------------current meter type: %d--------------\n", type_idx);
+            printf("--------------current meter get_his_cnt: %d--------------\n", get_his_cnt(type_idx));
+            g_xml_info[dev].total_row[type_idx] += get_his_cnt(type_idx);
+            g_xml_info[dev].total_rows += g_xml_info[dev].total_row[type_idx];
+            g_xml_info[dev].mod[type_idx] = g_xml_info[dev].total_row[type_idx]%ROW_PER_FRAME;
             g_xml_info[dev].cur_frame[type_idx] = 0;
-            g_xml_info[dev].total_frame[type_idx] = (g_xml_info[dev].total_rows/ROW_PER_FRAME+(g_xml_info[dev].mod?1:0));
-            g_xml_info[dev].total_frames += g_xml_info[dev].total_frame[type_idx];
+            g_xml_info[dev].total_frame[type_idx] = (g_xml_info[dev].total_row[type_idx]/ROW_PER_FRAME+((g_xml_info[dev].mod[type_idx])?1:0));
         }
         
         for(type_idx=0;type_idx<MTYPE_CNT;type_idx++)
         {
+            printf("--------------current meter type: %d--------------\n", type_idx);
+            printf("--------------current total_frame[type_idx]: %d--------------\n", g_xml_info[dev].total_frame[type_idx]);
             while(g_xml_info[dev].cur_frame[type_idx]<g_xml_info[dev].total_frame[type_idx]){
                 g_xml_info[dev].cur_frame[type_idx]++;
                 g_xml_info[dev].cur_frame_indep++;
@@ -640,7 +650,7 @@ uint8 func_rptup(uint8 dev, uint8 xml_idx)
                 printf("call wr_his_xml to write xml to file.\n");
                 wr_his_xml(NULL, dev);//将xmldoc写到文件
                 if(err == NO_ERR) {//发送文件
-                    fp = fopen(gXML_File[xml_idx].pXMLFile,"r");
+                    fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
                     FileSend(dev, fp);
                     fclose(fp);
                 }

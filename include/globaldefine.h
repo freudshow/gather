@@ -200,14 +200,14 @@ typedef struct{
     uint8 xml_wr_file_idx;//要写入历史数据的xml文件索引
 
     
-    int cur_cnt;//当前帧有几行数据, , 仪表类型相关的
+
+    int total_row[MTYPE_CNT];//当前表类型共有多少行数据
     int mod[MTYPE_CNT];//总共的行数 mod ROW_PER_FRAME的余数, 用于计算总共的帧数和最后一帧的行数, 仪表类型相关的
     int total_frame[MTYPE_CNT];//总共需要发多少帧, 仪表类型相关的
     int cur_frame[MTYPE_CNT];//当前第几帧, 从1开始, 仪表类型相关的
 
-    
+    int cur_cnt;//当前帧有几行数据, 与表类型无关的
     int total_rows;//总共的行数, 与表类型无关的
-    int total_frames;//所有类型的表, 总共需要发多少行历史数据
     int cur_frame_indep;//与表类型无关的帧索引
     int cur_rows;//已经发送了多少行数据 if(read answer OK) cur_rows += cur_cnt;
     int cur_row_idx;//每一帧发送的行的索引
