@@ -64,9 +64,14 @@ create table t_elect_data
 	f_meter_address	varchar(50),
 	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
-	f_total_active_power	float,
-	f_maximum_demand	float,
-	f_overall_power_factor	float
+	f_active_total_electricity varchar(50),
+	f_cur_voltage varchar(50),
+	f_cur_current varchar(50),
+	f_cur_active_power varchar(50),
+	f_cur_freq varchar(50),
+	f_cur_reactive_power varchar(50),
+	f_cur_ apparent_power varchar(50),
+	f_cur_power_factor varchar(50)
 );
 
 ---------------------------------
@@ -82,7 +87,11 @@ create table t_water_data
 	f_meter_address	varchar(50),
 	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
-	f_accum_flow	float
+	f_cur_accum_flow varchar(50),
+	f_flowrate varchar(50),
+	f_settle_date_accum_flow varchar(50),
+	f_settle_date varchar(50),
+	f_accum_work_time varchar(50)
 );
 
 ---------------------------------
@@ -98,16 +107,16 @@ create table t_heat_data
 	f_meter_address	varchar(50),
 	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
-	f_cur_cold_E	varchar(10), 
-	f_cur_heat_E	varchar(10), 
-	f_heat_power	varchar(10), 
-	f_flowrate	varchar(10), 
-	f_accum_flow	varchar(10), 
-	f_in_temp	varchar(6), 
-	f_out_temp	varchar(6), 
-	f_accum_work_time	varchar(10), 
-	f_cur_time	varchar(14), 
-	f_state	varchar(4)
+	f_cur_cold_E	varchar(50), 
+	f_cur_heat_E	varchar(50), 
+	f_heat_power	varchar(50), 
+	f_flowrate	varchar(50), 
+	f_accum_flow	varchar(50), 
+	f_in_temp	varchar(50), 
+	f_out_temp	varchar(50), 
+	f_accum_work_time	varchar(50), 
+	f_cur_time	varchar(50), 
+	f_state	varchar(50)
 );
 
 ---------------------------------
@@ -124,29 +133,29 @@ create table t_request_data
 	f_col_type	varchar(20)
 );
 
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '01', 'f_cur_cold_E', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '02', 'f_cur_heat_E', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '03', 'f_heat_power', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '04', 'f_flowrate', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '05', 'f_accum_flow', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '06', 'f_in_temp', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '07', 'f_out_temp', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '08', 'f_accum_work_time', 'varchar(20)');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '09', 'f_cur_time', 'varchar(20)');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '10', 'f_state', 'varchar(20)');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '01', 'f_cur_accum_flow', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '02', 'f_flowrate', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '03', 'f_settle_date_accum_flow', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '04', 'f_settle_date', 'varchar(20)');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '05', 'f_accum_work_time', 'varchar(20)');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '01', 'f_active_total_electricity', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '02', 'f_cur_voltage', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '03', 'f_cur_current', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '04', 'f_cur_active_power', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '05', 'f_cur_freq', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '06', 'f_cur_reactive_power', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '07', 'f_cur_ apparent_power', 'float');
-insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '08', 'f_cur_power_factor', 'float');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '01', 'f_cur_cold_E', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '02', 'f_cur_heat_E', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '03', 'f_heat_power', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '04', 'f_flowrate', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '05', 'f_accum_flow', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '06', 'f_in_temp', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '07', 'f_out_temp', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '08', 'f_accum_work_time', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '09', 'f_cur_time', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('20', '10', 'f_state', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '01', 'f_cur_accum_flow', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '02', 'f_flowrate', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '03', 'f_settle_date_accum_flow', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '04', 'f_settle_date', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('10', '05', 'f_accum_work_time', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '01', 'f_active_total_electricity', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '02', 'f_cur_voltage', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '03', 'f_cur_current', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '04', 'f_cur_active_power', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '05', 'f_cur_freq', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '06', 'f_cur_reactive_power', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '07', 'f_cur_ apparent_power', 'varchar(50)');
+insert into t_request_data(f_meter_type, f_item_index, f_col_name, f_col_type)values('40', '08', 'f_cur_power_factor', 'varchar(50)');
 ---------------------------------
 --时间点配置表
 ---------------------------------
