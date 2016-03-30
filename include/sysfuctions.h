@@ -66,6 +66,8 @@ extern sem_t  OperateDB_sem; //操作数据库的信号量
 extern sem_t  OperateMBUS_sem;	//操作MBUS端口信号量
 extern sem_t  Opetate485Down_sem;	//操作485下行端口信号量。
 extern sem_t  Validate_sem;
+extern sem_t  His_up_sem;
+extern sem_t  His_asw_sem;
 
 
 

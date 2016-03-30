@@ -235,7 +235,13 @@ void sem_Init(void)
 	if(ret != 0)
 		perror("Validate_sem  error\n");
 
-
+    	ret = sem_init(&His_up_sem,0,0);
+	if(ret != 0)
+		perror("His_up_sem  error\n");
+    
+    	ret = sem_init(&His_asw_sem,0,0);
+	if(ret != 0)
+		perror("His_asw_sem  error\n");
 
 
 

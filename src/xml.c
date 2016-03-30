@@ -505,6 +505,7 @@ uint8 get_tm_node(uint8 dev, char* timenode) {
         }
         curNode = curNode->next;
     }
+	xmlFreeDoc(pDoc);
     return NO_ERR;
 }
 
@@ -568,11 +569,12 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
         xmlNewTextChild(row_node, NULL, CONST_CAST "f_meter_address", CONST_CAST pHis->f_meter_address);//表地址
         xmlNewTextChild(row_node, NULL, CONST_CAST "f_timestamp", CONST_CAST pHis->f_timestamp);//时间戳
         xmlNewTextChild(row_node, NULL, CONST_CAST "f_time", CONST_CAST pHis->f_time);//抄表时间点
-        printf("insert stick fields over!!!!!!\n");
+        printf("insert constant fields over!!!!!!\n");
         for(val_idx=0;val_idx<pHis->value_cnt;val_idx++) {//数据项
             xmlNewTextChild(row_node, NULL, CONST_CAST pHis->value_list[val_idx].field_name, \
             CONST_CAST pHis->value_list[val_idx].field_value);
         }
+        printf("insert variant fields over!!!!!!\n");
         printf("g_xml_info[dev].cur_row_idx: %d,  g_xml_info[dev].cur_cnt: %d\n", g_xml_info[dev].cur_row_idx, g_xml_info[dev].cur_cnt);
         if(g_xml_info[dev].cur_row_idx == g_xml_info[dev].cur_cnt) {
             g_xml_info[dev].cur_wr_state = stat_his_end;
@@ -599,72 +601,85 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
     return nRel;
 }
 
-//抄表数据上传
-uint8 func_rptup(uint8 dev, uint8 xml_idx)
+uint8 up_his_data(uint8 dev)
 {
     uint8 err = NO_ERR;
     FILE *fp;
     char pErr[100];
     uint8 lu8xmlIndex;
     uint8 type_idx;//仪表类型的索引
-    if(err != NO_ERR){
-        printf("getXmlInfo Error.\n");
-        return err;
+    err = get_tm_node(dev, g_xml_info[dev].timenode);
+    printf("g_xml_info[dev].timenode: %s\n", g_xml_info[dev].timenode);
+    read_all_his_data(g_xml_info[dev].timenode, pErr);
+    for(type_idx=0;type_idx<MTYPE_CNT;type_idx++)
+    {
+        printf("--------------current meter type: %d--------------\n", type_idx);
+        printf("--------------current meter get_his_cnt: %d--------------\n", get_his_cnt(type_idx));
+        g_xml_info[dev].total_row[type_idx] += get_his_cnt(type_idx);
+        g_xml_info[dev].total_rows += g_xml_info[dev].total_row[type_idx];
+        g_xml_info[dev].mod[type_idx] = g_xml_info[dev].total_row[type_idx]%ROW_PER_FRAME;
+        g_xml_info[dev].cur_frame[type_idx] = 0;
+        g_xml_info[dev].total_frame[type_idx] = (g_xml_info[dev].total_row[type_idx]/ROW_PER_FRAME+((g_xml_info[dev].mod[type_idx])?1:0));
     }
-	printf("now in func_rptup().\n");
-	printf("g_xml_info[dev].oper_type: %d\n", g_xml_info[dev].oper_type);
+    
+    for(type_idx=0;type_idx<MTYPE_CNT;type_idx++)
+    {
+        printf("--------------current meter type: %d--------------\n", type_idx);
+        printf("--------------current total_frame[type_idx]: %d--------------\n", g_xml_info[dev].total_frame[type_idx]);
+        while(g_xml_info[dev].cur_frame[type_idx]<g_xml_info[dev].total_frame[type_idx]){
+            g_xml_info[dev].cur_frame[type_idx]++;
+            g_xml_info[dev].cur_frame_indep++;
+            g_xml_info[dev].cur_wr_state = stat_his_init;//每次组帧之前都是初始状态
+            wr_his_xml(NULL, dev);//写root节点和common节点
+            g_xml_info[dev].cur_cnt = (g_xml_info[dev].cur_frame[type_idx]<=(g_xml_info[dev].total_frame[type_idx]-1) ? ROW_PER_FRAME:g_xml_info[dev].mod[type_idx]);
+            wr_his_xml(NULL, dev);//写trans节点
+            g_xml_info[dev].cur_row_idx = 0;
+            retrieve_and_del_his_data(type_idx, g_xml_info[dev].cur_cnt, wr_his_xml, dev);//写row节点
+
+            do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
+                lu8xmlIndex = Get_XMLBuf();
+            }while(lu8xmlIndex == ERR_FF);
+            g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
+            printf("call wr_his_xml to write xml to file.\n");
+            wr_his_xml(NULL, dev);//将xmldoc写到文件
+
+            
+            if(err == NO_ERR) {//发送文件
+                fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
+                FileSend(dev, fp);
+                fclose(fp);
+            }
+            sem_wait(&His_asw_sem);//wait answer from server
+            
+            Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
+            g_xml_info[dev].cur_rows += g_xml_info[dev].cur_cnt;//当前已发送的行数
+            printf("make xml over!!!!!!!!\n");
+        }
+    }
+    return err;
+}
+
+//抄表数据上传
+uint8 func_rptup(uint8 dev, uint8 xml_idx)
+{
+    uint8 err = NO_ERR;
+
 	switch(g_xml_info[dev].oper_type){
 	case em_OPER_RD:
-        err = get_tm_node(dev, g_xml_info[dev].timenode);
-        printf("g_xml_info[dev].timenode: %s\n", g_xml_info[dev].timenode);
-        read_all_his_data(g_xml_info[dev].timenode, pErr);
-        for(type_idx=0;type_idx<MTYPE_CNT;type_idx++)
-        {
-            printf("--------------current meter type: %d--------------\n", type_idx);
-            printf("--------------current meter get_his_cnt: %d--------------\n", get_his_cnt(type_idx));
-            g_xml_info[dev].total_row[type_idx] += get_his_cnt(type_idx);
-            g_xml_info[dev].total_rows += g_xml_info[dev].total_row[type_idx];
-            g_xml_info[dev].mod[type_idx] = g_xml_info[dev].total_row[type_idx]%ROW_PER_FRAME;
-            g_xml_info[dev].cur_frame[type_idx] = 0;
-            g_xml_info[dev].total_frame[type_idx] = (g_xml_info[dev].total_row[type_idx]/ROW_PER_FRAME+((g_xml_info[dev].mod[type_idx])?1:0));
-        }
-        
-        for(type_idx=0;type_idx<MTYPE_CNT;type_idx++)
-        {
-            printf("--------------current meter type: %d--------------\n", type_idx);
-            printf("--------------current total_frame[type_idx]: %d--------------\n", g_xml_info[dev].total_frame[type_idx]);
-            while(g_xml_info[dev].cur_frame[type_idx]<g_xml_info[dev].total_frame[type_idx]){
-                g_xml_info[dev].cur_frame[type_idx]++;
-                g_xml_info[dev].cur_frame_indep++;
-                g_xml_info[dev].cur_wr_state = stat_his_init;//每次组帧之前都是初始状态
-                wr_his_xml(NULL, dev);//写root节点和common节点
-                g_xml_info[dev].cur_cnt = (g_xml_info[dev].cur_frame[type_idx]<=(g_xml_info[dev].total_frame[type_idx]-1) ? ROW_PER_FRAME:g_xml_info[dev].mod[type_idx]);
-                wr_his_xml(NULL, dev);//写trans节点
-                g_xml_info[dev].cur_row_idx = 0;
-                retrieve_and_del_his_data(type_idx, g_xml_info[dev].cur_cnt, wr_his_xml, dev);//写row节点
-
-                do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
-                    lu8xmlIndex = Get_XMLBuf();
-                }while(lu8xmlIndex == ERR_FF);
-                g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
-                printf("call wr_his_xml to write xml to file.\n");
-                wr_his_xml(NULL, dev);//将xmldoc写到文件
-                if(err == NO_ERR) {//发送文件
-                    fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
-                    FileSend(dev, fp);
-                    fclose(fp);
-                }
-                //wait answer from server for 10 sec, if (OK) continue; else send again
-                Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
-                g_xml_info[dev].cur_rows += g_xml_info[dev].cur_cnt;//当前已发送的行数
-                printf("make xml over!!!!!!!!\n");
-            }
-        }
+        //组帧和发送的过程单独放到一个等待上位机应答的管理线程里执行, 
+        //DataDeal线程只负责设置g_xml_info[dev]和
+        //发送上传历史数据的信号量
+        //否则在发送历史数据后, datadeal线程就阻塞在等待上位机的应答
+        //而此时如果接收到了上位机的应答, DataDeal又阻塞在等待应答上, 
+        //不可能去执行响应 应答的相关代码
+        //即阻塞到了自己释放的信号量上
+        sem_post(&His_up_sem);//发送上传数据信号量
         break;
 	case em_OPER_WR:
         break;
 	case em_OPER_ASW:
         printf("have read history report answer from server.\n");
+        sem_post(&His_asw_sem);
         UpdGprsRunSta_FeedSndDog();
         break;
 	default:
@@ -672,6 +687,8 @@ uint8 func_rptup(uint8 dev, uint8 xml_idx)
 	}
 	return err;
 }
+
+
 
 uint8 func_rdstat(uint8 dev, uint8 xml_idx)
 {
@@ -833,8 +850,6 @@ uint8 parse_xml(uint8 dev, uint8 xml_idx)
 		}
 		cur = cur->next;
 	}
-	//sem_post(fd's xml_info_str read semaphore)
-	xmlFreeDoc(doc);
 	
 	return retErr;
 }

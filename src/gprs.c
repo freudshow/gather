@@ -1721,8 +1721,12 @@ void pthread_GprsDataDeal(void)
 	
 }
 
-
-
-
-
+void pthread_GprsUpHis(void)
+{
+    printf("pthread_GprsDataDeal start.\n");
+    while(1){
+        sem_wait(&His_up_sem);
+        up_his_data(UP_COMMU_DEV_GPRS);
+    }
+}
 
