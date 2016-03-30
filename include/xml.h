@@ -97,6 +97,7 @@ typedef struct {
 
 extern char *pXMLFileName[XML_BUF_FILE_NUM];
 extern XML_FILE gXML_File[XML_BUF_FILE_NUM];
+extern uint8 gu8Dev;
 
 
 

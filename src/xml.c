@@ -23,6 +23,7 @@ char *pXMLFileName[XML_BUF_FILE_NUM]={"buff0.xml","buff1.xml","buff2.xml","buff3
 
 XML_FILE gXML_File[XML_BUF_FILE_NUM];  //定义xml文件相关变量。
 static xml_info_str g_xml_info[UP_COMMU_DEV_ARRAY];
+uint8 gu8Dev = -1;//刚开始不指向任何设备号
 
 uint8 func_id(uint8 dev, uint8 xml_idx);
 uint8 func_heart_beat(uint8 dev, uint8 xml_idx);
@@ -490,9 +491,25 @@ uint8 func_tnode(uint8 dev, uint8 xml_idx)
 //6. 操作表地址信息(meter_info)
 uint8 func_minfo(uint8 dev, uint8 xml_idx)
 {
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
+	uint8 err = NO_ERR;
+
+	switch(g_xml_info[dev].oper_type){
+	case em_OPER_RD:
+        break;
+	case em_OPER_WR:
+        
+        //解析并执行数据库相关操作
+        //每读一帧数据, 就向上位机推送一次应答
+        break;
+	case em_OPER_ASW:
+        //printf("have read history report answer from server.\n");
+        //sem_post(&minfo_asw_sem);
+        UpdGprsRunSta_FeedSndDog();
+        break;
+	default:
+		err = ERR_FF;
+	}
+	return err;
 }
 
 uint8 get_tm_node(uint8 dev, char* timenode) {
@@ -603,6 +620,9 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
 
 uint8 up_his_data(uint8 dev)
 {
+    if(dev<0 || dev>UP_COMMU_DEV_ARRAY)
+        return ERR_1;
+    
     uint8 err = NO_ERR;
     FILE *fp;
     char pErr[100];
@@ -666,14 +686,10 @@ uint8 func_rptup(uint8 dev, uint8 xml_idx)
 
 	switch(g_xml_info[dev].oper_type){
 	case em_OPER_RD:
-        //组帧和发送的过程单独放到一个等待上位机应答的管理线程里执行, 
-        //DataDeal线程只负责设置g_xml_info[dev]和
-        //发送上传历史数据的信号量
-        //否则在发送历史数据后, datadeal线程就阻塞在等待上位机的应答
-        //而此时如果接收到了上位机的应答, DataDeal又阻塞在等待应答上, 
-        //不可能去执行响应 应答的相关代码
-        //即阻塞到了自己释放的信号量上
+        OS_ENTER_CRITICAL();
+        gu8Dev = dev;
         sem_post(&His_up_sem);//发送上传数据信号量
+        OS_EXIT_CRITICAL();
         break;
 	case em_OPER_WR:
         break;

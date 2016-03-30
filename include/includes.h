@@ -32,7 +32,7 @@
 #include <libxml/xmlmemory.h>
 #include <libxml/parser.h>
 #include <string.h>
-
+#include <sys/msg.h>
 
 
 #include "sysconfig.h"

@@ -188,14 +188,16 @@ void create_pthread_GprsRelated(void)
     else
         printf ("Create pthread_GprsDataDeal OK!\n");
 
-    lReg = pthread_create(&GPRS_UpHis_pthreadID,NULL,(void *)pthread_GprsUpHis,NULL);
+    lReg = pthread_create(&GPRS_UpHis_pthreadID,NULL,(void *)pthread_UpHis,NULL);
     if(0 != lReg){
-        printf ("Create pthread_GprsUpHis error!\n");
+        printf ("Create pthread_UpHis error!\n");
         exit (1);
     }
     else
-        printf ("Create pthread_GprsUpHis OK!\n");
+        printf ("Create pthread_UpHis OK!\n");
 
+    
+    
 }
 
 
