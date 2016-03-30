@@ -67,6 +67,12 @@ typedef unsigned int uint32;
 #define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
 #define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
 
+/********************************************************************************
+ ** 字符长度相关
+ ********************************************************************************/
+#define LEN_BYTE	8//一个字节的比特数
+#define LEN_HALF_BYTE	4//一半字节的比特数
+#define BYTE_BCD_CNT	2//一个字节由多少个BCD码表示
 
 //定义设备文件名称
 #define DEVICE4851		"/dev/ttyS1"
@@ -212,6 +218,8 @@ typedef struct{
     int cur_rows;//已经发送了多少行数据 if(read answer OK) cur_rows += cur_cnt;
     int cur_row_idx;//每一帧发送的行的索引
     wr_his_stat cur_wr_state;//当前xml所处的状态
+
+    int meter_info_row_idx;
 } xml_info_str;
 typedef xml_info_str* pXml_info;
 

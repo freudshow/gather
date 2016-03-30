@@ -43,7 +43,7 @@ static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 static meter_info_List list_meter_info = NULL;//仪表信息列表, 私有变量
 static int meter_info_idx;//集中器挂载的仪表数量的索引, 私有变量
 static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name);
-static void empty_meter_info_list();
+
 /**********************
  ** 读取数据项相关 **
  **********************/
@@ -637,6 +637,27 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 	return 0;
 }
 
+uint8 insert_one_meter_info(pMeter_info pMinfo)
+{
+    add_node(list_meter_info, pMinfo)
+    return NO_ERR;
+}
+
+int insert_one_meter_info_to_table(pMeter_info pMinfo)
+{
+    char sql_buf[LENGTH_SQLBUF];
+    
+    return NO_ERR;
+}
+
+uint8 insert_into_meter_info_table(char* pErr)
+{
+    int err=NO_ERR;
+    retrieve_meter_info_list(insert_one_meter_info_to_table);
+    return err;
+}
+
+
 int get_meter_info_cnt()
 {
 	return meter_info_idx;
@@ -644,11 +665,20 @@ int get_meter_info_cnt()
 
 //清空仪表信息, 以便重新读取
 //此函数运行的基础是, list必须先初始化为NULL
-static void empty_meter_info_list()
+void empty_meter_info_list()
 {
     empty_list(pMeter_info, list_meter_info)
     meter_info_idx = 0;
 }
+
+uint8 empty_meter_info_table(char* pErr)
+{
+    int err;
+    char *sql = "delete from t_meter_info";
+    err = sqlite3_exec(g_pDB, sql, NULL, NULL, &pErr);
+    return (err == SQLITE_OK) ? NO_ERR : ERR_1;
+}
+
 
 //遍历仪表信息, 对每一个表进行read_one_meter操作
 void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
