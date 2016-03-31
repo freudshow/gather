@@ -100,12 +100,7 @@
 #define TABLE_METER_INFO	"t_meter_info"//仪表基本信息表
 #define TABLE_TIME_NODE		"t_time_node"//时间配置表
 
-/********************************************************************************
- ** 字符长度相关
- ********************************************************************************/
-#define LEN_BYTE	8//一个字节的比特数
-#define LEN_HALF_BYTE	4//一半字节的比特数
-#define BYTE_BCD_CNT	2//一个字节由多少个BCD码表示
+
 
 /********************************************************************************
  ** 字符相关
@@ -337,6 +332,10 @@ uint8 set_sysconf();//设置系统参数
 void read_meter_info(char	*pErr);//从数据库读取仪表地址信息
 void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info));//顺序遍历仪表地址信息
 int  get_meter_info_cnt();//读取仪表地址信息的个数
+void empty_meter_info_list();
+uint8 empty_meter_info_table(char*);
+uint8 insert_one_meter_info(pMeter_info);
+uint8 insert_into_meter_info_table(char* pErr);
 
 /**********************
  ** 读取数据项相关 **

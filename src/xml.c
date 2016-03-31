@@ -488,6 +488,137 @@ uint8 func_tnode(uint8 dev, uint8 xml_idx)
 		
 		return retErr;
 }
+
+uint8 send_upmeter_answer(uint8 dev)
+{
+    uint8 err=NO_ERR;
+    FILE *fp;
+    int nRel;
+    uint8 lu8xmlIndex;
+    g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
+    xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
+    xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
+    xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
+    xmlAddChild(root_node,common_node);
+    sys_config_str sysConfig;
+    get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",(xmlChar *)sysConfig.f_config_value);
+    get_sys_config(CONFIG_PRIMARY_SERVER,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)sysConfig.f_config_value);  //目的地址以后改成服务器地址。
+    char str[100];
+    sprintf(str, "%d", em_FUNC_MINFO);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "func_type",(xmlChar *)str);
+    sprintf(str, "%d", em_OPER_ASW);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "oper_type",(xmlChar *)str);
+
+    xmlNewTextChild(root_node,NULL,BAD_CAST "result",BAD_CAST "success");
+    sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
+    xmlNewTextChild(root_node,NULL,BAD_CAST "frame_idx",BAD_CAST str);
+
+    do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
+        lu8xmlIndex = Get_XMLBuf();
+    }while(lu8xmlIndex == ERR_FF);
+    g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
+    printf("write send_upmeter_answer xml to file.\n");
+    
+    fp = fopen(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile,"w+");
+    nRel = xmlSaveFileEnc(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xmldoc_wr,"utf-8");
+    fclose(fp);
+    if(nRel != -1){
+        xmlFreeDoc(g_xml_info[dev].xmldoc_wr);
+        printf("make xml %s Index = %d.\n", gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xml_wr_file_idx);
+        return NO_ERR;
+    }
+
+    if(err == NO_ERR) {//发送文件
+        fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
+        FileSend(dev, fp);
+        fclose(fp);
+    }    
+    Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
+    return err;
+}
+
+uint8 update_meter_info(uint8 dev)
+{
+    char pErr[100];
+    pMeter_info pMInfo;
+    xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
+    xmlNodePtr rootNode = xmlDocGetRootElement(pDoc);
+    xmlNodePtr curNode;
+    xmlNodePtr transNode;
+    xmlNodePtr rowNode;
+    xmlChar* pValue;
+    int total_rows;//上位机一共要下发多少行数据
+    empty_meter_info_list();
+    empty_meter_info_table(pErr);
+    curNode = rootNode->children;
+    while(curNode) {//得到trans节点
+        if(xmlStrEqual(curNode->name, CONST_CAST "trans")) {
+            transNode = curNode;
+        }
+        curNode = curNode->next;
+    }
+
+    curNode = transNode->children;
+    while(curNode) {
+        if(xmlStrEqual(curNode->name, CONST_CAST "frame_idx")) {
+            pValue = xmlNodeGetContent(curNode->xmlChildrenNode);
+            if(xmlStrEqual(CONST_CAST"1", CONST_CAST pValue)) {
+                g_xml_info[dev].meter_info_row_idx = 0;//如果是第一帧, 清空行数计数
+            }
+            g_xml_info[dev].cur_frame_indep = atoi((char*)pValue);
+        }else if(xmlStrEqual(curNode->name, CONST_CAST "total_meter_num")) {
+            total_rows = atoi((char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+        }
+        curNode = curNode->next;
+    }
+    int length, j, low_idx;
+    curNode = rootNode->children;
+    while(curNode) {//逐个遍历row节点
+        if (xmlStrEqual(curNode->name, CONST_CAST "row")) {
+            rowNode = curNode->children;
+            pMInfo = malloc(sizeof(struct meter_info_str));
+            while(rowNode) {//获取表地址的详细信息
+                if(xmlStrEqual(rowNode->name, CONST_CAST "f_meter_type")) {
+                    pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+                    pMInfo->f_meter_type = (Ascii2Hex(pValue[0])<<LEN_HALF_BYTE|Ascii2Hex(pValue[1]));
+                }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_device_id")) {
+                    pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+                    pMInfo->f_device_id = atoi((char*)pValue);
+                }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_meter_address")) {
+                    pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+                    length = strlen((char*)pValue);
+                    for (j=0; j<(length+1)/BYTE_BCD_CNT;j++) {
+                    	low_idx = length-BYTE_BCD_CNT*j-2;
+                    	pMInfo->f_meter_address[j] = \
+                    		(((low_idx < 0) ? 0: Ascii2Hex(pValue[low_idx])) << LEN_HALF_BYTE | Ascii2Hex(pValue[low_idx+1]));
+                    }
+                }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_meter_proto_type")) {
+                    pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+                    pMInfo->f_meter_proto_type = atoi((char*)pValue);
+                }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_meter_channel")) {
+                    pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+                    pMInfo->f_meter_channel = atoi((char*)pValue);
+                }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_install_pos")) {
+                    pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+                    strcpy(pMInfo->f_install_pos, (char*)pValue);
+                }
+                rowNode = rowNode->next;
+            }
+            insert_one_meter_info(pMInfo);
+            g_xml_info[dev].meter_info_row_idx++;
+        }
+    }
+    xmlFreeDoc(pDoc);//解析完毕, 释放pDoc
+    send_upmeter_answer(dev);
+    if(total_rows == g_xml_info[dev].meter_info_row_idx) {//如果上位机发完, 更新数据库
+        insert_into_meter_info_table(pErr);
+        read_meter_info(pErr);
+    }
+    return NO_ERR;
+}
+
 //6. 操作表地址信息(meter_info)
 uint8 func_minfo(uint8 dev, uint8 xml_idx)
 {
@@ -497,9 +628,7 @@ uint8 func_minfo(uint8 dev, uint8 xml_idx)
 	case em_OPER_RD:
         break;
 	case em_OPER_WR:
-        
-        //解析并执行数据库相关操作
-        //每读一帧数据, 就向上位机推送一次应答
+        update_meter_info(dev);
         break;
 	case em_OPER_ASW:
         //printf("have read history report answer from server.\n");
@@ -514,7 +643,7 @@ uint8 func_minfo(uint8 dev, uint8 xml_idx)
 
 uint8 get_tm_node(uint8 dev, char* timenode) {
     xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
-    xmlNodePtr curNode = xmlDocGetRootElement(pDoc);
+    xmlNodePtr curNode = xmlDocGetRootElement(pDoc);//<root>node
     curNode = curNode->children;//<common>node
     while(curNode) {
         if(xmlStrEqual(curNode->name, CONST_CAST "time")) {
@@ -522,7 +651,7 @@ uint8 get_tm_node(uint8 dev, char* timenode) {
         }
         curNode = curNode->next;
     }
-	xmlFreeDoc(pDoc);
+	xmlFreeDoc(pDoc);//when have getted timenode, free server's xmlDoc
     return NO_ERR;
 }
 
