@@ -355,11 +355,11 @@
 	<row id="1">
 		<!--列名可用宏定义替代具体字符串，以减少传输的数据量-->
 		<f_device_id></f_device_id>
-		<f_meter_address></f_meter_address>
-		<f_meter_type></f_meter_type>
-		<f_meter_proto_type></f_meter_proto_type>
-		<f_meter_channel></f_meter_channel>		
-		<f_install_pos></f_install_pos>		
+		<f_meter_address></f_meter_address><!-- 约定为14位BCD码, 不足14位的在高位补零 -->
+		<f_meter_type></f_meter_type><!-- 约定为2位十六进制编码 -->
+		<f_meter_proto_type></f_meter_proto_type><!-- 约定为3位BCD码-->
+		<f_meter_channel></f_meter_channel><!-- 约定为1位BCD码-->
+		<f_install_pos></f_install_pos><!-- 字符串, 可以有汉字-->
 	</row>
 	<row id="2">
 		<!--列名可用宏定义替代具体字符串，以减少传输的数据量-->
@@ -382,6 +382,7 @@
 		<oper_type>answer</oper_type>
 	</common>
 	<result>success/fail</result>
+	<frame_idx>1</frame_idx><!-- 向上位机返回执行的帧索引 -->
 </root>
 
 <!-- 上位机查询下位机表地址信息 -->
