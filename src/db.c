@@ -640,19 +640,74 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 uint8 insert_one_meter_info(pMeter_info pMinfo)
 {
     add_node(list_meter_info, pMinfo)
+    meter_info_idx++;
     return NO_ERR;
 }
 
 int insert_one_meter_info_to_table(pMeter_info pMinfo)
 {
-    char sql_buf[LENGTH_SQLBUF];
     
-    return NO_ERR;
+	printf("now in  insert_one_meter_info_to_table():\n");
+    char sql_buf[LENGTH_SQLBUF];
+    char tmpstr[100];
+    int err;
+    strcpy(sql_buf, "insert into ");
+    strcat(sql_buf, TABLE_METER_INFO);
+    strcat(sql_buf, " ");
+    strcat(sql_buf, "(f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos)values(");
+    //values
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    sprintf(tmpstr, "%02x", pMinfo->f_meter_type);
+    strcat(sql_buf, tmpstr);
+    strcat(sql_buf, " ");
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    strcat(sql_buf, ",");
+
+    
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    sprintf(tmpstr, "%d", pMinfo->f_device_id);
+    strcat(sql_buf, tmpstr);
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    strcat(sql_buf, ",");
+
+
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    sprintf(tmpstr, "%02x%02x%02x%02x%02x%02x%02x", pMinfo->f_meter_address[6], \
+        pMinfo->f_meter_address[5], pMinfo->f_meter_address[4], pMinfo->f_meter_address[3], \
+        pMinfo->f_meter_address[2], pMinfo->f_meter_address[1], pMinfo->f_meter_address[0]);
+    strcat(sql_buf, tmpstr);
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    strcat(sql_buf, ",");
+
+
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    sprintf(tmpstr, "%d", pMinfo->f_meter_channel);
+    strcat(sql_buf, tmpstr);
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    strcat(sql_buf, ",");
+
+
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    sprintf(tmpstr, "%d", pMinfo->f_meter_proto_type);
+    strcat(sql_buf, tmpstr);
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    strcat(sql_buf, ",");
+
+    
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    strcat(sql_buf, pMinfo->f_install_pos);
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
+    
+    strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
+    printf("now in  insert_one_meter_info_to_table(), insert sql_buf: %s\n", sql_buf);
+    err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, NULL);
+    return (err==SQLITE_OK) ? NO_ERR : ERR_1;
 }
 
 uint8 insert_into_meter_info_table(char* pErr)
 {
     int err=NO_ERR;
+    printf("now in  insert_into_meter_info_table():\n");
     retrieve_meter_info_list(insert_one_meter_info_to_table);
     return err;
 }
@@ -685,7 +740,7 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
 {
 	if(!read_one_meter)
 		return;
-	
+	printf("now in  retrieve_meter_info_list():\n");
 	pMeter_info pInfo_return = malloc(sizeof(struct meter_info_str));//回传一个独立的结构体, 保证原始数据的安全
 	pMeter_info pInfo = list_meter_info;
 

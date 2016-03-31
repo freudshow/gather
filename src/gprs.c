@@ -1725,13 +1725,7 @@ void pthread_GprsDataDeal(void)
 void pthread_UpHis(void)
 {
 /* 在发送消息的地方，用这个格式。
-QmsgType Qmsg;
 
-Qmsg.mtype = 1;  //不要写0，其他都可以。
-Qmsg.dev = dev;
-Qmsg.functype = func;
-
-msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
 
 
 
@@ -1744,11 +1738,10 @@ msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
     	   msgrcv(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0,0);
 
 	   switch(Qmsg.functype){
-	   	case HIS_UP:
+	   	case em_FUNC_RPTUP:
 			up_his_data(Qmsg.dev);
 			break;
-		case ADDR_UP:
-
+		case em_FUNC_MINFO:
 			break;
 
 		default:
