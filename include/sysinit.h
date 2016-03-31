@@ -35,6 +35,7 @@ extern int32 g_uiRS4851Fd;
 extern int32 g_uiRS4852Fd;
 extern int32 g_uiGprsFd;
 extern int32 g_uiMbusFd;
+extern int32 g_uiQmsgFd;
 
 extern SysConfig_ASC2HEX_T g_sysConfigHex;
 
@@ -47,6 +48,7 @@ extern uint8 QueuesInit(void);
 extern uint8 open_IOControl(void);
 extern void sem_Init(void);
 extern void sqldb_init(void);
+extern void Qmsg_init(void);
 extern void sysConfig_Ascii2hex(void);
 
 

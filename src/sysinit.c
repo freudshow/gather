@@ -30,6 +30,7 @@ int32 g_uiRS4851Fd = 0;
 int32 g_uiRS4852Fd = 0;
 int32 g_uiGprsFd = 0;
 int32 g_uiMbusFd = 0;
+int32 g_uiQmsgFd = 0;  //消息队列用。
 
 
 
@@ -49,6 +50,7 @@ void sysinit(void)
 	uint8 lu8ret= 0;
 
 	sem_Init();
+	Qmsg_init();
 	UpcommapInit();
 	
 	lu8ret = XMLBuf_Init();
@@ -291,6 +293,32 @@ void sqldb_init(void)
 
 }
 
+
+/*
+  ******************************************************************************
+  * 函数名称： void Qmsg_init(void)
+  * 说    明： 消息队列初始化。
+  * 参    数： 无
+  ******************************************************************************
+*/
+
+void Qmsg_init(void)
+{
+	int ls32key = 0;
+
+	ls32key = ftok(QMSG_FILE,'a');
+	if(ls32key == -1)
+		printf("Creat QMSG_FILE Error.\n"); 	
+	else
+		printf("Creat QMSG_FILE OK.\n");
+
+
+	g_uiQmsgFd = msgget(ls32key, IPC_CREAT | 0666/*PERM*/);
+	if(g_uiQmsgFd == -1)
+		printf("Qmsg_init err.\n");
+
+
+}
 
 
 

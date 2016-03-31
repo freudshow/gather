@@ -82,6 +82,8 @@ typedef unsigned int uint32;
 
 #define IO_CONTROL  "/dev/CONTROL_IO"
 
+#define QMSG_FILE	"./"  //消息队列用
+
 
 //数据库名称
 #define SQLITE_NAME  "gatherdb.db"
@@ -158,6 +160,14 @@ typedef struct
     INT32 Speed;
     UINT8 Name[15];
 }COM_INFO_T;
+
+//消息队列用消息体
+typedef struct{
+	long int mtype;
+	uint8 dev;
+	uint8 functype;
+}QmsgType;
+
 
 
 //定义表基础信息结构体。

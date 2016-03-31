@@ -1724,11 +1724,40 @@ void pthread_GprsDataDeal(void)
 
 void pthread_UpHis(void)
 {
-    
+/* 在发送消息的地方，用这个格式。
+QmsgType Qmsg;
+
+Qmsg.mtype = 1;  //不要写0，其他都可以。
+Qmsg.dev = dev;
+Qmsg.functype = func;
+
+msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
+
+
+
+*/
+	QmsgType Qmsg;
+
+	    
     printf("pthread_GprsDataDeal start.\n");
     while(1){
-        sem_wait(&His_up_sem);
-        up_his_data(gu8Dev);
+    	   msgrcv(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0,0);
+
+	   switch(Qmsg.functype){
+	   	case HIS_UP:
+			up_his_data(Qmsg.dev);
+			break;
+		case ADDR_UP:
+
+			break;
+
+		default:
+			break;
+
+
+	   }
+        //sem_wait(&His_up_sem);
+        //up_his_data(gu8Dev);
     }
 }
 

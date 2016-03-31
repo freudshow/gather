@@ -33,6 +33,8 @@
 #include <libxml/parser.h>
 #include <string.h>
 #include <sys/msg.h>
+#include <sys/ipc.h>
+
 
 
 #include "sysconfig.h"
