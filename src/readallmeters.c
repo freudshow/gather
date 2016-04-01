@@ -203,6 +203,9 @@ void pthread_ReadAllMeters(void)
 					Qmsg.dev = UP_COMMU_DEV_485;
 				
     				Qmsg.functype = em_FUNC_RPTUP;
+                  char tmpstr[30];
+                  asctime_r(&gTimeNode, tmpstr);
+                  asc_to_datestr(tmpstr, Qmsg.timenode);
     				msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
 				
 			}

@@ -1732,6 +1732,7 @@ void pthread_up_long_data(void)
         printf("Qmsg.dev: %d, Qmsg.functype: %d\n", Qmsg.dev, Qmsg.functype);
         switch(Qmsg.functype){
         case em_FUNC_RPTUP:
+            set_xml_timenode(Qmsg.dev, Qmsg.timenode);
             up_his_data(Qmsg.dev);
             break;
         case em_FUNC_MINFO:

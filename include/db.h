@@ -354,6 +354,7 @@ uint8 read_all_his_data(char* timenode, char* pErr);
 int get_his_cnt(mtype_idx idx);
 uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev);
 uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev);
+uint8 asc_to_datestr(char* src, char* dest);
 
 
 

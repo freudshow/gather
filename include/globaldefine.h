@@ -166,6 +166,7 @@ typedef struct{
 	long int mtype;
 	uint8 dev;
 	uint8 functype;
+    char timenode[30];
 }QmsgType;
 
 

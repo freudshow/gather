@@ -799,11 +799,9 @@ uint8 up_his_data(uint8 dev)
     uint8 lu8xmlIndex;
     uint8 type_idx;//仪表类型的索引
     
-    err = get_tm_node(dev, g_xml_info[dev].timenode);
     printf("g_xml_info[dev].timenode: %s\n", g_xml_info[dev].timenode);
     read_all_his_data(g_xml_info[dev].timenode, pErr);
-    for(type_idx=0;type_idx<MTYPE_CNT;type_idx++)
-    {
+    for(type_idx=0;type_idx<MTYPE_CNT;type_idx++) {
         printf("--------------current meter type: %d--------------\n", type_idx);
         printf("--------------current meter get_his_cnt: %d--------------\n", get_his_cnt(type_idx));
         g_xml_info[dev].total_row[type_idx] += get_his_cnt(type_idx);
@@ -813,8 +811,7 @@ uint8 up_his_data(uint8 dev)
         g_xml_info[dev].total_frame[type_idx] = (g_xml_info[dev].total_row[type_idx]/ROW_PER_FRAME+((g_xml_info[dev].mod[type_idx])?1:0));
     }
     
-    for(type_idx=0;type_idx<MTYPE_CNT;type_idx++)
-    {
+    for(type_idx=0;type_idx<MTYPE_CNT;type_idx++) {
         printf("--------------current meter type: %d--------------\n", type_idx);
         printf("--------------current total_frame[type_idx]: %d--------------\n", g_xml_info[dev].total_frame[type_idx]);
         while(g_xml_info[dev].cur_frame[type_idx]<g_xml_info[dev].total_frame[type_idx]){
@@ -850,9 +847,8 @@ uint8 up_his_data(uint8 dev)
 				}
 				else				
 					break; //如果发送后收到应答，则跳出继续发送下一帧。
-            }           
+            }
 
-            
             g_xml_info[dev].cur_rows += g_xml_info[dev].cur_cnt;//当前已发送的行数
             printf("[%s][%s][%d] cur_frame %d cur_frame_indep %d, make xml over!!!!!!!!\n", FILE_LINE,\
             g_xml_info[dev].cur_frame[type_idx], g_xml_info[dev].cur_frame_indep);
@@ -862,14 +858,20 @@ uint8 up_his_data(uint8 dev)
 			  printf("data report fail, send quit .\n");
 			break;
 		  }
-		  
 
         }
     }
-    printf("[%s][%s][%d] all frame make xml over!!!!!!!!\n", \
-                FILE_LINE);
+    printf("[%s][%s][%d] all frame make xml over!!!!!!!!\n", FILE_LINE);
     return err;
 }
+
+uint8 set_xml_timenode(uint8 dev, char* timenode)
+{
+    uint8 err = NO_ERR;
+    strcpy(g_xml_info[dev].timenode, timenode);
+    return err;
+}
+
 
 //抄表数据上传
 uint8 func_rptup(uint8 dev, uint8 xml_idx)
@@ -883,6 +885,7 @@ uint8 func_rptup(uint8 dev, uint8 xml_idx)
         Qmsg.mtype = 1;  //不要写0，其他都可以。
         Qmsg.dev = dev;
         Qmsg.functype = em_FUNC_RPTUP;
+        get_tm_node(dev, Qmsg.timenode);
         msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
         break;
 	case em_OPER_WR:
