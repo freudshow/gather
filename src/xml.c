@@ -790,12 +790,15 @@ uint8 up_his_data(uint8 dev)
 {
     if(dev<0 || dev>=UP_COMMU_DEV_ARRAY)
         return ERR_1;
-    
+
+    int ret = 0;
+    uint8 lu8times = 0;
     uint8 err = NO_ERR;
     FILE *fp;
     char pErr[100];
     uint8 lu8xmlIndex;
     uint8 type_idx;//仪表类型的索引
+    
     err = get_tm_node(dev, g_xml_info[dev].timenode);
     printf("g_xml_info[dev].timenode: %s\n", g_xml_info[dev].timenode);
     read_all_his_data(g_xml_info[dev].timenode, pErr);
@@ -833,18 +836,34 @@ uint8 up_his_data(uint8 dev)
             printf("call wr_his_xml to write xml to file.\n");
             wr_his_xml(NULL, dev);//将xmldoc写到文件
 
+            for(lu8times=0;lu8times<5;lu8times++){
+            		if(err == NO_ERR) {//发送文件
+                		fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
+                		FileSend(dev, fp);
+                		fclose(fp);
+            		}
+		  
+		  		ret = OSSem_timedwait(&His_asw_sem,10*OS_TICKS_PER_SEC);
+		  		if(ret != 0){
+					printf("data report fail,times=%d .\n",lu8times+1);
+					continue;
+				}
+				else				
+					break; //如果发送后收到应答，则跳出继续发送下一帧。
+            }           
 
-            if(err == NO_ERR) {//发送文件
-                fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
-                FileSend(dev, fp);
-                fclose(fp);
-            }
-            Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
-            sem_wait(&His_asw_sem);//wait answer from server
             
             g_xml_info[dev].cur_rows += g_xml_info[dev].cur_cnt;//当前已发送的行数
             printf("[%s][%s][%d] cur_frame %d cur_frame_indep %d, make xml over!!!!!!!!\n", FILE_LINE,\
-                g_xml_info[dev].cur_frame[type_idx], g_xml_info[dev].cur_frame_indep);
+            g_xml_info[dev].cur_frame[type_idx], g_xml_info[dev].cur_frame_indep);
+            printf("make xml over!!!!!!!!\n");
+
+		  if(ret != 0){  //如果连续发送不成功，则退出，不再上推。
+			  printf("data report fail, send quit .\n");
+			break;
+		  }
+		  
+
         }
     }
     printf("[%s][%s][%d] all frame make xml over!!!!!!!!\n", \

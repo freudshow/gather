@@ -35,8 +35,8 @@ sem_t  Opetate485Down_sem;	//操作485下行端口信号量。
 
 sem_t Validate_sem;  //GPRS登录信号量。
 
-sem_t His_up_sem;//历史数据上传数据量
-sem_t His_asw_sem;//历史数据应答数据量
+sem_t His_up_sem;//历史数据上传信号量
+sem_t His_asw_sem;//历史数据应答信号量
 
 
 

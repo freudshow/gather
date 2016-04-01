@@ -179,6 +179,8 @@ void pthread_ReadAllMeters(void)
 	uint16 lu16ReadmeterCycle = 0;
 	uint32 lu32CheckCyc_S = 30;  //检测周期，单位秒。
 	uint32 lu32CheckCnt = 0;  //检测周期计数。
+	QmsgType Qmsg;
+	uint16 lu16netType = 0;
 
 
 	while(1){
@@ -190,7 +192,19 @@ void pthread_ReadAllMeters(void)
 			lu32CheckCnt = lu32CheckCnt % ((lu16ReadmeterCycle*60)/lu32CheckCyc_S);  //初始化后立即抄读一次。
 
 			if(lu32CheckCnt == 0){
-				ReadAllMeters();
+				ReadAllMeters();  //抄表。
+
+				Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
+				
+				lu16netType = g_sysConfigHex.netType;
+				if(lu16netType == 0)
+    					Qmsg.dev = UP_COMMU_DEV_GPRS;
+				else
+					Qmsg.dev = UP_COMMU_DEV_485;
+				
+    				Qmsg.functype = em_FUNC_RPTUP;
+    				msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
+				
 			}
 
 			lu32CheckCnt += 1;

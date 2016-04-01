@@ -210,7 +210,8 @@ void pthread_RS485UpDeal(void)
 			err = UpGetXMLEnd(lu8xmlIndex,UP_COMMU_DEV_485,lu16outtime);
 			if(err == NO_ERR){//说明接收到一帧完整的xml数据。
 				printf("[%s][%s][%d] UpGetXMLEnd OK.\n", FILE_LINE);
-                  err = parse_xml(UP_COMMU_DEV_485, lu8xmlIndex);
+
+                  	err = parse_xml(UP_COMMU_DEV_485, lu8xmlIndex);
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 				printf("[%s][%s][%d] UpGetXMLEnd OK.\n", FILE_LINE);
 			}

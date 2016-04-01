@@ -313,9 +313,12 @@ void Qmsg_init(void)
 		printf("Creat QMSG_FILE OK.\n");
 
 
+	//g_uiQmsgFd = msgget(IPC_PRIVATE,0666);
 	g_uiQmsgFd = msgget(ls32key, IPC_CREAT | 0666/*PERM*/);
 	if(g_uiQmsgFd == -1)
 		printf("Qmsg_init err.\n");
+	else
+		printf("g_uiQmsgFd = %d.\n",g_uiQmsgFd);
 
 
 }
