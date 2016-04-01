@@ -96,7 +96,7 @@ extern uint8 AsciiDec(char* str,uint16* result);
 extern int pthread_GPRS_Mana(void);
 extern int pthread_GPRS_IPD(void);
 extern void pthread_GprsDataDeal(void);
-extern void pthread_UpHis(void);
+extern void pthread_up_long_data(void);
 
 
 extern void GPRS_FileSend(uint8 Dev, FILE *fp);

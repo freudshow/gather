@@ -1722,35 +1722,23 @@ void pthread_GprsDataDeal(void)
 }
 
 
-void pthread_UpHis(void)
+void pthread_up_long_data(void)
 {
-/* 在发送消息的地方，用这个格式。
-
-
-
-
-*/
-	QmsgType Qmsg;
-
-	    
-    printf("pthread_GprsDataDeal start.\n");
+    QmsgType Qmsg;
+    printf("pthread_up_long_data start.\n");
     while(1){
-    	   msgrcv(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0,0);
-
-	   switch(Qmsg.functype){
-	   	case em_FUNC_RPTUP:
-			up_his_data(Qmsg.dev);
-			break;
-		case em_FUNC_MINFO:
-			break;
-
-		default:
-			break;
-
-
-	   }
-        //sem_wait(&His_up_sem);
-        //up_his_data(gu8Dev);
+        msgrcv(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0,0);
+        printf("have receive msg from sender\n");
+        printf("Qmsg.dev: %d, Qmsg.functype: %d\n", Qmsg.dev, Qmsg.functype);
+        switch(Qmsg.functype){
+        case em_FUNC_RPTUP:
+            up_his_data(Qmsg.dev);
+            break;
+        case em_FUNC_MINFO:
+            break;
+        default:
+            break;
+        }
     }
 }
 

@@ -64,10 +64,10 @@ int main(int argc, char **argv)
   */
 void create_pthread(void)
 {
-	int32 lReg = 0;
-	pthread_t RS485UpDeal_pthreadID;
-	pthread_t ReadAllMeters_pthreadID;
-
+    int32 lReg = 0;
+    pthread_t RS485UpDeal_pthreadID;
+    pthread_t ReadAllMeters_pthreadID;
+    pthread_t GPRS_UpHis_pthreadID;
 	create_pthread_AllUartRec();//创建所有串口接收线程，包括gprs、mbus、485上行、485下行。
 	create_pthread_GprsRelated();  //创建和GPRS有关的线程。
 
@@ -87,7 +87,13 @@ void create_pthread(void)
 	else
 		printf ("Create pthread_ReadAllMeters OK!\n");
 
-
+    lReg = pthread_create(&GPRS_UpHis_pthreadID,NULL,(void *)pthread_up_long_data,NULL);
+    if(0 != lReg){
+        printf ("Create pthread_up_long_data error!\n");
+        exit (1);
+    }
+    else
+        printf ("Create pthread_up_long_data OK!\n");
 }
 
 
@@ -187,14 +193,6 @@ void create_pthread_GprsRelated(void)
     }
     else
         printf ("Create pthread_GprsDataDeal OK!\n");
-
-    lReg = pthread_create(&GPRS_UpHis_pthreadID,NULL,(void *)pthread_UpHis,NULL);
-    if(0 != lReg){
-        printf ("Create pthread_UpHis error!\n");
-        exit (1);
-    }
-    else
-        printf ("Create pthread_UpHis OK!\n");
 
     
     

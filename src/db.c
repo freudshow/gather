@@ -439,8 +439,9 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         free(pTmp_his->value_list);
         free(pTmp_his);
         pTmp_his = his_data_list_array[idx];//指向下一个节点
-        printf("finish delete one node\n");
+        printf("pTmp_his: %p, his_data_list_array[idx]: %p\n", pTmp_his, his_data_list_array[idx]);
         i++;
+        printf("finish delete one node, idx is: %d\n", i);
     }
     free(pRtn_his);
     return NO_ERR;

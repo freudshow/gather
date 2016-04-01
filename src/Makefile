@@ -17,5 +17,6 @@ all: $(TARGET)
 $(TARGET): $(SRC)
 	$(CC) $(OBJ) $(CFLAGS) $(SRC) $(INCLUDEPATH) $(LIBDIR) $(LIBS)
 	$(CP) $(BIN) $(NFSROOT)
+	$(CP) $(BIN) ~/nfsmnt
 clean:
 	@rm -vf $(BIN) *.o *~
