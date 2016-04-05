@@ -1724,21 +1724,29 @@ void pthread_GprsDataDeal(void)
 
 void pthread_up_long_data(void)
 {
+	int ret = 0;
     QmsgType Qmsg;
+    
     printf("pthread_up_long_data start.\n");
     while(1){
         msgrcv(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0,0);
         printf("have receive msg from sender\n");
         printf("Qmsg.dev: %d, Qmsg.functype: %d\n", Qmsg.dev, Qmsg.functype);
+	   
+	   ret = sem_init(&His_asw_sem,0,0);  //防止信号错误，每次上传时初始化一次。
+		if(ret != 0)
+			perror("His_asw_sem  error\n");
+		
         switch(Qmsg.functype){
-        case em_FUNC_RPTUP:
-            set_xml_timenode(Qmsg.dev, Qmsg.timenode);
-            up_his_data(Qmsg.dev);
-            break;
-        case em_FUNC_MINFO:
-            break;
-        default:
-            break;
+        		case em_FUNC_RPTUP:
+           		 set_xml_timenode(Qmsg.dev, Qmsg.timenode);
+           		 up_his_data(Qmsg.dev);
+           	 break;
+        		case em_FUNC_MINFO:
+           	 break;
+			 
+        		default:
+           	 break;
         }
 
     }

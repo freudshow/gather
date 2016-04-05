@@ -251,7 +251,8 @@ typedef enum{//上,下位机直接下发function的类型编号
 	em_FUNC_SYSCMD,//本地shell命令透传
 	em_FUNC_CODEUP,//程序更新
 	em_FUNC_PROTOTRS,//协议透传
-	em_FUNC_CLOCK_SET//集中器校时
+	em_FUNC_CLOCK_SET,//集中器校时
+	em_FUNC_COLLECT_SET  //集中器抄表模式和抄表周期设置。
 }func_type_idx;
 
 typedef enum{//上下位机操作类型编号

@@ -49,6 +49,7 @@ int main(int argc, char **argv)
 
 
 	close_db();
+	exit(0);
 	return 0;
 	
 	
@@ -168,7 +169,7 @@ void create_pthread_GprsRelated(void)
     pthread_t GPRS_Mana_pthreadID;  //GPRS管理线程ID.
     pthread_t GPRS_IPD_pthreadID;  //GPRS网络传输数据处理线程ID.
     pthread_t GprsDataDeal_pthreadID;  //GPRS网络传输数据处理线程ID.
-    pthread_t GPRS_UpHis_pthreadID;//GPRS上传历史数据线程ID.
+   
     lReg = pthread_create(&GPRS_Mana_pthreadID,NULL,(void *)pthread_GPRS_Mana,NULL);
     if(0 != lReg){
         	printf ("Create pthread_GPRS_Mana error!\n");

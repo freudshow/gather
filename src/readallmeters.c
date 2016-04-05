@@ -147,20 +147,52 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 void ReadAllMeters(void)
 {
 	time_t timep;
-        struct tm nowTime;
+     struct tm nowTime;
+	QmsgType Qmsg;
+	uint16 lu16netType = 0;
 
-        time(&timep);
-        localtime_r(&timep, &gTimeNode);
-        gTimeNode.tm_sec = 0;   //露篓脢卤鲁颅卤铆陆脷碌茫拢卢脙毛脢媒鹿脤露篓脨麓0.
-        memcpy((uint8 *)&nowTime,(uint8 *)&gTimeNode,sizeof(struct tm));
-        nowTime.tm_year +=      1900;
-        nowTime.tm_mon += 1;  //脳陋禄禄鲁脡碌卤脟掳脛锚潞脥脭脗隆拢
+     time(&timep);
+     localtime_r(&timep, &gTimeNode);
+     gTimeNode.tm_sec = 0;   //露篓脢卤鲁颅卤铆陆脷碌茫拢卢脙毛脢媒鹿脤露篓脨麓0.
+     memcpy((uint8 *)&nowTime,(uint8 *)&gTimeNode,sizeof(struct tm));
+     nowTime.tm_year +=      1900;
+     nowTime.tm_mon += 1;  //脳陋禄禄鲁脡碌卤脟掳脛锚潞脥脭脗隆拢
 
-        printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday);
-        printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
+     printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday);
+     printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
 
 
-        retrieve_meter_info_list(CallBack_ReadAllMeters);  //卤茅脌煤鲁颅脠芦卤铆隆拢
+     retrieve_meter_info_list(CallBack_ReadAllMeters);  //卤茅脌煤鲁颅脠芦卤铆隆拢
+/*
+	lu16netType = g_sysConfigHex.netType;
+	if(lu16netType == 0){  //使用485组网，是不允许信息主动上推的，必须等待上位要数
+	  	Qmsg.dev = UP_COMMU_DEV_GPRS;
+		Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
+		Qmsg.functype = em_FUNC_RPTUP;
+		char tmpstr[30];
+		asctime_r(&gTimeNode, tmpstr);
+		asc_to_datestr(tmpstr, Qmsg.timenode);
+  		msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
+
+	}
+*/
+	
+
+  	Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
+  
+  	lu16netType = g_sysConfigHex.netType;
+  	if(lu16netType == 0)
+	  	Qmsg.dev = UP_COMMU_DEV_GPRS;
+  	else
+	  	Qmsg.dev = UP_COMMU_DEV_485;    //使用485组网，是不允许信息主动上推的，必须等待上位要数，这里测试用。
+  
+  	Qmsg.functype = em_FUNC_RPTUP;
+	char tmpstr[30];
+	asctime_r(&gTimeNode, tmpstr);
+	asc_to_datestr(tmpstr, Qmsg.timenode);
+  	msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
+  
+
 }
 
 
@@ -179,9 +211,7 @@ void pthread_ReadAllMeters(void)
 	uint16 lu16ReadmeterCycle = 0;
 	uint32 lu32CheckCyc_S = 30;  //检测周期，单位秒。
 	uint32 lu32CheckCnt = 0;  //检测周期计数。
-	QmsgType Qmsg;
-	uint16 lu16netType = 0;
-
+	
 
 	while(1){
 		//检测抄表信号，如果抄表信号有效，则开始全抄表，否则，等待30s吧，这些以后要补充，现在下面测试用。
@@ -193,20 +223,6 @@ void pthread_ReadAllMeters(void)
 
 			if(lu32CheckCnt == 0){
 				ReadAllMeters();  //抄表。
-
-				Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
-				
-				lu16netType = g_sysConfigHex.netType;
-				if(lu16netType == 0)
-    					Qmsg.dev = UP_COMMU_DEV_GPRS;
-				else
-					Qmsg.dev = UP_COMMU_DEV_485;
-				
-    				Qmsg.functype = em_FUNC_RPTUP;
-                  char tmpstr[30];
-                  asctime_r(&gTimeNode, tmpstr);
-                  asc_to_datestr(tmpstr, Qmsg.timenode);
-    				msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
 				
 			}
 

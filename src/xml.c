@@ -822,7 +822,8 @@ uint8 up_his_data(uint8 dev)
             g_xml_info[dev].cur_cnt = (g_xml_info[dev].cur_frame[type_idx]<=(g_xml_info[dev].total_frame[type_idx]-1) ? ROW_PER_FRAME:g_xml_info[dev].mod[type_idx]);
             printf("[%s][%s][%d]current frameidx: %d, cur_cnt: %d, mod: %d\n", FILE_LINE, g_xml_info[dev].cur_frame_indep, \
                 g_xml_info[dev].cur_cnt, g_xml_info[dev].mod[type_idx]);
-            wr_his_xml(NULL, dev);//写trans节点
+		
+		  wr_his_xml(NULL, dev);//写trans节点
             g_xml_info[dev].cur_row_idx = 0;
             retrieve_and_del_his_data(type_idx, g_xml_info[dev].cur_cnt, wr_his_xml, dev);//写row节点, 查询完就删除, 以免下一帧从头开始查
 
