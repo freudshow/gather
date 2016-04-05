@@ -200,6 +200,10 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	uint8 *p;//改变CJ188_Format中uint32类型的字节序
 	switch(type_idx) {
 	case em_heat:
+        if (NULL==pData) {//与调用者约定, 如果传入了NULL值, 就认为当前仪表的当前时间点的历史数据没抄上来
+            //insert null data to datatable;
+         }
+         else{
 			heatdata = (CJ188_Format*)pData;
 			while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
 				memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
@@ -256,6 +260,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 					strcat(sql_buf, ",");
 				item_list = item_list->pNext;
 			}
+         }
 		break;
 	case em_water:
 		break;
@@ -330,6 +335,7 @@ int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name
                     strcpy(tmp_his->value_list[j].field_value, f_value[i]==NULL?"NULL":f_value[i]);
         }
     }
+    printf("&&&&[%s][%s][%d] his_data_list_array[%d]: %p\n", FILE_LINE, idx, his_data_list_array[idx]);
     add_node(his_data_list_array[idx], tmp_his)
     hisdata_idx_array[idx]++;
 
@@ -338,6 +344,7 @@ int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name
 
 uint8 empty_hist_data(mtype_idx idx)
 {
+    printf("&&&&[%s][%s][%d] empty_hist_data() &&&&\n", FILE_LINE);
     pHis_data tmpNode;
     while(his_data_list_array[idx]) {
         tmpNode = his_data_list_array[idx];
@@ -370,6 +377,7 @@ uint8 get_his_sql(char* timenode, mtype_idx type_idx)
 uint8 read_his_data(char* timenode, mtype_idx idx, char* pErr)
 {
     uint8 err = NO_ERR;
+    printf("&&&&[%s][%s][%d] retrieve_his_data() &&&&\n", FILE_LINE);
     empty_hist_data(idx);
     get_his_sql(timenode, idx);
     err = sqlite3_exec(g_pDB, his_sql_array[idx], each_his_data, &idx, &pErr);
@@ -397,7 +405,7 @@ uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, u
     pHis_data pTmp_his = his_data_list_array[idx];
     pHis_data pRtn_his = malloc(sizeof(struct his_data_str));
     memset(pRtn_his, 0, sizeof(struct his_data_str));
-    
+    printf("&&&&[%s][%s][%d] retrieve_his_data() &&&&\n", FILE_LINE);
     while(pTmp_his && (i<cnt)) {//要读取的行数不能大于剩下的行数
         memcpy(pRtn_his, pTmp_his, sizeof(struct his_data_str));
         pRtn_his->pNext = NULL;
@@ -406,8 +414,8 @@ uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, u
         pRtn_his->value_list = malloc(pTmp_his->value_cnt*sizeof(struct meter_item));    
         memcpy(pRtn_his->value_list, pTmp_his->value_list, pTmp_his->value_cnt*sizeof(struct meter_item));
         read_one_his(pRtn_his, dev);
-        free(pRtn_his->value_list);
         pTmp_his = pTmp_his->pNext;
+        free(pRtn_his->value_list);
         i++;
     }
     free(pRtn_his);
@@ -421,7 +429,10 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
     pHis_data pRtn_his = malloc(sizeof(struct his_data_str));
     memset(pRtn_his, 0, sizeof(struct his_data_str));
     
-    while(pTmp_his && (i<cnt)) {//要读取的行数不能大于剩下的行数
+    while(pTmp_his&& (i<cnt) /* && (i<hisdata_idx_array[idx])*/) {//要读取的行数不能大于剩下的行数
+        printf("@@@@@[%s][%s][%d]hisdata_idx_array[%d]: %d @@@@@\n",FILE_LINE, idx, hisdata_idx_array[idx]);
+        printf("@@@@@[%s][%s][%d]pTmp_his: %p @@@@@\n",FILE_LINE, pTmp_his);
+        printf("@@@@@[%s][%s][%d], idx is: %d, cnt: %d, hisdata_idx_array[%d]: %d\n", FILE_LINE, i, cnt, idx, hisdata_idx_array[idx]);
         memcpy(pRtn_his, pTmp_his, sizeof(struct his_data_str));
         pRtn_his->pNext = NULL;
         pRtn_his->pPrev= NULL;
@@ -431,7 +442,7 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         read_one_his(pRtn_his, dev);
         free(pRtn_his->value_list);
         //删除已读取的节点
-        printf("start delete one node\n");
+        printf("^^^^^^[%s][%s][%d]start delete one node\n", FILE_LINE);
         his_data_list_array[idx] = his_data_list_array[idx]->pNext;
         if(his_data_list_array[idx]) {
             his_data_list_array[idx]->pPrev = pTmp_his->pPrev;
@@ -441,6 +452,7 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         pTmp_his = his_data_list_array[idx];//指向下一个节点
         printf("pTmp_his: %p, his_data_list_array[idx]: %p\n", pTmp_his, his_data_list_array[idx]);
         i++;
+        hisdata_idx_array[idx]--;
         printf("finish delete one node, idx is: %d\n", i);
     }
     free(pRtn_his);
