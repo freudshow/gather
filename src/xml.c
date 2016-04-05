@@ -548,13 +548,14 @@ uint8 update_meter_info(uint8 dev)
     char pErr[100];
     pMeter_info pMInfo;
     xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
+    printf("[%s][%s][%d] pDoc\n", FILE_LINE);
     xmlNodePtr rootNode = xmlDocGetRootElement(pDoc);
     xmlNodePtr curNode;
     xmlNodePtr transNode;
     xmlNodePtr rowNode;
     xmlChar* pValue;
     int total_rows;//上位机一共要下发多少行数据
-    printf("now in update_meter_info()\n");
+    printf("[%s][%s][%d] rootNode:　%p\n", FILE_LINE, rootNode);
     curNode = rootNode->children;
     while(curNode) {//得到trans节点
         printf("curNode->name: %s\n", curNode->name);
@@ -668,27 +669,27 @@ uint8 func_minfo(uint8 dev, uint8 xml_idx)
 }
 
 uint8 get_tm_node(uint8 dev, char* timenode) {
-    printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
+    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
     //xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
-    printf("[%s][%s][%d] pXMLFile: %s\n", FILE_LINE, gXML_File[g_xml_info[dev].xml_rd_file_idx].pXMLFile);
+    //printf("[%s][%s][%d] pXMLFile: %s\n", FILE_LINE, gXML_File[g_xml_info[dev].xml_rd_file_idx].pXMLFile);
     xmlDocPtr pDoc = xmlParseFile(gXML_File[g_xml_info[dev].xml_rd_file_idx].pXMLFile);
-    printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d] pDoc %p<<<<<<<<<<<<<<<<<<<\n", FILE_LINE, pDoc);
-    printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
+    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d] pDoc %p<<<<<<<<<<<<<<<<<<<\n", FILE_LINE, pDoc);
+    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
     xmlNodePtr curNode = xmlDocGetRootElement(pDoc);//<root>node
-    printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
+    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
     curNode = curNode->children;//<common>node
     while(curNode) {
-        printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
+        //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
         if(xmlStrEqual(curNode->name, CONST_CAST "time")) {
             printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
             strcpy(timenode, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
         }
-        printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
+        //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
         curNode = curNode->next;
     }
-    printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
+    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
 	xmlFreeDoc(pDoc);//when have getted timenode, free server's xmlDoc
-    printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
+    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
     return NO_ERR;
 }
 
@@ -738,7 +739,7 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
         g_xml_info[dev].cur_wr_state = stat_his_data;
         break;
     case stat_his_data:
-        printf("now enter state: stat_his_data\n");
+        printf("[%s][%s][%d] now enter state: stat_his_data\n", FILE_LINE);
         g_xml_info[dev].cur_row_idx++;
         root_node = xmlDocGetRootElement(g_xml_info[dev].xmldoc_wr);
         printf("[%s][%s][%d] xmldoc_wr: %p\n", FILE_LINE, g_xml_info[dev].xmldoc_wr);
@@ -748,6 +749,7 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
         xmlNewProp(row_node, BAD_CAST "id", BAD_CAST str);//当前帧的第几行
         xmlAddChild(root_node,row_node);
         //固定项
+        printf("[%s][%s][%d] befor insert constant, pHis: %p\n", FILE_LINE, pHis);
         xmlNewTextChild(row_node, NULL, CONST_CAST "f_id", CONST_CAST pHis->f_id);//row_id
         xmlNewTextChild(row_node, NULL, CONST_CAST "f_meter_type", CONST_CAST pHis->f_meter_type);//表类型
         xmlNewTextChild(row_node, NULL, CONST_CAST "f_device_id", CONST_CAST pHis->f_device_id);//设备编号
@@ -759,13 +761,15 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
             xmlNewTextChild(row_node, NULL, CONST_CAST pHis->value_list[val_idx].field_name, \
             CONST_CAST pHis->value_list[val_idx].field_value);
         }
-        printf("insert variant fields over!!!!!!\n");
-        printf("g_xml_info[dev].cur_row_idx: %d,  g_xml_info[dev].cur_cnt: %d\n", g_xml_info[dev].cur_row_idx, g_xml_info[dev].cur_cnt);
+        printf("[%s][%s][%d] insert variant fields over!!!!!!\n", FILE_LINE);
+        printf("[%s][%s][%d] g_xml_info[dev].cur_row_idx: %d, \
+            g_xml_info[dev].cur_cnt: %d\n", FILE_LINE, g_xml_info[dev].cur_row_idx, g_xml_info[dev].cur_cnt);
         if(g_xml_info[dev].cur_row_idx == g_xml_info[dev].cur_cnt) {
             g_xml_info[dev].cur_wr_state = stat_his_end;
-            printf("insert all row over!!!\n");
-            printf("point to next state stat_his_end\n");
+            printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<insert all row over!!!\n", FILE_LINE);
+            printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<point to next state stat_his_end\n", FILE_LINE);
         }
+        printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
         printf("insert one row over!!!\n");
         break;
     case stat_his_end:
@@ -801,25 +805,36 @@ uint8 up_his_data(uint8 dev)
     
     printf("g_xml_info[dev].timenode: %s\n", g_xml_info[dev].timenode);
     read_all_his_data(g_xml_info[dev].timenode, pErr);
+    g_xml_info[dev].cur_frame_indep = 0;
+    g_xml_info[dev].total_rows = 0;
+    g_xml_info[dev].cur_rows = 0;
     for(type_idx=0;type_idx<MTYPE_CNT;type_idx++) {
-        printf("--------------current meter type: %d--------------\n", type_idx);
-        printf("--------------current meter get_his_cnt: %d--------------\n", get_his_cnt(type_idx));
-        g_xml_info[dev].total_row[type_idx] += get_his_cnt(type_idx);
+        //printf("--------------current meter type: %d--------------\n", type_idx);
+        //printf("--------------current meter get_his_cnt: %d--------------\n", get_his_cnt(type_idx));
+        g_xml_info[dev].total_row[type_idx] = get_his_cnt(type_idx);
         g_xml_info[dev].total_rows += g_xml_info[dev].total_row[type_idx];
         g_xml_info[dev].mod[type_idx] = g_xml_info[dev].total_row[type_idx]%ROW_PER_FRAME;
+        printf("##########[%s][%s][%d]##########total_row[%d]: %d.\n", FILE_LINE, type_idx, g_xml_info[dev].total_row[type_idx]);
+        printf("##########[%s][%s][%d]##########mod[%d]: %d.\n", FILE_LINE, type_idx, g_xml_info[dev].mod[type_idx]);
         g_xml_info[dev].cur_frame[type_idx] = 0;
         g_xml_info[dev].total_frame[type_idx] = (g_xml_info[dev].total_row[type_idx]/ROW_PER_FRAME+((g_xml_info[dev].mod[type_idx])?1:0));
     }
     
     for(type_idx=0;type_idx<MTYPE_CNT;type_idx++) {
-        printf("--------------current meter type: %d--------------\n", type_idx);
-        printf("--------------current total_frame[type_idx]: %d--------------\n", g_xml_info[dev].total_frame[type_idx]);
+        printf("--------------total_row[%d]: %d--------------\n", type_idx,  g_xml_info[dev].total_row[type_idx]);
         while(g_xml_info[dev].cur_frame[type_idx]<g_xml_info[dev].total_frame[type_idx]){
             g_xml_info[dev].cur_frame[type_idx]++;
             g_xml_info[dev].cur_frame_indep++;
             g_xml_info[dev].cur_wr_state = stat_his_init;//每次组帧之前都是初始状态
             wr_his_xml(NULL, dev);//写root节点和common节点
-            g_xml_info[dev].cur_cnt = (g_xml_info[dev].cur_frame[type_idx]<=(g_xml_info[dev].total_frame[type_idx]-1) ? ROW_PER_FRAME:g_xml_info[dev].mod[type_idx]);
+            printf("##########[%s][%s][%d]cur_frame[%d]: %d, total_frame[%d]: %d##########\n",FILE_LINE,\
+                type_idx, g_xml_info[dev].cur_frame[type_idx], type_idx, g_xml_info[dev].total_frame[type_idx]);
+
+            if(g_xml_info[dev].cur_frame[type_idx] == g_xml_info[dev].total_frame[type_idx])
+               g_xml_info[dev].cur_cnt = g_xml_info[dev].mod[type_idx];//如果当前帧是最后一帧, 那么等于余数
+            else
+               g_xml_info[dev].cur_cnt = ROW_PER_FRAME;//否则等于约定的行数
+
             printf("[%s][%s][%d]current frameidx: %d, cur_cnt: %d, mod: %d\n", FILE_LINE, g_xml_info[dev].cur_frame_indep, \
                 g_xml_info[dev].cur_cnt, g_xml_info[dev].mod[type_idx]);
             wr_his_xml(NULL, dev);//写trans节点
@@ -830,7 +845,7 @@ uint8 up_his_data(uint8 dev)
                 lu8xmlIndex = Get_XMLBuf();
             }while(lu8xmlIndex == ERR_FF);
             g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
-            printf("call wr_his_xml to write xml to file.\n");
+            printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<call wr_his_xml to write xml to file.\n", FILE_LINE);
             wr_his_xml(NULL, dev);//将xmldoc写到文件
 
             for(lu8times=0;lu8times<5;lu8times++){
@@ -1003,10 +1018,14 @@ uint8 parse_common(uint8 dev, uint8 xml_idx, xmlNodePtr common_node)
             retErr = xml_exec(dev, xml_idx);
             printf((retErr==NO_ERR)?"parse xml success\n":"parse xml fail\n");
             g_xml_info[dev].xml_rd_file_idx = xml_idx;
-            g_xml_info[dev].xmldoc_rd = xmlParseFile(gXML_File[xml_idx].pXMLFile);//当上位机发送的目标是本集中器, 就把其命令放入本机的树结构
+
+            //在此处解析xml文件已经是在执行完相应的函数后了, 不起到任何作用, g_xml_info[dev].xmldoc_rd在此前一直为NULL
+            //g_xml_info[dev].xmldoc_rd = xmlParseFile(gXML_File[xml_idx].pXMLFile);
         }
         else{
-            //不是给本集中器的，则空处理即可，舍弃。
+            //不是给本集中器的, 舍弃。
+            free(g_xml_info[dev].xmldoc_rd);//当上位机发送的目标不是是本集中器, 则释放xml树结构
+            memset(&g_xml_info[dev], 0, sizeof(xml_info_str));
         }
     }
     printf("[%s][%s][%d]current file name : %s\n", FILE_LINE, gXML_File[g_xml_info[dev].xml_rd_file_idx].pXMLFile);
@@ -1032,6 +1051,7 @@ uint8 parse_xml(uint8 dev, uint8 xml_idx)
 	xmlNodePtr cur;
 	uint8 retErr;
 	doc = xmlParseFile(gXML_File[xml_idx].pXMLFile);
+    g_xml_info[dev].xmldoc_rd = doc;
 	if(doc == NULL) {
 		fprintf(stderr, "Document not open successfully. \n");
 		//sem_post(fd's xml_info_str read semaphore)
