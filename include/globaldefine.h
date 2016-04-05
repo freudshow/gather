@@ -238,22 +238,24 @@ typedef xml_info_str* pXml_info;
 
 
 typedef enum{//上,下位机直接下发function的类型编号
-	em_FUNC_ID = 0,//登录
-	em_FUNC_HEATBT,//心跳
-	em_FUNC_SYSCONF,//系统参数配置
-	em_FUNC_RQDATA,//仪表的数据项配置
-	em_FUNC_TNODE,//抄表与上报时间点配置
-	em_FUNC_MINFO,//表地址配置
-	em_FUNC_RPTUP,//上传历史数据
-	em_FUNC_RDSTAT,//读取集中器状态
-	em_FUNC_SWIP,//切换ip
-	em_FUNC_DBMANI,//数据库透传
-	em_FUNC_SYSCMD,//本地shell命令透传
-	em_FUNC_CODEUP,//程序更新
-	em_FUNC_PROTOTRS,//协议透传
-	em_FUNC_CLOCK_SET,//集中器校时
-	em_FUNC_COLLECT_SET  //集中器抄表模式和抄表周期设置。
+    em_FUNC_ID = 0,     //func_index -0-, 登录
+    em_FUNC_HEATBT,     //func_index -1-, 心跳
+    em_FUNC_SYSCONF,    //func_index -3-, 系统参数配置
+    em_FUNC_RQDATA,     //func_index -4-, 仪表的数据项配置
+    em_FUNC_TNODE,      //func_index -5-, 抄表与上报时间点配置
+    em_FUNC_MINFO,      //func_index -6-, 表地址配置
+    em_FUNC_RPTUP,      //func_index -7-, 上传历史数据
+    em_FUNC_RDSTAT,     //func_index -8-, 读取集中器状态
+    em_FUNC_SWIP,       //func_index -9-, 切换ip
+    em_FUNC_DBMANI,     //func_index -10-, 数据库透传
+    em_FUNC_SYSCMD,     //func_index -11-, 本地shell命令透传
+    em_FUNC_CODEUP,     //func_index -12-, 程序更新
+    em_FUNC_PROTOTRS,   //func_index -13-, 协议透传
+    em_FUNC_CLOCK_SET,  //func_index -14-, 集中器校时
+    em_FUNC_COLLECT_SET //func_index -15-, 集中器抄表模式和抄表周期设置。
 }func_type_idx;
+
+
 
 typedef enum{//上下位机操作类型编号
 	em_OPER_RD=0,//读取

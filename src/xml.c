@@ -870,10 +870,11 @@ uint8 up_his_data(uint8 dev)
             g_xml_info[dev].cur_frame[type_idx], g_xml_info[dev].cur_frame_indep);
             printf("make xml over!!!!!!!!\n");
 
-		  if(ret != 0){  //如果连续发送不成功，则退出，不再上推。
-			  printf("data report fail, send quit .\n");
-			break;
-		  }
+            if(ret != 0){  //如果连续发送不成功，则退出，不再上推。
+              printf("data report fail, send quit .\n");
+              empty_all_hisdata();
+            break;
+            }
 
         }
     }

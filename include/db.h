@@ -145,23 +145,25 @@
 #define FIELD_BASE_DEF_VALUE	"f_config_value"
 
 
-enum T_System_Config {
-	CONFIG_PRIMARY_SERVER = 0,    //主服务器IP
-	CONFIG_PRIMARY_DNS,			//主DNS IP
-	CONFIG_PRIMARY_PORT,		//主服务器端口
-	CONFIG_SECOND_SERVER,		//副服务器IP
-	CONFIG_SECOND_DNS,			//副DNS IP
-	CONFIG_SECOND_PORT,			//副服务器端口
-	CONFIG_GATEWAY_ID,			//集中器编号
-	CONFIG_NET_TYPE,			//网络类型，0-GPRS,1-485等。
-	CONFIG_MD5_KEY,			//MD5秘钥
-	CONFIG_AES_KEY,			//AES秘钥
-	CONFIG_COLLECT_MODE,		//自动抄表方式，0-根据collect_cycle周期设置抄表，1-定点抄表。
-	CONFIG_COLLECT_CYCLE,		//自动采集周期，当COLLECT_MODE为0时有效。
-	CONFIG_REPORT_MODE,			//数据上报模式,0-主动上报，1-被动请求。
-	CONFIG_BEAT_CYCLE			//心跳周期，范围1-10分钟。
+typedef enum T_System_Config {
+    CONFIG_PRIMARY_SERVER = 0,  //下发配置的序号-1-, 主服务器IP
+    CONFIG_PRIMARY_DNS,         //下发配置的序号-2-, 主DNS IP
+    CONFIG_PRIMARY_PORT,        //下发配置的序号-3-, 主服务器端口
+    CONFIG_SECOND_SERVER,       //下发配置的序号-4-, 副服务器IP
+    CONFIG_SECOND_DNS,          //下发配置的序号-5-, 副DNS IP
+    CONFIG_SECOND_PORT,         //下发配置的序号-6-, 副服务器端口
+    CONFIG_GATEWAY_ID,          //下发配置的序号-7-, 集中器编号
+    CONFIG_NET_TYPE,            //下发配置的序号-8-, 网络类型，0-GPRS,1-485等。
+    CONFIG_MD5_KEY,             //下发配置的序号-9-, MD5秘钥
+    CONFIG_AES_KEY,             //下发配置的序号-10-, AES秘钥
+    CONFIG_REPORT_MODE,         //下发配置的序号-11-, 数据上报模式,0-主动上报，1-被动请求。
+    CONFIG_BEAT_CYCLE           //下发配置的序号-12-, 心跳周期，范围1-10分钟。
+}em_sys_config;
 
-};
+typedef enum{
+    	CONFIG_COLLECT_MODE=0,	//自动抄表方式，0-根据collect_cycle周期设置抄表，1-定点抄表。
+	CONFIG_COLLECT_CYCLE//自动采集周期，当COLLECT_MODE为0时有效。
+}collect_mod;
 
 struct sys_config_structure;
 typedef struct sys_config_structure sys_config_str;
@@ -351,6 +353,7 @@ int  get_request_data_cnt(mtype_idx);//读取仪表数据项的个数
 void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr);
 uint8 read_his_data(char* timenode, mtype_idx idx, char* pErr);
 uint8 read_all_his_data(char* timenode, char* pErr);
+uint8 empty_all_hisdata(void);
 int get_his_cnt(mtype_idx idx);
 uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev);
 uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev);
