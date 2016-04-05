@@ -198,85 +198,89 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	item_list = arrayRequest_list[type_idx];
 	CJ188_Format* heatdata;
 	uint8 *p;//改变CJ188_Format中uint32类型的字节序
-	switch(type_idx) {
-	case em_heat:
-        if (NULL==pData) {//与调用者约定, 如果传入了NULL值, 就认为当前仪表的当前时间点的历史数据没抄上来
-            while(item_list) {
-    			strcat(sql_buf, "'NULL'");
-    			if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
-    				strcat(sql_buf, ",");
-    			item_list = item_list->pNext;
-            }
+    if (NULL==pData) {//与调用者约定, 如果传入了NULL值, 就认为当前仪表的当前时间点的历史数据没抄上来
+        while(item_list) {
+        strcat(sql_buf, "'NULL'");
+        if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
+        strcat(sql_buf, ",");
+        item_list = item_list->pNext;
         }
-         else{
-    		heatdata = (CJ188_Format*)pData;
-    		while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
-    			memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
-    			switch(item_list->f_item_index) {
-    			case HITEM_CUR_COLD_E:
-    				p=(uint8 *)&(heatdata->DailyHeat);
-    				sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->DailyHeatUnit);//实际为冷量, 而不是结算日热量
-    				break;
-    			case HITEM_CUR_HEAT_E:
-    				p=(uint8 *)&(heatdata->CurrentHeat);
-    				sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->CurrentHeatUnit);
-    				break;
-    			case HITEM_HEAT_POWER:
-    				p=(uint8 *)&(heatdata->HeatPower);
-    				sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->HeatPowerUnit);
-    				break;
-    			case HITEM_FLOWRATE:
-    				p=(uint8 *)&(heatdata->Flow);
-    				sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->FlowUnit);
-    				break;
-    			case HITEM_ACCUM_FLOW:
-    				p=(uint8 *)&(heatdata->AccumulateFlow);
-    				sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), *(p+3), heatdata->AccumulateFlowUnit);
-    				break;
-    			case HITEM_IN_TEMP:
-    				sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[0], \
-    					heatdata->WaterInTemp[1], heatdata->WaterInTemp[2]);
-    				break;
-    			case HITEM_OUT_TEMP:
-    				sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[0], \
-    					heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[2]);
-    				break;
-    			case HITEM_ACCUM_WORK_TIME:
-    				sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[0], \
-    					heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[2]);
-    				break;
-    			case HITEM_REAL_TIME:					
-    				sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[0], \
-    					heatdata->RealTime[1], heatdata->RealTime[2], \
-    					heatdata->RealTime[3], heatdata->RealTime[4], 
-    					heatdata->RealTime[5], heatdata->RealTime[6]);
-    				break;
-    			case HITEM_STATE:
-    				sprintf(tmp_data, "%04x", heatdata->ST);
-    				break;
-    			default:
-    				sprintf(tmp_data, "Err");
-    				break;
-    			}
-    			strcat(sql_buf, SQL_SINGLE_QUOTES);
-    			strcat(sql_buf, tmp_data);
-    			strcat(sql_buf, SQL_SINGLE_QUOTES);
-    			if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
-    				strcat(sql_buf, ",");
-    			item_list = item_list->pNext;
-    		}
-         }
-        break;
-    case em_water:
-        break;
-    case em_elect:
-        break;
-    case em_gas:
-        break;
-    default:
-        break;
     }
-
+    else {
+        switch(type_idx) {
+        case em_heat:
+            heatdata = (CJ188_Format*)pData;
+            while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
+                memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
+                switch(item_list->f_item_index) {
+                case HITEM_CUR_COLD_E:
+                    p=(uint8 *)&(heatdata->DailyHeat);
+                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+                    *(p+3), heatdata->DailyHeatUnit);//实际为冷量, 而不是结算日热量
+                    break;
+                case HITEM_CUR_HEAT_E:
+                    p=(uint8 *)&(heatdata->CurrentHeat);
+                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+                    *(p+3), heatdata->CurrentHeatUnit);
+                    break;
+                case HITEM_HEAT_POWER:
+                    p=(uint8 *)&(heatdata->HeatPower);
+                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+                    *(p+3), heatdata->HeatPowerUnit);
+                    break;
+                case HITEM_FLOWRATE:
+                    p=(uint8 *)&(heatdata->Flow);
+                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+                    *(p+3), heatdata->FlowUnit);
+                    break;
+                case HITEM_ACCUM_FLOW:
+                    p=(uint8 *)&(heatdata->AccumulateFlow);
+                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+                    *(p+3), heatdata->AccumulateFlowUnit);
+                    break;
+                case HITEM_IN_TEMP:
+                    sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[0], \
+                    heatdata->WaterInTemp[1], heatdata->WaterInTemp[2]);
+                    break;
+                case HITEM_OUT_TEMP:
+                    sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[0], \
+                    heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[2]);
+                    break;
+                case HITEM_ACCUM_WORK_TIME:
+                    sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[0], \
+                    heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[2]);
+                    break;
+                case HITEM_REAL_TIME:					
+                    sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[0], \
+                    heatdata->RealTime[1], heatdata->RealTime[2], \
+                    heatdata->RealTime[3], heatdata->RealTime[4], 
+                    heatdata->RealTime[5], heatdata->RealTime[6]);
+                    break;
+                case HITEM_STATE:
+                    sprintf(tmp_data, "%04x", heatdata->ST);
+                    break;
+                default:
+                    sprintf(tmp_data, "Err");
+                    break;
+            }
+            strcat(sql_buf, SQL_SINGLE_QUOTES);
+            strcat(sql_buf, tmp_data);
+            strcat(sql_buf, SQL_SINGLE_QUOTES);
+            if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
+            strcat(sql_buf, ",");
+            item_list = item_list->pNext;
+            }
+            break;
+        case em_water:
+            break;
+        case em_elect:
+            break;
+        case em_gas:
+            break;
+        default:
+            break;
+        }
+    }
     strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
     strcat(sql_buf, ";");
 
@@ -305,7 +309,6 @@ uint8 init_value_list(pMeter_item pHisData, int item_cnt, mtype_idx type_idx)
 
 int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name)
 {
-    
     int i, j;
     int idx = *((int*)meter_type_idx);
 
@@ -818,17 +821,23 @@ void read_sys_config(char *pErr)
 
 static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
 {
-	int i;
-	for (i=0; i<f_cnt; i++) {
-		if (0 == strcmp(f_name[i], FIELD_BASE_DEF_ID))
-			sys_config_array[config_idx].f_id  = atoi(f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_NAME))
-			strcpy(sys_config_array[config_idx].f_config_name, f_value[i]);
-		else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_VALUE))
-			strcpy(sys_config_array[config_idx].f_config_value, f_value[i]);
-	}
-	config_idx++;
-	return 0;
+    int i;
+    int idx= -1;
+    char config_name[LENGTH_F_CONFIG_NAME];
+    char config_value[LENGTH_F_CONFIG_VALUE];
+    for (i=0; i<f_cnt; i++) {//先将值存在中间值中, 然后赋值, 以保证索引号与其值对应,并严格按照枚举的顺序来
+        if (0 == strcmp(f_name[i], FIELD_BASE_DEF_ID))
+            idx = atoi(f_value[i]);
+        else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_NAME))
+            strcpy(config_name, f_value[i]);
+        else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_VALUE))
+            strcpy(config_value, f_value[i]);
+    }
+    sys_config_array[idx].f_id  = idx;
+    strcpy(sys_config_array[idx].f_config_name, config_name);
+    strcpy(sys_config_array[idx].f_config_value, config_value);
+    config_idx++;
+    return 0;
 }
 
 int get_sys_config_cnt()
@@ -902,21 +911,39 @@ uint8 insert_sysconf(pSys_config pConf)
 
 uint8 add_one_config(pSys_config pConf, char* pErr)
 {
-	if(NULL == pConf) {
-		return ERR_1;
-	}
-	uint8 err = NO_ERR;
-	char *sql_buf = malloc(LENGTH_SQLBUF);
-	char *table_name = TABLE_BASE_DEF;
-	char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
-	char pIdstr[LENGTH_F_CONFIG_VALUE];
-	sprintf(pIdstr, "%d", pConf->f_id);
-	char *val_buf[LENGTH_F_CONFIG_VALUE] = {pIdstr, pConf->f_config_name, pConf->f_config_value};
-	
-	get_insert_sql(table_name, col_buf, 3, val_buf, sql_buf, 1);
-	err =  sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
-	free(sql_buf);	
-	return err==SQLITE_OK ? NO_ERR : ERR_1;
+    if(NULL == pConf) {
+    	return ERR_1;
+    }
+    uint8 err = NO_ERR;
+    char *sql_buf = malloc(LENGTH_SQLBUF);
+    char *table_name = TABLE_BASE_DEF;
+    char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
+    char pIdstr[LENGTH_F_CONFIG_VALUE];
+    sprintf(pIdstr, "%d", pConf->f_id);
+    char *val_buf[LENGTH_F_CONFIG_VALUE] = {pIdstr, pConf->f_config_name, pConf->f_config_value};
+    int row_cnt=0;//查询当前f_id有几行. 如果为1, 则更新配置; 如果为0, 则插入新配置
+    strcpy(sql_buf, "select count(*) from t_base_define where f_id=");
+    strcat(sql_buf, pIdstr);
+    sqlite3_stmt *countstmt;
+    if(sqlite3_prepare_v2(g_pDB, sql_buf, -1, &countstmt, NULL) == SQLITE_OK) {
+        row_cnt = sqlite3_column_int(countstmt, 0);
+    }
+
+    if(row_cnt == 0) {//数据表中没有的配置, 则插入
+        get_insert_sql(table_name, col_buf, 3, val_buf, sql_buf, 1);
+    }
+    else {//数据表中有的配置, 则更新
+        strcpy(sql_buf, "update t_base_define set f_config_value=");
+        strcat(sql_buf, SQL_SINGLE_QUOTES);
+        strcat(sql_buf, pConf->f_config_value);
+        strcat(sql_buf, SQL_SINGLE_QUOTES);
+        strcat(sql_buf, " where f_id=");
+        strcat(sql_buf, pIdstr);
+    }
+
+    err =  sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+    free(sql_buf);
+    return err==SQLITE_OK ? NO_ERR : ERR_1;
 }
 
 uint8 set_sysconf(char* pErr)
