@@ -471,12 +471,201 @@ uint8 func_heart_beat(uint8 dev, uint8 xml_idx)
 	return err;
 }
 
+uint8 send_sysconfig_answer(uint8 dev)
+{
+    uint8 err=NO_ERR;
+    FILE *fp;
+    int nRel;
+    uint8 lu8xmlIndex;
+    printf("[%s][%s][%d]\n", FILE_LINE);
+    g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
+    xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
+    xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
+    xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
+    xmlAddChild(root_node,common_node);
+    sys_config_str sysConfig;
+    get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",(xmlChar *)sysConfig.f_config_value);
+    get_sys_config(CONFIG_PRIMARY_SERVER,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)sysConfig.f_config_value);  //目的地址以后改成服务器地址。
+    char str[100];
+    sprintf(str, "%d", em_FUNC_SYSCONF);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "func_type",(xmlChar *)str);
+    sprintf(str, "%d", em_OPER_ASW);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "oper_type",(xmlChar *)str);
+
+    xmlNewTextChild(root_node,NULL,BAD_CAST "result",BAD_CAST "success");
+    sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
+    printf("[%s][%s][%d]\n", FILE_LINE);
+    do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
+        lu8xmlIndex = Get_XMLBuf();
+    }while(lu8xmlIndex == ERR_FF);
+    g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
+    printf("[%s][%s][%d]\n", FILE_LINE);
+    
+    fp = fopen(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile,"w+");
+    nRel = xmlSaveFileEnc(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xmldoc_wr,"utf-8");
+    fclose(fp);
+    if(nRel != -1){
+        xmlFreeDoc(g_xml_info[dev].xmldoc_wr);
+        printf("[%s][%s][%d]\n", FILE_LINE);
+        printf("make xml %s Index = %d.\n", gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xml_wr_file_idx);
+    }
+    printf("[%s][%s][%d]\n", FILE_LINE);
+    if(err == NO_ERR) {//发送文件
+        fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
+        FileSend(dev, fp);
+        fclose(fp);
+    }    
+    Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
+    return err;
+}
+
+uint8 write_sysconfig(uint8 dev)
+{
+    printf("[%s][%s][%d]now in write_sysconfig()\n", FILE_LINE);
+    uint8 err = NO_ERR;
+    char pErr[100] = {0};
+    pSys_config pConfig;//db模块中, set_config() 每次更新完成后都会清空临时配置表, 所以不必在此函数中free(pConfig)
+
+    xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
+    printf("[%s][%s][%d] pDoc: %p\n", FILE_LINE, pDoc);
+    xmlNodePtr rootNode = xmlDocGetRootElement(pDoc);
+    if(NULL == rootNode)
+        return ERR_1;
+    
+    printf("[%s][%s][%d] rootNode: %p\n", FILE_LINE, rootNode);
+    xmlNodePtr curNode;
+    curNode = rootNode->children;
+    printf("[%s][%s][%d] curNode: %p\n", FILE_LINE, curNode);
+    while(curNode) {
+        if(xmlStrEqual(curNode->name, CONST_CAST "primary_server")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_PRIMARY_SERVER;
+            strcpy(pConfig->f_config_name, "primary_server");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "primary_dns")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_PRIMARY_DNS;
+            strcpy(pConfig->f_config_name, "primary_dns");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "primary_port")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_PRIMARY_PORT;
+            strcpy(pConfig->f_config_name, "primary_port");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "second_server")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_SECOND_SERVER;
+            strcpy(pConfig->f_config_name, "second_server");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "second_dns")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_SECOND_DNS;
+            strcpy(pConfig->f_config_name, "second_dns");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "second_port")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_SECOND_PORT;
+            strcpy(pConfig->f_config_name, "second_port");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "gateway_id")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_GATEWAY_ID;
+            strcpy(pConfig->f_config_name, "gateway_id");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "net_type")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_NET_TYPE;
+            strcpy(pConfig->f_config_name, "net_type");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "md5_key")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_MD5_KEY;
+            strcpy(pConfig->f_config_name, "md5_key");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "aes_key")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_AES_KEY;
+            strcpy(pConfig->f_config_name, "aes_key");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "report_mode")){
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_REPORT_MODE;
+            strcpy(pConfig->f_config_name, "report_mode");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "beat_cycle")) {
+            pConfig = malloc(sizeof(sys_config_str));
+            pConfig->f_id = CONFIG_BEAT_CYCLE;
+            strcpy(pConfig->f_config_name, "beat_cycle");
+            strcpy(pConfig->f_config_value, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
+            printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
+            FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
+            err = insert_sysconf(pConfig);
+        }
+        curNode = curNode->next;
+    }
+    printf("[%s][%s][%d]\n", FILE_LINE);
+    err = set_sysconf(pErr);
+    if (err == NO_ERR)
+    {
+        err = send_sysconfig_answer(dev);
+    }
+    return err;
+}
+
 //3．配置信息(sys_config)
 uint8 func_sysconfig(uint8 dev, uint8 xml_idx)
 {
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
+    uint8 err = NO_ERR;
+    printf("[%s][%s][%d]now in func_sysconfig()\n", FILE_LINE);
+    switch(g_xml_info[dev].oper_type){
+    case em_OPER_RD:
+        break;
+    case em_OPER_WR:
+        err = write_sysconfig(dev);
+        break;
+    case em_OPER_ASW:
+        
+        break;
+    default:
+        err = ERR_FF;
+        break;
+    }
+    return err;
 }
 //4. 配置需要哪些物理量(request_data)
 uint8 func_rqdata(uint8 dev, uint8 xml_idx)
@@ -548,8 +737,15 @@ uint8 update_meter_info(uint8 dev)
     char pErr[100];
     pMeter_info pMInfo;
     xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
-    printf("[%s][%s][%d] pDoc\n", FILE_LINE);
+    if(NULL == pDoc) {
+        printf("[%s][%s][%d] pDoc: %p\n", FILE_LINE, pDoc);
+        return ERR_1;
+    }
     xmlNodePtr rootNode = xmlDocGetRootElement(pDoc);
+    if(NULL == rootNode) {
+        printf("[%s][%s][%d] rootNode: %p\n", FILE_LINE, rootNode);
+        return ERR_1;
+    }
     xmlNodePtr curNode;
     xmlNodePtr transNode;
     xmlNodePtr rowNode;
@@ -649,47 +845,46 @@ uint8 update_meter_info(uint8 dev)
 //6. 操作表地址信息(meter_info)
 uint8 func_minfo(uint8 dev, uint8 xml_idx)
 {
-	uint8 err = NO_ERR;
+    uint8 err = NO_ERR;
     printf("now in func_minfo()\n");
-	switch(g_xml_info[dev].oper_type){
-	case em_OPER_RD:
+    switch(g_xml_info[dev].oper_type){
+    case em_OPER_RD:
         break;
-	case em_OPER_WR:
+    case em_OPER_WR:
         update_meter_info(dev);
         break;
-	case em_OPER_ASW:
+    case em_OPER_ASW:
         //printf("have read history report answer from server.\n");
         //sem_post(&minfo_asw_sem);
         UpdGprsRunSta_FeedSndDog();
         break;
-	default:
-		err = ERR_FF;
-	}
-	return err;
+    default:
+        err = ERR_FF;
+        break;
+    }
+    return err;
 }
 
 uint8 get_tm_node(uint8 dev, char* timenode) {
-    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
-    //xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
-    //printf("[%s][%s][%d] pXMLFile: %s\n", FILE_LINE, gXML_File[g_xml_info[dev].xml_rd_file_idx].pXMLFile);
-    xmlDocPtr pDoc = xmlParseFile(gXML_File[g_xml_info[dev].xml_rd_file_idx].pXMLFile);
-    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d] pDoc %p<<<<<<<<<<<<<<<<<<<\n", FILE_LINE, pDoc);
-    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
+    xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
+    if(NULL == pDoc) {
+        printf("[%s][%s][%d] pDoc: %p\n", FILE_LINE, pDoc);
+        return ERR_1;
+    }
+    //xmlDocPtr pDoc = xmlParseFile(gXML_File[g_xml_info[dev].xml_rd_file_idx].pXMLFile);
     xmlNodePtr curNode = xmlDocGetRootElement(pDoc);//<root>node
-    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
+    if(NULL == curNode) {
+        printf("[%s][%s][%d] curNode: %p\n", FILE_LINE, curNode);
+        return ERR_1;
+    }
     curNode = curNode->children;//<common>node
     while(curNode) {
-        //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
         if(xmlStrEqual(curNode->name, CONST_CAST "time")) {
-            printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
             strcpy(timenode, (char*)xmlNodeGetContent(curNode->xmlChildrenNode));
         }
-        //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
         curNode = curNode->next;
     }
-    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
 	xmlFreeDoc(pDoc);//when have getted timenode, free server's xmlDoc
-    //printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<\n", FILE_LINE);
     return NO_ERR;
 }
 
@@ -1013,9 +1208,9 @@ uint8 parse_common(uint8 dev, uint8 xml_idx, xmlNodePtr common_node)
 	//正常应该先检查是不是发送给本集中器的数据，不是则舍弃，是的话才继续。
 	//if (oadd is not me){return ERR_NOT_ME;}
 	retErr = get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-
     if(retErr == NO_ERR){
-        if(0 == strcmp((char *)sysConfig.f_config_value, (char *)g_xml_info[dev].oadd)){  //只有是发给本集中器的数据才处理。
+        printf("[%s][%s][%d]CONFIG_GATEWAY_ID : %s\n", FILE_LINE, sysConfig.f_config_value);
+        if(0 == strcmp((char *)sysConfig.f_config_value, (char *)g_xml_info[dev].oadd)){//只有是发给本集中器的数据才处理。
             printf("start  xml_exec().\n");
             retErr = xml_exec(dev, xml_idx);
             printf((retErr==NO_ERR)?"parse xml success\n":"parse xml fail\n");
