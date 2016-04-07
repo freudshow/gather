@@ -20,6 +20,8 @@
 			11.	执行本地系统命令或程序(local_sys_command)
 			12.	远程升级(code_updata)
 			13.	抄表任意透传(proto_trans)
+			14.	设置集中器时钟（clock_set）
+			15.	集中器抄表模式和抄表周期设置(collect_set)
 	  oper_type:操作类型：
 			1、读（read）
 			2、写（write）
@@ -159,8 +161,8 @@
 	<common>
 		<sadd>0001</sadd>
 		<oadd>5001</oadd>
-		<func_type>sys_config</func_type>
-		<oper_type>read</oper_type>
+		<func_type>2</func_type>
+		<oper_type>0</oper_type>
 	</common>
 </root>
 
@@ -170,24 +172,21 @@
 	<common>
 		<sadd>5001</sadd>
 		<oadd>0001</oadd>
-		<func_type>sys_config</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>2</func_type>
+		<oper_type>3</oper_type>
 	</common>
-	<primary_server>xxxx</primary_server>
-	<primary_dns>xxxx</primary_dns>
-	<primary_port>xxxx</primary_port>
-	<second_server>xxxx</second_server>
-	<second_dns>xxxx</second_dns>
-	<second_port>xxxx</second_port>
-	<server_id>xxxx</server_id>
-	<gateway_id>xxxx</gateway_id>
-	<net_type>xxxx</net_type>
-	<md5_key>xxxx</md5_key>
-	<aes_key>xxxx</aes_key>
-	<collect_cycle>xxxx</collect_cycle>
-	<report_mode>xxxx</report_mode>
-	<collect_mode>xxxx</collect_mode>
-	<beat_cycle>xxxx</beat_cycle>
+	<primary_server>122.5.18.174</primary_server>
+	<primary_dns>219.146.0.130</primary_dns>
+	<primary_port>9026</primary_port>
+	<second_server>219.146.0.130</second_server>
+	<second_dns>219.146.0.130</second_dns>
+	<second_port>9027</second_port>
+	<gateway_id>5001</gateway_id>
+	<net_type>36527</net_type>
+	<md5_key>863CA654</md5_key>
+	<aes_key>d41d8cd98f00b204e9800998ecf8427e</aes_key>
+	<report_mode>1</report_mode>
+	<beat_cycle>2</beat_cycle>
 </root>
 
 <!-- 上位机设置下位机配置-->
@@ -196,24 +195,21 @@
 	<common>
 		<sadd>0001</sadd>
 		<oadd>5001</oadd>
-		<func_type>sys_config</func_type>
-		<oper_type>write</oper_type>
+		<func_type>2</func_type>
+		<oper_type>1</oper_type>
 	</common>
-	<primary_server>xxxx</primary_server>
-	<primary_dns>xxxx</primary_dns>
-	<primary_port>xxxx</primary_port>
-	<second_server>xxxx</second_server>
-	<second_dns>xxxx</second_dns>
-	<second_port>xxxx</second_port>
-	<server_id>xxxx</server_id>
-	<gateway_id>xxxx</gateway_id>
-	<net_type>xxxx</net_type>
-	<md5_key>xxxx</md5_key>
-	<aes_key>xxxx</aes_key>
-	<collect_cycle>xxxx</collect_cycle>
-	<report_mode>xxxx</report_mode>
-	<collect_mode>xxxx</collect_mode>
-	<beat_cycle>xxxx</beat_cycle>
+	<primary_server>122.5.18.174</primary_server>
+	<primary_dns>219.146.0.130</primary_dns>
+	<primary_port>9027</primary_port>
+	<second_server>219.146.0.130</second_server>
+	<second_dns>219.146.0.130</second_dns>
+	<second_port>9027</second_port>
+	<gateway_id>5001</gateway_id>
+	<net_type>36527</net_type>
+	<md5_key>863CA654</md5_key>
+	<aes_key>d41d8cd98f00b204e9800998ecf8427e</aes_key>
+	<report_mode>1</report_mode>
+	<beat_cycle>2</beat_cycle>
 </root>
 
 <!-- 下位机向上位机返回执行状态(成功/失败) -->
@@ -222,10 +218,10 @@
 	<common>
 		<sadd>5001</sadd>
 		<oadd>0001</oadd>
-		<func_type>sys_config</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>2</func_type>
+		<oper_type>3</oper_type>
 	</common>
-	<result>success/fail</result>
+	<result>success</result>
 </root>
 
 
@@ -673,7 +669,7 @@
 
 
 
-<!---------------- 14.	设置集中器时钟（clock_set） ---------------->
+<!---------------- 14.	集中器校时(clock_set) ---------------->
 <!-- 上位机下发集中器校时指令 -->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
@@ -696,6 +692,59 @@
 		<oper_type>answer</oper_type>
 	</common>
 	<result>success/fail</result>  <!--执行成功或失败-->
+</root>
+
+
+<!---------------- 15.	集中器抄表模式和抄表周期设置(collect_set) ---------------->
+
+<!-- 上位机下发采集模式和采集周期(根据collect_cycle周期抄表) -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>14</func_type>
+		<oper_type>1</oper_type>
+	</common>
+	<collect_mode>0</collect_mode>
+	<collect_cycle>15</collect_cycle><!-- 时间单位为分钟 -->
+</root>
+
+<!-- 下位机返回执行结果 -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>5001</sadd>
+		<oadd>0001</oadd>
+		<func_type>2</func_type>
+		<oper_type>3</oper_type>
+	</common>
+	<result>success</result>
+</root>
+
+<!-- 上位机下发采集模式和采集时间点(根据采集时间点抄表) -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>14</func_type>
+		<oper_type>1</oper_type>
+	</common>
+	<collect_mode>1</collect_mode>
+	<time_node>00:00,02:00,04:00,06:00,08:00,10:00,12:00,14:00,16:00,18:00,20:00,22:00</time_node>
+</root>
+
+<!-- 下位机返回执行结果 -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>5001</sadd>
+		<oadd>0001</oadd>
+		<func_type>2</func_type>
+		<oper_type>3</oper_type>
+	</common>
+	<result>success</result>
 </root>
 
 
