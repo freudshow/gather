@@ -613,7 +613,7 @@ void read_meter_info(char	*pErr)
 				FIELD_MINFO_ADDRESS, FIELD_MINFO_TYPE, FIELD_MINFO_CHANNEL,\
 				FIELD_MINFO_POS, FIELD_MINFO_DEVICE_ID, FIELD_MINFO_PROTO_TYPE};//指针数组
 	int  col_cnt = 7;
-	
+
 	meter_info_idx = 0;
 	empty_meter_info_list();//清空以前的信息, 以重新读取
 	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
@@ -817,6 +817,7 @@ void read_sys_config(char *pErr)
 	free(sql_buf);
 	free(order_buf);
 	sysConfig_Ascii2hex();
+	printf("[%s][%s][%d]pErr: %s\n", FILE_LINE, pErr);
 }
 
 static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
@@ -833,9 +834,9 @@ static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
         else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_VALUE))
             strcpy(config_value, f_value[i]);
     }
-    sys_config_array[idx].f_id  = idx;
-    strcpy(sys_config_array[idx].f_config_name, config_name);
-    strcpy(sys_config_array[idx].f_config_value, config_value);
+    sys_config_array[idx-1].f_id  = idx;//数据库的索引值是从1开始的, 所以要减一
+    strcpy(sys_config_array[idx-1].f_config_name, config_name);
+    strcpy(sys_config_array[idx-1].f_config_value, config_value);
     config_idx++;
     return 0;
 }
@@ -885,24 +886,20 @@ static uint8 del_sysconf(char* pId, char* pErr)
 uint8 empty_sysconf_list()
 {
     empty_list(pSys_config, list_set_sysconf)
-	set_sysconf_idx = 0;
-	return NO_ERR;
+    set_sysconf_idx = 0;
+    return NO_ERR;
 }
 
-uint8 insert_sysconf(pSys_config pConf)
+uint8 insert_sysconf(pSys_config pConfig)
 {
-	pSys_config pConfig = malloc(sizeof(sys_config_str));//为了安全起见, 不直接使用传递进来的参数
-	if(NULL != pConf) {
-		memcpy(pConfig, pConf, sizeof(sys_config_str));
-	}
-	else {
+	if(NULL == pConfig) {
 		return ERR_1;
 	}
-	
-	pConfig->pPrev = NULL;
+	printf("[%s][%s][%d]list_set_sysconf: %p\n", FILE_LINE, list_set_sysconf);
 	pConfig->pNext = list_set_sysconf;
 	if (list_set_sysconf) {
-		list_set_sysconf->pPrev = pConfig;
+        pConfig->pPrev = list_set_sysconf->pPrev;
+        list_set_sysconf->pPrev = pConfig;
 	}
 	list_set_sysconf = pConfig;
 	set_sysconf_idx++;
@@ -919,16 +916,22 @@ uint8 add_one_config(pSys_config pConf, char* pErr)
     char *table_name = TABLE_BASE_DEF;
     char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
     char pIdstr[LENGTH_F_CONFIG_VALUE];
-    sprintf(pIdstr, "%d", pConf->f_id);
+    sprintf(pIdstr, "%d", pConf->f_id+1);
     char *val_buf[LENGTH_F_CONFIG_VALUE] = {pIdstr, pConf->f_config_name, pConf->f_config_value};
+    printf("[%s][%s][%d]list_set_sysconf: %p, pIdstr: %s\n", FILE_LINE, list_set_sysconf, pIdstr);
     int row_cnt=0;//查询当前f_id有几行. 如果为1, 则更新配置; 如果为0, 则插入新配置
     strcpy(sql_buf, "select count(*) from t_base_define where f_id=");
     strcat(sql_buf, pIdstr);
+    printf("[%s][%s][%d]sql_buf: %s\n", FILE_LINE, sql_buf);
     sqlite3_stmt *countstmt;
     if(sqlite3_prepare_v2(g_pDB, sql_buf, -1, &countstmt, NULL) == SQLITE_OK) {
-        row_cnt = sqlite3_column_int(countstmt, 0);
+        if(sqlite3_step(countstmt) == SQLITE_ROW){
+            row_cnt = sqlite3_column_int(countstmt, 0);
+            printf("cnt is: %d\n", row_cnt);
+        }
     }
-
+    
+    printf("[%s][%s][%d]row_cnt: %d\n", FILE_LINE, row_cnt);
     if(row_cnt == 0) {//数据表中没有的配置, 则插入
         get_insert_sql(table_name, col_buf, 3, val_buf, sql_buf, 1);
     }
@@ -940,16 +943,19 @@ uint8 add_one_config(pSys_config pConf, char* pErr)
         strcat(sql_buf, " where f_id=");
         strcat(sql_buf, pIdstr);
     }
-
+    printf("[%s][%s][%d]sql_buf: %s\n", FILE_LINE, sql_buf);
     err =  sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+    
+	printf("[%s][%s][%d]pErr: %s\n", FILE_LINE, pErr);
     free(sql_buf);
     return err==SQLITE_OK ? NO_ERR : ERR_1;
 }
 
 uint8 set_sysconf(char* pErr)
 {
+	printf("[%s][%s][%d]list_set_sysconf: %p\n", FILE_LINE, list_set_sysconf);
 	pSys_config pTmp_conf = list_set_sysconf;
-	del_sysconf(NULL, pErr);//先清空原有的表数据
+	//del_sysconf(NULL, pErr);//先清空原有的表数据
 	while(pTmp_conf) {
 		if(NO_ERR != add_one_config(pTmp_conf, pErr)) {
 			return ERR_1;
@@ -957,10 +963,8 @@ uint8 set_sysconf(char* pErr)
 		pTmp_conf = pTmp_conf->pNext;
 	}
 	empty_sysconf_list();//清空设置列表
-
-	
-	//重新读取数据库里的信息
-	read_sys_config(pErr);
+	read_sys_config(pErr);//重新读取数据库里的信息
+	printf("[%s][%s][%d]pErr: %s, pErr: %d\n", FILE_LINE, pErr, strlen(pErr));
 	return (strlen(pErr) ? ERR_1 : NO_ERR );
 }
 

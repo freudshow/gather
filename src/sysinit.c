@@ -272,20 +272,21 @@ void sqldb_init(void)
 	}
 	
 	read_meter_info(lcSqlRetArry);  //将数据库中的表信息初始化到内存。
+	
+    printf("[%s][%s][%d]\n", FILE_LINE);
 	lu8tmp = strlen(lcSqlRetArry);
 	if(lu8tmp > 0){
 		printf("read_meter_info Err is %s .\n",lcSqlRetArry);
 		return;
 	}
 	
+    printf("[%s][%s][%d]\n", FILE_LINE);
 	read_all_request_data(lcSqlRetArry);
 	if(lu8tmp > 0){
 		printf("read_meter_info Err is %s .\n",lcSqlRetArry);
 		return;
 	}
 	printf("get_meter_info_cnt ret = %d.\n",get_meter_info_cnt());
-
-
 
 	//后续待完善。
 
