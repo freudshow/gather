@@ -191,8 +191,6 @@ void ReadAllMeters(void)
 	asctime_r(&gTimeNode, tmpstr);
 	asc_to_datestr(tmpstr, Qmsg.timenode);
   	msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
-  
-
 }
 
 
@@ -217,11 +215,13 @@ void pthread_ReadAllMeters(void)
 		//检测抄表信号，如果抄表信号有效，则开始全抄表，否则，等待30s吧，这些以后要补充，现在下面测试用。
 		lu16ReadmeterMode = g_sysConfigHex.collectMode;
 		lu16ReadmeterCycle = g_sysConfigHex.collectCycle;
-
+         //printf("[%s][%s][%d] lu16ReadmeterMode: %d, lu16ReadmeterCycle: %d\n", FILE_LINE, \         //   lu16ReadmeterMode, lu16ReadmeterCycle);
+         
 		if(lu16ReadmeterMode == 0){  //按周期自动抄表。
 			lu32CheckCnt = lu32CheckCnt % ((lu16ReadmeterCycle*60)/lu32CheckCyc_S);  //初始化后立即抄读一次。
 
 			if(lu32CheckCnt == 0){
+                printf("[%s][%s][%d] now read all meters", FILE_LINE);
 				ReadAllMeters();  //抄表。
 				
 			}
