@@ -279,8 +279,10 @@ typedef enum T_System_Config {
     CONFIG_COLLECT_MODE,        //-10-, 自动抄表方式，0-根据collect_cycle周期设置抄表，1-定点抄表。
     CONFIG_COLLECT_CYCLE,       //-11-, 自动采集周期，当COLLECT_MODE为0时有效。
     CONFIG_REPORT_MODE,         //-12-, 数据上报模式,0-主动上报，1-被动请求。
-    CONFIG_BEAT_CYCLE           //-13-, 心跳周期，范围1-10分钟。
+    CONFIG_BEAT_CYCLE,          //-13-, 心跳周期，范围1-10分钟。
+    CONFIG_SVR_NUM              //-14-, 主服务器的编号
 }sys_config_idx;
+#define SYS_CONFIG_COUNT	15//基本配置项的数量
 
 typedef enum item_idx_heat {//按照CJ188协议规定的字段域
     em_HColdE=0,        //冷量, 实际用于结算日热量

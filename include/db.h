@@ -138,7 +138,6 @@
  ** t_base_define
  ** 基础配置信息表, 用t_base_define.f_id来索引对应的配置
  ********************************************************************************/
-#define SYS_CONFIG_COUNT	14//基本配置项的数量
 
 #define FIELD_BASE_DEF_ID		"f_id"
 #define FIELD_BASE_DEF_NAME	"f_config_name"

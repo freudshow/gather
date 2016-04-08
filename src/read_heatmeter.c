@@ -429,7 +429,7 @@ uint8 Read_HeatMeter(MeterFileType *pmf)
 		lu8retrytimes --;
 
 	}while((err != TRUE) && (lu8retrytimes > 0));
-	
+
 	//组建抄表数据帧，抄热表,并将不同厂家的热表返回数据处理成固定统一格式。
 	err = HeatMeterCommunicate(pmf,&CJ188_Data);
 

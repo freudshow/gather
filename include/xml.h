@@ -93,7 +93,7 @@ typedef struct {
 #define NODE_FUNC_TYPE		"func_type"
 #define NODE_OPER_TYPE		"oper_type"
 
-#define ROW_PER_FRAME   5//上报长数据时, 每帧发送的最大行数
+#define ROW_PER_FRAME   1//上报长数据时, 每帧发送的最大行数
 
 extern char *pXMLFileName[XML_BUF_FILE_NUM];
 extern XML_FILE gXML_File[XML_BUF_FILE_NUM];

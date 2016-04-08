@@ -788,7 +788,7 @@ uint8 ConnectConfirm(void)
 		do{
 			lu8xmlIndex = Get_XMLBuf();  //获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
 		}while(lu8xmlIndex == ERR_FF);
-
+         printf("ConnectConfirmConnectConfirm[%s][%s][%d]ConnectConfirmConnectConfirm\n", FILE_LINE);
 		err = xml_exec(lu8Dev,lu8xmlIndex);
 		Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 

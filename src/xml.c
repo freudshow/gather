@@ -305,7 +305,8 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 			//在common节点直接创建文本节点
 			get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
     			xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)sysConfig.f_config_value);
-    			xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)sysConfig.f_config_value);  //目的地址以后改成服务器地址。
+             get_sys_config(CONFIG_SVR_NUM, &sysConfig);
+    			xmlNewTextChild(node,NULL,BAD_CAST "oadd", (xmlChar *)sysConfig.f_config_value);  //目的地址以后改成服务器编号
 			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"0");
 			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"0");
 
@@ -325,7 +326,9 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 			//在common节点直接创建文本节点
 			get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
             xmlNewTextChild(node,NULL,BAD_CAST "sadd",(xmlChar *)sysConfig.f_config_value);
-            xmlNewTextChild(node,NULL,BAD_CAST "oadd",(xmlChar *)sysConfig.f_config_value);//目的地址以后改成服务器地址。
+            get_sys_config(CONFIG_SVR_NUM, &sysConfig);
+            xmlNewTextChild(node,NULL,BAD_CAST "oadd", (xmlChar *)sysConfig.f_config_value);  //目的地址以后改成服务器编号
+
 			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"1");
 			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"0");
 
@@ -349,8 +352,6 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 
 
 	}
-
-
 
   	return ERR_1;
 }
@@ -545,6 +546,7 @@ uint8 write_sysconfig(uint8 dev)
     xmlNodePtr curNode;
     curNode = rootNode->children;
     printf("[%s][%s][%d] curNode: %p\n", FILE_LINE, curNode);
+    uint8 needReboot = 0;
     while(curNode) {
         if(xmlStrEqual(curNode->name, CONST_CAST "primary_server")) {
             pConfig = malloc(sizeof(sys_config_str));
@@ -554,6 +556,7 @@ uint8 write_sysconfig(uint8 dev)
             printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
             FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
             err = insert_sysconf(pConfig);
+            needReboot = 1;
         } else if(xmlStrEqual(curNode->name, CONST_CAST "primary_dns")) {
             pConfig = malloc(sizeof(sys_config_str));
             pConfig->f_id = CONFIG_PRIMARY_DNS;
@@ -562,6 +565,7 @@ uint8 write_sysconfig(uint8 dev)
             printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
             FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
             err = insert_sysconf(pConfig);
+            needReboot = 1;
         } else if(xmlStrEqual(curNode->name, CONST_CAST "primary_port")) {
             pConfig = malloc(sizeof(sys_config_str));
             pConfig->f_id = CONFIG_PRIMARY_PORT;
@@ -570,6 +574,7 @@ uint8 write_sysconfig(uint8 dev)
             printf("[%s][%s][%d] f_id: %d, f_config_name: %s, f_config_value: %s\n", \
             FILE_LINE, pConfig->f_id, pConfig->f_config_name, pConfig->f_config_value);
             err = insert_sysconf(pConfig);
+            needReboot = 1;
         } else if(xmlStrEqual(curNode->name, CONST_CAST "second_server")) {
             pConfig = malloc(sizeof(sys_config_str));
             pConfig->f_id = CONFIG_SECOND_SERVER;
@@ -666,9 +671,11 @@ uint8 write_sysconfig(uint8 dev)
     if (err == NO_ERR)
     {
         err = send_sysconfig_answer(dev);
-        printf("[%s][%s][%d] reboot system after 10sec!\n", FILE_LINE);
-        OSTimeDly(10000);
-        system("reboot");
+        if(needReboot) {
+            printf("[%s][%s][%d] reboot system after 10sec!\n", FILE_LINE);
+            OSTimeDly(10000);
+            system("reboot");
+        }
     }
     return err;
 }
@@ -1080,12 +1087,13 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
         xmlAddChild(root_node,common_node);
         get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
         xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",(xmlChar *)sysConfig.f_config_value);
-        get_sys_config(CONFIG_PRIMARY_SERVER,&sysConfig);
+        get_sys_config(CONFIG_SVR_NUM,&sysConfig);
         xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)sysConfig.f_config_value);  //目的地址以后改成服务器地址。
         sprintf(str, "%d", em_FUNC_RPTUP);
         xmlNewTextChild(common_node,NULL,BAD_CAST "func_type",(xmlChar *)str);
         get_sys_config(CONFIG_REPORT_MODE,&sysConfig);//数据上报模式,0-主动上报, 1被动请求
-        sprintf(str, "%d", (atoi(sysConfig.f_config_value) ? em_OPER_ASW : em_OPER_WR));//主动上报, 就是写入; 被动请求, 应答
+        //sprintf(str, "%d", (atoi(sysConfig.f_config_value) ? em_OPER_ASW : em_OPER_WR));//主动上报, 就是写入; 被动请求, 应答
+        sprintf(str, "%d", em_OPER_ASW);//主动上报, 就是写入; 被动请求, 应答
         xmlNewTextChild(common_node,NULL,BAD_CAST "oper_type",(xmlChar *)str);
         g_xml_info[dev].cur_wr_state = stat_his_trans;
         break;

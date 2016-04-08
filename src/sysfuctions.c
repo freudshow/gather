@@ -263,8 +263,8 @@ uint8 asc_to_datestr(char* src, char* dest)
     char *saveptr=NULL;
     char *monEng[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
     char *monDec[12]={"01","02","03","04","05","06","07","08","09","10","11","12"};
-
-    printf("src: %s\n", src);
+    char tmpstr[5];
+    printf("[%s][%s][%d]src: %s\n", FILE_LINE, src);
     i=0;
     while((pTimeStr[i] = strtok_r(buf, " ", &saveptr)))
     {   
@@ -279,7 +279,8 @@ uint8 asc_to_datestr(char* src, char* dest)
             strcat(dest, monDec[i]);//mon
     
     strcat(dest, "-");
-    strcat(dest, pTimeStr[2]);//day
+    sprintf(tmpstr, "%02d", atoi(pTimeStr[2]));//10以下的日期, src是不带0的
+    strcat(dest, tmpstr);//day
     strcat(dest, " ");
     strcat(dest, pTimeStr[3]);//time
     //printf("dest: %s\n", dest);
