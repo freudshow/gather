@@ -1515,8 +1515,17 @@ uint8 do_proto_trs(uint8 dev)
 {    
     uint8 retErr = NO_ERR;
     proto_trans_str proto_trs;
+    uint8 lu8Channel = 0;	//抄表对象所在通道。
     parse_proto_trs(dev, &proto_trs);
-    
+
+    lu8Channel = proto_trs.channel;
+    if(lu8Channel == RS485_DOWN_CHANNEL)  //操作一个设备，先请求信号量,谨防冲突。
+        sem_wait(&Opetate485Down_sem);
+    else
+        sem_wait(&OperateMBUS_sem);
+
+    METER_ChangeChannel(lu8Channel);  //先确保在对应通道上。
+
     return retErr;
 }
 
