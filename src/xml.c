@@ -1425,17 +1425,120 @@ uint8 func_syscmd(uint8 dev, uint8 xml_idx)
 //12. Ô¶³ÌÉý¼¶
 uint8 func_codeup(uint8 dev, uint8 xml_idx)
 {
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
+    uint8 retErr = NO_ERR;
+
+    return retErr;
+}
+
+uint8 split_com(char* comstr, pProto_trans pProtoTrs)//comstr = "9600,n,8,1"
+{
+    int i=0;
+    char *p[5]={NULL};
+    char *buf=comstr;
+    char *sp=NULL;
+    printf("[%s][%s][%d]comstr: %s\n", FILE_LINE, comstr);
+    while((p[i] = strtok_r(buf, ",", &sp)))
+    {   
+        printf("[%s][%s][%d] p[i]: %s \n", FILE_LINE, p[i]);
+        i++;
+        buf=NULL;
+    }
+    pProtoTrs->baud = atoi(p[0]);
+    pProtoTrs->parity = p[1][0];
+    pProtoTrs->databits = atoi(p[2]);
+    pProtoTrs->stop = atoi(p[3]);
+
+    printf("[%s][%s][%d]baud: %d, parity: %c, databits: %d, stop: %d, \n", FILE_LINE, \
+        pProtoTrs->baud, pProtoTrs->parity, pProtoTrs->databits, pProtoTrs->stop);
+    return NO_ERR;
+}
+
+uint8 split_minfo(char* info, pProto_trans pProtoTrs)
+{
+    int i=0;
+    char *p[3]={NULL};
+    char *buf=info;
+    char *sp=NULL;
+    printf("[%s][%s][%d]info: %s\n", FILE_LINE, info);
+    while((p[i] = strtok_r(buf, ",", &sp)))
+    {   
+        printf("[%s][%s][%d] p[i]: %s \n", FILE_LINE, p[i]);
+        i++;
+        buf=NULL;
+    }
+    pProtoTrs->meter_type = (Ascii2Hex(p[0][0]) << LEN_HALF_BYTE | Ascii2Hex(p[0][1]));
+    pProtoTrs->proto_type = atoi(p[1]);
+
+    printf("[%s][%s][%d]meter_type: %02x, proto_type: %d\n", FILE_LINE, \
+        pProtoTrs->meter_type, pProtoTrs->proto_type);
+    return NO_ERR;
+}
+
+
+uint8 parse_proto_trs(uint8 dev, pProto_trans pProtoTrs)
+{
+    uint8 retErr = NO_ERR;
+    xmlChar* pValue;
+    int i;
+    if(g_xml_info[dev].xmldoc_rd == NULL)
+        return ERR_1;
+    
+    xmlNodePtr rootNode = xmlDocGetRootElement(g_xml_info[dev].xmldoc_rd);
+    if(rootNode == NULL)
+        return ERR_1;
+
+    xmlNodePtr curNode = rootNode->children;
+    while(curNode) {
+        if(xmlStrEqual(curNode->name, CONST_CAST "channel")) {
+            pValue = xmlNodeGetContent(curNode->xmlChildrenNode);
+            pProtoTrs->channel = atoi((char*)pValue);
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "com")) {
+            pValue = xmlNodeGetContent(curNode->xmlChildrenNode);
+            retErr = split_com((char*)pValue, pProtoTrs);
+            
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "cmd")) {
+            pValue = xmlNodeGetContent(curNode->xmlChildrenNode);
+            pProtoTrs->cmdlen = strlen((char*)pValue);
+            for(i=0;i<pProtoTrs->cmdlen;i++) {
+                pProtoTrs->cmd[i] = Ascii2Hex(pValue[i]);
+            }
+        } else if(xmlStrEqual(curNode->name, CONST_CAST "meterinfo")) {
+            pValue = xmlNodeGetContent(curNode->xmlChildrenNode);
+            split_minfo((char*)pValue, pProtoTrs);
+        }
+        curNode = curNode->next;
+    }
+    return retErr;
+}
+
+uint8 do_proto_trs(uint8 dev)
+{    
+    uint8 retErr = NO_ERR;
+    proto_trans_str proto_trs;
+    parse_proto_trs(dev, &proto_trs);
+    
+    return retErr;
 }
 
 //13. ÃüÁîÍ¸´«
 uint8 func_prototrs(uint8 dev, uint8 xml_idx)
 {
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
+    uint8 retErr = NO_ERR;
+    switch(g_xml_info[dev].oper_type) {
+    case em_OPER_RD:
+        break;    
+    case em_OPER_WR:
+        break;    
+    case em_OPER_DO:
+        retErr = do_proto_trs(dev);
+        break;    
+    case em_OPER_ASW:
+        break;
+    default:
+        break;
+    }
+    
+    return retErr;
 }
 
 uint8 send_clock_set_answer(uint8 dev)

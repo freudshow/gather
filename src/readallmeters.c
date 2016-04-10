@@ -206,6 +206,7 @@ void ReadAllMeters(void)
   ******************************************************************************
 */
 
+uint32 gu32lastChkMin;//上次检测抄表时间点的分钟点
 void pthread_ReadAllMeters(void)
 {
     uint16 lu16ReadmeterMode = 0;
@@ -225,10 +226,16 @@ void pthread_ReadAllMeters(void)
             time (&rawtime);
             localtime_r(&rawtime, &timeinfo);
             lu32CurMin = timeinfo.tm_hour*60 + timeinfo.tm_min;
+            printf("[%s][%s][%d]current minutes: %d\n" , FILE_LINE, lu32CurMin);
             if((lu32CurMin%lu16ReadmeterCycle) == 0){
-                printf("[%s][%s][%d] now read all meters", FILE_LINE);
-                ReadAllMeters();  //抄表。
+                if(timeinfo.tm_min != gu32lastChkMin) {
+                    //如果本次检测的分钟点不是上次检测的分钟点, 则抄表
+                    //这个检测成立的前提是检测周期比一个小时短
+                    printf("[%s][%s][%d] now read all meters", FILE_LINE);
+                    ReadAllMeters();  //抄表。
+                }
             }
+            gu32lastChkMin = timeinfo.tm_min;
             lu32CheckCnt += 1;
         }
         else{  //按抄表时间节点抄表。

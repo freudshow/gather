@@ -254,11 +254,11 @@ void FileSend(uint8 Dev, FILE *fp)
 
 }
 
-
+//把asctime()函数返回的时间格式, 转换为"YYYY-MM-DD hh:mm:ss"
 uint8 asc_to_datestr(char* src, char* dest)
 {
     int i=0;
-    char *pTimeStr[6]={NULL};  
+    char *pTimeStr[6]={NULL};
     char *buf=src;  
     char *saveptr=NULL;
     char *monEng[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
@@ -283,6 +283,6 @@ uint8 asc_to_datestr(char* src, char* dest)
     strcat(dest, tmpstr);//day
     strcat(dest, " ");
     strcat(dest, pTimeStr[3]);//time
-    //printf("dest: %s\n", dest);
+    printf("[%s][%s][%d]dest: %s\n", FILE_LINE,  dest);
     return NO_ERR;
 }

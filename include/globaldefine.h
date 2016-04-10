@@ -306,15 +306,28 @@ typedef enum item_idx_water {//水表数据项
 }wItem_idx;
 
 typedef enum item_idx_elec {//电表数据项
-    em_EActiveTotalElectricity=0,   //正向有功总电能
-    em_ECurVoltage,                 //反向有功总电能
-    em_ECurCurrent,                 //正向无功总电能
-    em_ECurActivePower,             //反向无功总电能
-    em_ECurFreq,                    //有功总电能
-    em_ECurReactivePower,           //无功总电能
-    em_ECurApparentPower,           //总功率因数
-    em_ECurPowerFactor              //正向有关总最大需量
+    em_EPActTotElec=0,	    //正向有功总电能
+    em_ENActTotElec,	    //反向有功总电能
+    em_EPReactTotElec,	    //正向无功总电能
+    em_ENReactTotElec,	    //反向无功总电能
+    em_EActTotElec,	    //有功总电能
+    em_EReactTotElec,	    //无功总电能
+    em_EOvrPowFac,	    //总功率因数
+    em_EPMaxDem	        //正向有功总最大需量
 }eItem_idx;
+
+typedef struct {//透传命令相关信息
+    uint8 channel;      //通道号
+    uint32 baud;        //波特率
+    uint8 databits;     //数据位
+    uint32 stop;        //停止位
+    uint8 parity;      //校验位
+    uint8 cmd[256];     //透传命令
+    uint8 cmdlen;       //透传命令的长度
+    uint8 meter_type;    //仪表类型
+    uint8 proto_type;    //协议类型
+} proto_trans_str;
+typedef proto_trans_str* pProto_trans;
 
 
 #endif  //_GLOBALDEFINE_H_
