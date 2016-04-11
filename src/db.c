@@ -399,6 +399,7 @@ uint8 read_his_data(char* timenode, mtype_idx idx, char* pErr)
     printf("&&&&[%s][%s][%d] retrieve_his_data() &&&&\n", FILE_LINE);
     empty_hist_data(idx);
     get_his_sql(timenode, idx);
+    printf("&&&&[%s][%s][%d] sql: %s &&&&\n", FILE_LINE, his_sql_array[idx]);
     err = sqlite3_exec(g_pDB, his_sql_array[idx], each_his_data, &idx, &pErr);
     return (err==SQLITE_OK?NO_ERR:ERR_1);
 }
@@ -446,9 +447,14 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
     int i=0;
     pHis_data pTmp_his = his_data_list_array[idx];
     pHis_data pRtn_his = malloc(sizeof(struct his_data_str));
+    if(NULL == pRtn_his) {
+        printf("@@@@@[%s][%s][%d]malloc error, pRtn_his is NULL: %p @@@@@\n",FILE_LINE, pRtn_his);
+        return ERR_1;
+    }
+        
     memset(pRtn_his, 0, sizeof(struct his_data_str));
     
-    while(pTmp_his&& (i<cnt) /* && (i<hisdata_idx_array[idx])*/) {//要读取的行数不能大于剩下的行数
+    while(pTmp_his && (i<cnt) && (i<hisdata_idx_array[idx])) {//要读取的行数不能大于剩下的行数
         printf("@@@@@[%s][%s][%d]hisdata_idx_array[%d]: %d @@@@@\n",FILE_LINE, idx, hisdata_idx_array[idx]);
         printf("@@@@@[%s][%s][%d]pTmp_his: %p @@@@@\n",FILE_LINE, pTmp_his);
         printf("@@@@@[%s][%s][%d], idx is: %d, cnt: %d, hisdata_idx_array[%d]: %d\n", FILE_LINE, i, cnt, idx, hisdata_idx_array[idx]);
@@ -458,6 +464,7 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         pRtn_his->value_cnt = pTmp_his->value_cnt;
         pRtn_his->value_list = malloc(pTmp_his->value_cnt*sizeof(struct meter_item));    
         memcpy(pRtn_his->value_list, pTmp_his->value_list, pTmp_his->value_cnt*sizeof(struct meter_item));
+        printf("@@@@@[%s][%s][%d]before read_one_his(pRtn_his, dev), pRtn_his is : %p @@@@@\n",FILE_LINE, pRtn_his);
         read_one_his(pRtn_his, dev);
         free(pRtn_his->value_list);
         //删除已读取的节点
@@ -469,10 +476,10 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         free(pTmp_his->value_list);
         free(pTmp_his);
         pTmp_his = his_data_list_array[idx];//指向下一个节点
-        printf("pTmp_his: %p, his_data_list_array[idx]: %p\n", pTmp_his, his_data_list_array[idx]);
+        printf("[%s][%s][%d]pTmp_his: %p, his_data_list_array[idx]: %p\n",FILE_LINE, pTmp_his, his_data_list_array[idx]);
         i++;
         hisdata_idx_array[idx]--;
-        printf("finish delete one node, idx is: %d\n", i);
+        printf("[%s][%s][%d]finish delete one node, idx is: %d\n",FILE_LINE, i);
     }
     free(pRtn_his);
     return NO_ERR;

@@ -1067,7 +1067,7 @@ uint8 get_tm_node(uint8 dev, char* timenode) {
 //向xmldoc中添加一行的数据节点
 int wr_his_xml(pHis_data pHis, uint8 dev)
 {
-    printf("now in wr_his_xml()\n");
+    printf("[%s][%s][%d]pHis : %p\n", FILE_LINE, pHis);
     FILE *fp;
     int nRel;
     sys_config_str sysConfig;
@@ -1112,6 +1112,11 @@ int wr_his_xml(pHis_data pHis, uint8 dev)
         break;
     case stat_his_data:
         printf("[%s][%s][%d] now enter state: stat_his_data\n", FILE_LINE);
+        if(NULL == pHis) {
+            printf("[%s][%s][%d]pHis : %p\n", FILE_LINE, pHis);
+            g_xml_info[dev].cur_wr_state = stat_his_end;
+            return ERR_1;
+        }
         g_xml_info[dev].cur_row_idx++;
         root_node = xmlDocGetRootElement(g_xml_info[dev].xmldoc_wr);
         printf("[%s][%s][%d] xmldoc_wr: %p\n", FILE_LINE, g_xml_info[dev].xmldoc_wr);
@@ -1181,8 +1186,8 @@ uint8 up_his_data(uint8 dev)
     g_xml_info[dev].total_rows = 0;
     g_xml_info[dev].cur_rows = 0;
     for(type_idx=0;type_idx<MTYPE_CNT;type_idx++) {
-        //printf("--------------current meter type: %d--------------\n", type_idx);
-        //printf("--------------current meter get_his_cnt: %d--------------\n", get_his_cnt(type_idx));
+        printf("--------------current meter type: %d--------------\n", type_idx);
+        printf("--------------current meter get_his_cnt: %d--------------\n", get_his_cnt(type_idx));
         g_xml_info[dev].total_row[type_idx] = get_his_cnt(type_idx);
         g_xml_info[dev].total_rows += g_xml_info[dev].total_row[type_idx];
         g_xml_info[dev].mod[type_idx] = g_xml_info[dev].total_row[type_idx]%ROW_PER_FRAME;
@@ -1190,6 +1195,24 @@ uint8 up_his_data(uint8 dev)
         printf("##########[%s][%s][%d]##########mod[%d]: %d.\n", FILE_LINE, type_idx, g_xml_info[dev].mod[type_idx]);
         g_xml_info[dev].cur_frame[type_idx] = 0;
         g_xml_info[dev].total_frame[type_idx] = (g_xml_info[dev].total_row[type_idx]/ROW_PER_FRAME+((g_xml_info[dev].mod[type_idx])?1:0));
+    }
+    if(0 == g_xml_info[dev].total_rows){//如果没有查询到相应时间点的历史数据, 返回0行信息
+        g_xml_info[dev].cur_wr_state = stat_his_init;//每次组帧之前都是初始状态
+        wr_his_xml(NULL, dev);//写root节点和common节点
+        wr_his_xml(NULL, dev);//写trans节点
+        wr_his_xml(NULL, dev);//写空row节点, 并将状态指向下一状态
+        do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
+            lu8xmlIndex = Get_XMLBuf();
+        }while(lu8xmlIndex == ERR_FF);
+        g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
+        wr_his_xml(NULL, dev);//将xmldoc写到文件        
+        if(err == NO_ERR) {//发送文件            
+            fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
+            FileSend(dev, fp);
+            fclose(fp);
+            return Put_XMLBuf(lu8xmlIndex);
+        }
+        return ERR_1;
     }
     
     for(type_idx=0;type_idx<MTYPE_CNT;type_idx++) {
@@ -1210,7 +1233,7 @@ uint8 up_his_data(uint8 dev)
             printf("[%s][%s][%d]current frameidx: %d, cur_cnt: %d, mod: %d\n", FILE_LINE, g_xml_info[dev].cur_frame_indep, \
                 g_xml_info[dev].cur_cnt, g_xml_info[dev].mod[type_idx]);
 		
-		  wr_his_xml(NULL, dev);//写trans节点
+            wr_his_xml(NULL, dev);//写trans节点
             g_xml_info[dev].cur_row_idx = 0;
             retrieve_and_del_his_data(type_idx, g_xml_info[dev].cur_cnt, wr_his_xml, dev);//写row节点, 查询完就删除, 以免下一帧从头开始查
 
@@ -1220,7 +1243,7 @@ uint8 up_his_data(uint8 dev)
             g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
             printf(">>>>>>>>>>>>>>>>>>>>>[%s][%s][%d]<<<<<<<<<<<<<<<<<<<call wr_his_xml to write xml to file.\n", FILE_LINE);
             wr_his_xml(NULL, dev);//将xmldoc写到文件
-
+            
             for(lu8times=0;lu8times<5;lu8times++){
             		if(err == NO_ERR) {//发送文件
                 		fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
@@ -1236,7 +1259,7 @@ uint8 up_his_data(uint8 dev)
 				else				
 					break; //如果发送后收到应答，则跳出继续发送下一帧。
             }
-
+            Put_XMLBuf(lu8xmlIndex);
             g_xml_info[dev].cur_rows += g_xml_info[dev].cur_cnt;//当前已发送的行数
             printf("[%s][%s][%d] cur_frame %d cur_frame_indep %d, make xml over!!!!!!!!\n", FILE_LINE,\
             g_xml_info[dev].cur_frame[type_idx], g_xml_info[dev].cur_frame_indep);
@@ -1251,6 +1274,7 @@ uint8 up_his_data(uint8 dev)
         }
     }
     printf("[%s][%s][%d] all frame make xml over!!!!!!!!\n", FILE_LINE);
+    err = empty_all_hisdata();
     return err;
 }
 

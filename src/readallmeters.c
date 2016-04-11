@@ -166,7 +166,7 @@ void ReadAllMeters(void)
      retrieve_meter_info_list(CallBack_ReadAllMeters);  //卤茅脌煤鲁颅脠芦卤铆隆拢
 /*
 	lu16netType = g_sysConfigHex.netType;
-	if(lu16netType == 0){  //使用485组网，是不允许信息主动上推的，必须等待上位要数
+	if(lu16netType == 0){  //使用485组网，是不允许信息主动上推的，必须等待上位要数, 如果多个集中器都往485总线上推数据, 会引发冲突
 	  	Qmsg.dev = UP_COMMU_DEV_GPRS;
 		Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
 		Qmsg.functype = em_FUNC_RPTUP;
@@ -178,7 +178,7 @@ void ReadAllMeters(void)
 	}
 */
 	
-    /*
+    
   	Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
   
   	lu16netType = g_sysConfigHex.netType;
@@ -193,7 +193,6 @@ void ReadAllMeters(void)
 	asc_to_datestr(tmpstr, Qmsg.timenode);
     printf("[%s][%s][%d] Qmsg.timenode: %s\n", FILE_LINE, Qmsg.timenode );
   	msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
-    */
 }
 
 
