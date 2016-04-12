@@ -66,6 +66,7 @@ typedef unsigned int uint32;
 
 #define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
 #define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
+#define LENGTH_SYS_ANSWER       2048//系统命令返回的信息长度
 
 /********************************************************************************
  ** 字符长度相关
@@ -263,6 +264,70 @@ typedef enum{//上下位机操作类型编号
 	em_OPER_DO,//操作
 	em_OPER_ASW//应答
 }oper_type_idx;
+
+typedef enum T_System_Config {
+    CONFIG_PRIMARY_SERVER = 0,  //-0-, 主服务器IP
+    CONFIG_PRIMARY_DNS,         //-1-, 主DNS IP
+    CONFIG_PRIMARY_PORT,        //-2-, 主服务器端口
+    CONFIG_SECOND_SERVER,       //-3-, 副服务器IP
+    CONFIG_SECOND_DNS,          //-4-, 副DNS IP
+    CONFIG_SECOND_PORT,         //-5-, 副服务器端口
+    CONFIG_GATEWAY_ID,          //-6-, 集中器编号
+    CONFIG_NET_TYPE,            //-7-, 网络类型，0-GPRS,1-485等。
+    CONFIG_MD5_KEY,             //-8-, MD5秘钥
+    CONFIG_AES_KEY,             //-9-, AES秘钥
+    CONFIG_COLLECT_MODE,        //-10-, 自动抄表方式，0-根据collect_cycle周期设置抄表，1-定点抄表。
+    CONFIG_COLLECT_CYCLE,       //-11-, 自动采集周期，当COLLECT_MODE为0时有效。
+    CONFIG_REPORT_MODE,         //-12-, 数据上报模式,0-主动上报，1-被动请求。
+    CONFIG_BEAT_CYCLE,          //-13-, 心跳周期，范围1-10分钟。
+    CONFIG_SVR_NUM              //-14-, 主服务器的编号
+}sys_config_idx;
+#define SYS_CONFIG_COUNT	15//基本配置项的数量
+
+typedef enum item_idx_heat {//按照CJ188协议规定的字段域
+    em_HColdE=0,        //冷量, 实际用于结算日热量
+    em_HHeatE,          //累积热量
+    em_HPower,          //热功率
+    em_HFlowrate,       //流速
+    em_HAccumFlow,      //累积流量
+    em_HInTemp,         //供水温度
+    em_HOutTemp,        //回水温度
+    em_HAccumWorkTime,  //累积工作时间
+    em_HCurTime,        //实时时间
+    em_HState           //状态ST
+}hItem_idx;
+
+typedef enum item_idx_water {//水表数据项
+    em_WCurAccumFlow=0, //当前累积流量
+    em_WFlowrate,       //流速
+    em_WSettleAccumFlow,//结算日累积流量
+    em_WSettleSate,     //结算日
+    em_WAccumWorkTime   //累积工作时间
+}wItem_idx;
+
+typedef enum item_idx_elec {//电表数据项
+    em_EPActTotElec=0,	    //正向有功总电能
+    em_ENActTotElec,	    //反向有功总电能
+    em_EPReactTotElec,	    //正向无功总电能
+    em_ENReactTotElec,	    //反向无功总电能
+    em_EActTotElec,	    //有功总电能
+    em_EReactTotElec,	    //无功总电能
+    em_EOvrPowFac,	    //总功率因数
+    em_EPMaxDem	        //正向有功总最大需量
+}eItem_idx;
+
+typedef struct {//透传命令相关信息
+    uint8 channel;      //通道号
+    uint32 baud;        //波特率
+    uint8 databits;     //数据位
+    uint32 stop;        //停止位
+    uint8 parity;      //校验位
+    uint8 cmd[256];     //透传命令
+    uint8 cmdlen;       //透传命令的长度
+    uint8 meter_type;    //仪表类型
+    uint8 proto_type;    //协议类型
+} proto_trans_str;
+typedef proto_trans_str* pProto_trans;
 
 
 #endif  //_GLOBALDEFINE_H_

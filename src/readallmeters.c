@@ -149,6 +149,7 @@ void ReadAllMeters(void)
 	time_t timep;
      struct tm nowTime;
 	QmsgType Qmsg;
+    memset(&Qmsg, 0, sizeof(QmsgType));
 	uint16 lu16netType = 0;
 
      time(&timep);
@@ -165,7 +166,7 @@ void ReadAllMeters(void)
      retrieve_meter_info_list(CallBack_ReadAllMeters);  //卤茅脌煤鲁颅脠芦卤铆隆拢
 /*
 	lu16netType = g_sysConfigHex.netType;
-	if(lu16netType == 0){  //使用485组网，是不允许信息主动上推的，必须等待上位要数
+	if(lu16netType == 0){  //使用485组网，是不允许信息主动上推的，必须等待上位要数, 如果多个集中器都往485总线上推数据, 会引发冲突
 	  	Qmsg.dev = UP_COMMU_DEV_GPRS;
 		Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
 		Qmsg.functype = em_FUNC_RPTUP;
@@ -177,7 +178,7 @@ void ReadAllMeters(void)
 	}
 */
 	
-
+    
   	Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
   
   	lu16netType = g_sysConfigHex.netType;
@@ -190,9 +191,8 @@ void ReadAllMeters(void)
 	char tmpstr[30];
 	asctime_r(&gTimeNode, tmpstr);
 	asc_to_datestr(tmpstr, Qmsg.timenode);
+    printf("[%s][%s][%d] Qmsg.timenode: %s\n", FILE_LINE, Qmsg.timenode );
   	msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
-  
-
 }
 
 
@@ -205,41 +205,44 @@ void ReadAllMeters(void)
   ******************************************************************************
 */
 
+uint32 gu32lastChkMin;//上次检测抄表时间点的分钟点
 void pthread_ReadAllMeters(void)
 {
-	uint16 lu16ReadmeterMode = 0;
-	uint16 lu16ReadmeterCycle = 0;
-	uint32 lu32CheckCyc_S = 30;  //检测周期，单位秒。
-	uint32 lu32CheckCnt = 0;  //检测周期计数。
-	
+    uint16 lu16ReadmeterMode = 0;
+    uint16 lu16ReadmeterCycle = 0;
+    uint32 lu32CheckCyc_S = 31;  //检测周期，单位秒。
+    uint32 lu32CheckCnt = 0;  //检测周期计数。
+    uint32 lu32CurMin = 0;//当前时间点相对于00:00时所经历的分钟数          	
+    time_t rawtime;
+    struct tm timeinfo;
 
 	while(1){
-		//检测抄表信号，如果抄表信号有效，则开始全抄表，否则，等待30s吧，这些以后要补充，现在下面测试用。
-		lu16ReadmeterMode = g_sysConfigHex.collectMode;
-		lu16ReadmeterCycle = g_sysConfigHex.collectCycle;
-
-		if(lu16ReadmeterMode == 0){  //按周期自动抄表。
-			lu32CheckCnt = lu32CheckCnt % ((lu16ReadmeterCycle*60)/lu32CheckCyc_S);  //初始化后立即抄读一次。
-
-			if(lu32CheckCnt == 0){
-				ReadAllMeters();  //抄表。
-				
-			}
-
-			lu32CheckCnt += 1;
-			
-		}
-		else{  //按抄表时间节点抄表。
-
-
-		}
-		
-		OSTimeDly(lu32CheckCyc_S*1000);//固定延时30秒钟一次检测。
-
-		
-	}
+        //检测抄表信号，如果抄表信号有效，则开始全抄表，否则，等待30s吧，这些以后要补充，现在下面测试用。
+        lu16ReadmeterMode = g_sysConfigHex.collectMode;
+        lu16ReadmeterCycle = g_sysConfigHex.collectCycle;
+        if(lu16ReadmeterMode == 0){  //按周期自动抄表。
+            //lu32CheckCnt = lu32CheckCnt % ((lu16ReadmeterCycle*60)/lu32CheckCyc_S);  //初始化后立即抄读一次。
+            time (&rawtime);
+            localtime_r(&rawtime, &timeinfo);
+            lu32CurMin = timeinfo.tm_hour*60 + timeinfo.tm_min;
+            printf("[%s][%s][%d]current minutes: %d\n" , FILE_LINE, lu32CurMin);
+            if((lu32CurMin%lu16ReadmeterCycle) == 0){
+                if(timeinfo.tm_min != gu32lastChkMin) {
+                    //如果本次检测的分钟点不是上次检测的分钟点, 则抄表
+                    //这个检测成立的前提是检测周期比一个小时短
+                    printf("[%s][%s][%d] now read all meters", FILE_LINE);
+                    ReadAllMeters();  //抄表。
+                }
+            }
+            gu32lastChkMin = timeinfo.tm_min;
+            lu32CheckCnt += 1;
+        }
+        else{  //按抄表时间节点抄表。
 
 
+        }
+        OSTimeDly(lu32CheckCyc_S*1000);//固定延时30秒钟一次检测。
+    }
 }
 
 

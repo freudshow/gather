@@ -51,6 +51,8 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 //u8Meter_type和aItems_list的索引顺序不能搞乱, 须以enum meter_type_idx规定的顺序为准
 static uint8 u8Meter_type[] = {HEATMETER, WATERMETER, ELECTMETER, GASMETER};
 static request_data_list arrayRequest_list[MTYPE_CNT]={NULL};//仪表信息列表的数组, 私有变量
+static request_data_list list_set_request_data = NULL;
+static int set_request_data_idx=0;
 
 static int request_data_idx[MTYPE_CNT]={0};//配置数据项数量的索引, 私有变量
 static int each_request_data(void *type_idx, int f_cnt, char **f_value, char **f_name);
@@ -66,8 +68,6 @@ static uint8 data_item_idx;//数据项的下标号, 用于指针移位, 不是线程安全的
 
 //索引顺序同enum meter_type_idx
 static char* tablename_array[] = {TABLE_HEAT, TABLE_WATER, TABLE_ELEC, TABLE_GAS};
-
-
 
 
 /********************************************************************************
@@ -262,13 +262,13 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
                 default:
                     sprintf(tmp_data, "Err");
                     break;
-            }
-            strcat(sql_buf, SQL_SINGLE_QUOTES);
-            strcat(sql_buf, tmp_data);
-            strcat(sql_buf, SQL_SINGLE_QUOTES);
-            if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
-            strcat(sql_buf, ",");
-            item_list = item_list->pNext;
+                }
+                strcat(sql_buf, SQL_SINGLE_QUOTES);
+                strcat(sql_buf, tmp_data);
+                strcat(sql_buf, SQL_SINGLE_QUOTES);
+                if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
+                strcat(sql_buf, ",");
+                item_list = item_list->pNext;
             }
             break;
         case em_water:
@@ -399,6 +399,7 @@ uint8 read_his_data(char* timenode, mtype_idx idx, char* pErr)
     printf("&&&&[%s][%s][%d] retrieve_his_data() &&&&\n", FILE_LINE);
     empty_hist_data(idx);
     get_his_sql(timenode, idx);
+    printf("&&&&[%s][%s][%d] sql: %s &&&&\n", FILE_LINE, his_sql_array[idx]);
     err = sqlite3_exec(g_pDB, his_sql_array[idx], each_his_data, &idx, &pErr);
     return (err==SQLITE_OK?NO_ERR:ERR_1);
 }
@@ -446,9 +447,14 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
     int i=0;
     pHis_data pTmp_his = his_data_list_array[idx];
     pHis_data pRtn_his = malloc(sizeof(struct his_data_str));
+    if(NULL == pRtn_his) {
+        printf("@@@@@[%s][%s][%d]malloc error, pRtn_his is NULL: %p @@@@@\n",FILE_LINE, pRtn_his);
+        return ERR_1;
+    }
+        
     memset(pRtn_his, 0, sizeof(struct his_data_str));
     
-    while(pTmp_his&& (i<cnt) /* && (i<hisdata_idx_array[idx])*/) {//要读取的行数不能大于剩下的行数
+    while(pTmp_his && (i<cnt) && (i<hisdata_idx_array[idx])) {//要读取的行数不能大于剩下的行数
         printf("@@@@@[%s][%s][%d]hisdata_idx_array[%d]: %d @@@@@\n",FILE_LINE, idx, hisdata_idx_array[idx]);
         printf("@@@@@[%s][%s][%d]pTmp_his: %p @@@@@\n",FILE_LINE, pTmp_his);
         printf("@@@@@[%s][%s][%d], idx is: %d, cnt: %d, hisdata_idx_array[%d]: %d\n", FILE_LINE, i, cnt, idx, hisdata_idx_array[idx]);
@@ -458,6 +464,7 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         pRtn_his->value_cnt = pTmp_his->value_cnt;
         pRtn_his->value_list = malloc(pTmp_his->value_cnt*sizeof(struct meter_item));    
         memcpy(pRtn_his->value_list, pTmp_his->value_list, pTmp_his->value_cnt*sizeof(struct meter_item));
+        printf("@@@@@[%s][%s][%d]before read_one_his(pRtn_his, dev), pRtn_his is : %p @@@@@\n",FILE_LINE, pRtn_his);
         read_one_his(pRtn_his, dev);
         free(pRtn_his->value_list);
         //删除已读取的节点
@@ -469,10 +476,10 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         free(pTmp_his->value_list);
         free(pTmp_his);
         pTmp_his = his_data_list_array[idx];//指向下一个节点
-        printf("pTmp_his: %p, his_data_list_array[idx]: %p\n", pTmp_his, his_data_list_array[idx]);
+        printf("[%s][%s][%d]pTmp_his: %p, his_data_list_array[idx]: %p\n",FILE_LINE, pTmp_his, his_data_list_array[idx]);
         i++;
         hisdata_idx_array[idx]--;
-        printf("finish delete one node, idx is: %d\n", i);
+        printf("[%s][%s][%d]finish delete one node, idx is: %d\n",FILE_LINE, i);
     }
     free(pRtn_his);
     return NO_ERR;
@@ -592,6 +599,87 @@ int  get_request_data_cnt(mtype_idx idx)
 {
 	return request_data_idx[idx];
 }
+
+static uint8 del_request_data(char* pId, char* pErr)
+{
+	int err=0;
+	char *sql_buf = malloc(LENGTH_SQLBUF);
+	strcpy(sql_buf, SQL_DELETE);
+	strcat(sql_buf, " ");
+	strcat(sql_buf, SQL_FROM);
+	strcat(sql_buf, " ");
+	strcat(sql_buf, TABLE_REQUEST_DATA);
+
+	if(NULL != pId) {
+		strcat(sql_buf, " ");
+		strcat(sql_buf, SQL_WHERE);
+		strcat(sql_buf, " ");
+		strcat(sql_buf, FIELD_BASE_DEF_ID);
+		strcat(sql_buf, SQL_EQUAL);
+		strcat(sql_buf, pId);
+	}
+	err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+	free(sql_buf);
+	return err==SQLITE_OK ? NO_ERR:ERR_FF;
+}
+
+uint8 insert_one_request_node(pRequest_data pRqData)
+{
+    uint8 err=NO_ERR;
+    add_node(list_set_request_data, pRqData)
+    set_request_data_idx++;
+    return err;
+}
+
+int get_request_data_setted()
+{
+    return set_request_data_idx;
+}
+
+uint8 add_one_request_data(pRequest_data pNode, char* pErr)
+{
+    if(NULL == pNode) {
+    	    return ERR_1;
+    }
+    uint8 err=NO_ERR;
+    char *sql_buf = malloc(LENGTH_SQLBUF);
+    char *table_name = TABLE_REQUEST_DATA;
+    char *col_buf[LENGTH_F_COL_NAME] = {FIELD_REQUEST_MTYPE, FIELD_REQUEST_ITEMIDX, FIELD_REQUEST_COLNAME, FIELD_REQUEST_COLTYPE};
+    char meter_type[5];
+    char item_idx[5];
+    sprintf(meter_type, "%02x", pNode->f_meter_type);
+    sprintf(item_idx, "%d", pNode->f_item_index);
+    char *val_buf[LENGTH_SQLVALUE] = {meter_type, item_idx, pNode->f_col_name, pNode->f_col_type};
+    get_insert_sql(table_name, col_buf, 4, val_buf, sql_buf, 1);
+    err =  sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+    printf("[%s][%s][%d]pErr: %s\n", FILE_LINE, pErr);
+    free(sql_buf);
+    return err==SQLITE_OK ? NO_ERR : ERR_1;
+}
+
+uint8 set_request_data(char* pErr)
+{
+    uint8 err=NO_ERR;
+    del_request_data(NULL, pErr);
+    if(strlen(pErr)>0)
+        return ERR_1;
+    pRequest_data pNode = list_set_request_data;
+    	while(pNode) {
+		if(NO_ERR != add_one_request_data(pNode, pErr)) {
+			return ERR_1;
+		}
+		pNode = pNode->pNext;
+	}
+
+    empty_list(pRequest_data,list_set_request_data)
+    set_request_data_idx = 0;
+    read_all_request_data(pErr);
+    if(strlen(pErr)>0)
+        return ERR_1;
+    return err;
+}
+
+
 
 /********************************************************************************
  **	 函数名: read_meter_info
@@ -834,6 +922,10 @@ static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
         else if(0 == strcmp(f_name[i], FIELD_BASE_DEF_VALUE))
             strcpy(config_value, f_value[i]);
     }
+    if(idx<1 || idx>SYS_CONFIG_COUNT) {
+        printf("[%s][%s][%d] sys_config's idx is overflow!\n", FILE_LINE);
+        return ERR_1;
+    }
     sys_config_array[idx-1].f_id  = idx;//数据库的索引值是从1开始的, 所以要减一
     strcpy(sys_config_array[idx-1].f_config_name, config_name);
     strcpy(sys_config_array[idx-1].f_config_value, config_value);
@@ -846,7 +938,7 @@ int get_sys_config_cnt()
 	return config_idx;
 }
 
-uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig)
+uint8 get_sys_config(sys_config_idx idx, pSys_config pConfig)
 {
 	if(NULL==pConfig || idx<0 || idx>=SYS_CONFIG_COUNT)
 		return ERR_1;
@@ -855,6 +947,7 @@ uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig)
 	return NO_ERR;
 }
 
+#if 0
 static uint8 del_sysconf(char* pId, char* pErr)
 {
 	int err=0;
@@ -877,6 +970,7 @@ static uint8 del_sysconf(char* pId, char* pErr)
 	free(sql_buf);
 	return err==SQLITE_OK ? NO_ERR:ERR_FF;
 }
+#endif
 
 /*
  * 清空系统配置信息
@@ -955,7 +1049,6 @@ uint8 set_sysconf(char* pErr)
 {
 	printf("[%s][%s][%d]list_set_sysconf: %p\n", FILE_LINE, list_set_sysconf);
 	pSys_config pTmp_conf = list_set_sysconf;
-	//del_sysconf(NULL, pErr);//先清空原有的表数据
 	while(pTmp_conf) {
 		if(NO_ERR != add_one_config(pTmp_conf, pErr)) {
 			return ERR_1;

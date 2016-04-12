@@ -138,29 +138,10 @@
  ** t_base_define
  ** 基础配置信息表, 用t_base_define.f_id来索引对应的配置
  ********************************************************************************/
-#define SYS_CONFIG_COUNT	14//基本配置项的数量
 
 #define FIELD_BASE_DEF_ID		"f_id"
 #define FIELD_BASE_DEF_NAME	"f_config_name"
 #define FIELD_BASE_DEF_VALUE	"f_config_value"
-
-
-typedef enum T_System_Config {
-    CONFIG_PRIMARY_SERVER = 0,  //-0-, 主服务器IP
-    CONFIG_PRIMARY_DNS,         //-1-, 主DNS IP
-    CONFIG_PRIMARY_PORT,        //-2-, 主服务器端口
-    CONFIG_SECOND_SERVER,       //-3-, 副服务器IP
-    CONFIG_SECOND_DNS,          //-4-, 副DNS IP
-    CONFIG_SECOND_PORT,         //-5-, 副服务器端口
-    CONFIG_GATEWAY_ID,          //-6-, 集中器编号
-    CONFIG_NET_TYPE,            //-7-, 网络类型，0-GPRS,1-485等。
-    CONFIG_MD5_KEY,             //-8-, MD5秘钥
-    CONFIG_AES_KEY,             //-9-, AES秘钥
-    CONFIG_COLLECT_MODE,        //-10-, 自动抄表方式，0-根据collect_cycle周期设置抄表，1-定点抄表。
-    CONFIG_COLLECT_CYCLE,       //-11-, 自动采集周期，当COLLECT_MODE为0时有效。
-    CONFIG_REPORT_MODE,         //-12-, 数据上报模式,0-主动上报，1-被动请求。
-    CONFIG_BEAT_CYCLE           //-13-, 心跳周期，范围1-10分钟。
-}em_sys_config;
 
 struct sys_config_structure;
 typedef struct sys_config_structure sys_config_str;
@@ -319,7 +300,7 @@ void get_delete_sql(char *table_name, char **condition, int con_count, char *sql
  ** 系统配置参数相关 **
  **********************/
 void read_sys_config(char *pErr);//从数据库读取基本配置
-uint8 get_sys_config(enum T_System_Config idx, pSys_config pConfig);//读取单独一条配置
+uint8 get_sys_config(sys_config_idx idx, pSys_config pConfig);//读取单独一条配置
 int get_sys_config_cnt();//读取系统配置参数的个数
 uint8 insert_sysconf(pSys_config pConf);//插入单个系统配置
 uint8 empty_sysconf_list();//清空配置列表
@@ -343,6 +324,9 @@ void read_all_request_data(char	*pErr);
 void read_request_data(char	*pErr, mtype_idx type_idx);//按照仪表类型读取数据项
 void retrieve_request_data_list(int (*read_one_item)(pRequest_data, void*), mtype_idx type_idx, void* pVar);//顺序遍历数据项信息
 int  get_request_data_cnt(mtype_idx);//读取仪表数据项的个数
+uint8 insert_one_request_node(pRequest_data pRqData);
+uint8 set_request_data(char* pErr);
+int get_request_data_setted();
 
 /**********************
  ** 仪表历史数据相关 **
