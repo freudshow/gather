@@ -88,9 +88,133 @@ int close_db(void)
 	 return (sqlite3_close(g_pDB) == SQLITE_OK) ? SQLITE_OK : -1;
 }
 
+
+
 /********************************************************************************
  ** 功能区域	: 仪表历史数据相关 
  ********************************************************************************/
+
+
+void get_heatdata_sql(CJ188_Format* heatdata, request_data_list item_list, char* sql_buf)
+{
+    char tmp_data[LENGTH_F_COL_NAME];
+    uint8 *p;
+    while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
+        memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
+        switch(item_list->f_item_index) {
+        case em_HColdE:
+            p=(uint8 *)&(heatdata->DailyHeat);
+            sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+            *(p+3), heatdata->DailyHeatUnit);//实际为冷量, 而不是结算日热量
+            break;
+        case em_HHeatE:
+            p=(uint8 *)&(heatdata->CurrentHeat);
+            sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+            *(p+3), heatdata->CurrentHeatUnit);
+            break;
+        case em_HPower:
+            p=(uint8 *)&(heatdata->HeatPower);
+            sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+            *(p+3), heatdata->HeatPowerUnit);
+            break;
+        case em_HFlowrate:
+            p=(uint8 *)&(heatdata->Flow);
+            sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+            *(p+3), heatdata->FlowUnit);
+            break;
+        case em_HAccumFlow:
+            p=(uint8 *)&(heatdata->AccumulateFlow);
+            sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+            *(p+3), heatdata->AccumulateFlowUnit);
+            break;
+        case em_HInTemp:
+            sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[0], \
+            heatdata->WaterInTemp[1], heatdata->WaterInTemp[2]);
+            break;
+        case em_HOutTemp:
+            sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[0], \
+            heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[2]);
+            break;
+        case em_HAccumWorkTime:
+            sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[0], \
+            heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[2]);
+            break;
+        case em_HCurTime:					
+            sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[0], \
+            heatdata->RealTime[1], heatdata->RealTime[2], \
+            heatdata->RealTime[3], heatdata->RealTime[4], 
+            heatdata->RealTime[5], heatdata->RealTime[6]);
+            break;
+        case em_HState:
+            sprintf(tmp_data, "%04x", heatdata->ST);
+            break;
+        default:
+            sprintf(tmp_data, "Err");
+            break;
+        }
+        strcat(sql_buf, SQL_SINGLE_QUOTES);
+        strcat(sql_buf, tmp_data);
+        strcat(sql_buf, SQL_SINGLE_QUOTES);
+        if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
+        strcat(sql_buf, ",");
+        item_list = item_list->pNext;
+    }
+}
+
+void get_elecdata_sql(lcModbusElec_str* elecdata, request_data_list item_list, char* sql_buf)
+{
+    char tmp_data[LENGTH_F_COL_NAME];
+    while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
+        memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
+        switch(item_list->f_item_index) {
+        case em_EPActTotElec:
+            sprintf(tmp_data, "%f", elecdata->pact_tot_elec);
+            strcat(tmp_data, " ");
+            strcat(tmp_data, (char*)elecdata->pact_tot_elec_unit);
+            break;
+        case em_ENActTotElec:
+            sprintf(tmp_data, "%f", elecdata->nact_tot_elec);
+            strcat(tmp_data, " ");
+            strcat(tmp_data, (char*)elecdata->nact_tot_elec_unit);
+            break;
+        case em_EPReactTotElec:
+            sprintf(tmp_data, "%f", elecdata->preact_tot_elec);
+            strcat(tmp_data, " ");
+            strcat(tmp_data, (char*)elecdata->preact_tot_elec_unit);
+            break;
+        case em_ENReactTotElec:
+            sprintf(tmp_data, "%f", elecdata->nreact_tot_elec);
+            strcat(tmp_data, " ");
+            strcat(tmp_data, (char*)elecdata->nreact_tot_elec_unit);
+            break;
+        case em_EActTotElec:
+            sprintf(tmp_data, "%f", elecdata->act_tot_elec);
+            strcat(tmp_data, " ");
+            strcat(tmp_data, (char*)elecdata->act_tot_elec_unit);
+            break;
+        case em_EReactTotElec:
+            sprintf(tmp_data, "%f", elecdata->react_tot_elec);
+            strcat(tmp_data, " ");
+            strcat(tmp_data, (char*)elecdata->react_tot_elec_unit);
+            break;
+        case em_EOvrPowFac:
+            break;
+        case em_EPMaxDem:
+            break;        
+        default:
+            sprintf(tmp_data, "Err");
+            break;
+        }
+        strcat(sql_buf, SQL_SINGLE_QUOTES);
+        strcat(sql_buf, tmp_data);
+        strcat(sql_buf, SQL_SINGLE_QUOTES);
+        if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
+        strcat(sql_buf, ",");
+        item_list = item_list->pNext;
+    }
+}
+
+
 
 void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr)
 {
@@ -102,15 +226,19 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 
 	switch(pmf->u8MeterType){
 		case HEATMETER:
+            printf("[%s][%s][%d], HEAT_METER\n", FILE_LINE);
 			type_idx = em_heat;
 			break;
 		case WATERMETER:
+            printf("[%s][%s][%d], WATER_METER\n", FILE_LINE);
 			type_idx = em_water;
 			break;
 		case ELECTMETER:
+            printf("[%s][%s][%d], ELECT_METER\n", FILE_LINE);
 			type_idx = em_elect;
 			break;
 		case GASMETER:
+            printf("[%s][%s][%d], GAS_METER\n", FILE_LINE);
 			type_idx = em_gas;
 			break;
 		default:
@@ -175,7 +303,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	sprintf(tmp_data, "%02x",pmf->u8MeterType);
 	strcat(sql_buf, tmp_data);//表类型
 	strcat(sql_buf, ",");
-	sprintf(tmp_data, "%s", "NULL");//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!暂时为NULL, 后期完善!!!!!!!!!!!!!!!!!!!!!
+	sprintf(tmp_data, "%d", pmf->u16MeterID);
 	strcat(sql_buf, tmp_data);//设备编号
 	strcat(sql_buf, ",");
 
@@ -197,7 +325,6 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	strcat(sql_buf, ",");
 	item_list = arrayRequest_list[type_idx];
 	CJ188_Format* heatdata;
-	uint8 *p;//改变CJ188_Format中uint32类型的字节序
     if (NULL==pData) {//与调用者约定, 如果传入了NULL值, 就认为当前仪表的当前时间点的历史数据没抄上来
         while(item_list) {
         strcat(sql_buf, "'NULL'");
@@ -210,53 +337,54 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
         switch(type_idx) {
         case em_heat:
             heatdata = (CJ188_Format*)pData;
-            while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
+            get_heatdata_sql(heatdata, item_list, sql_buf);
+            /*while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
                 memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
                 switch(item_list->f_item_index) {
-                case HITEM_CUR_COLD_E:
+                case em_HColdE:
                     p=(uint8 *)&(heatdata->DailyHeat);
                     sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
                     *(p+3), heatdata->DailyHeatUnit);//实际为冷量, 而不是结算日热量
                     break;
-                case HITEM_CUR_HEAT_E:
+                case em_HHeatE:
                     p=(uint8 *)&(heatdata->CurrentHeat);
                     sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
                     *(p+3), heatdata->CurrentHeatUnit);
                     break;
-                case HITEM_HEAT_POWER:
+                case em_HPower:
                     p=(uint8 *)&(heatdata->HeatPower);
                     sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
                     *(p+3), heatdata->HeatPowerUnit);
                     break;
-                case HITEM_FLOWRATE:
+                case em_HFlowrate:
                     p=(uint8 *)&(heatdata->Flow);
                     sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
                     *(p+3), heatdata->FlowUnit);
                     break;
-                case HITEM_ACCUM_FLOW:
+                case em_HAccumFlow:
                     p=(uint8 *)&(heatdata->AccumulateFlow);
                     sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
                     *(p+3), heatdata->AccumulateFlowUnit);
                     break;
-                case HITEM_IN_TEMP:
+                case em_HInTemp:
                     sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[0], \
                     heatdata->WaterInTemp[1], heatdata->WaterInTemp[2]);
                     break;
-                case HITEM_OUT_TEMP:
+                case em_HOutTemp:
                     sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[0], \
                     heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[2]);
                     break;
-                case HITEM_ACCUM_WORK_TIME:
+                case em_HAccumWorkTime:
                     sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[0], \
                     heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[2]);
                     break;
-                case HITEM_REAL_TIME:					
+                case em_HCurTime:					
                     sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[0], \
                     heatdata->RealTime[1], heatdata->RealTime[2], \
                     heatdata->RealTime[3], heatdata->RealTime[4], 
                     heatdata->RealTime[5], heatdata->RealTime[6]);
                     break;
-                case HITEM_STATE:
+                case em_HState:
                     sprintf(tmp_data, "%04x", heatdata->ST);
                     break;
                 default:
@@ -269,11 +397,12 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
                 if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
                 strcat(sql_buf, ",");
                 item_list = item_list->pNext;
-            }
+            }*/
             break;
         case em_water:
             break;
         case em_elect:
+            get_elecdata_sql(pData, item_list, sql_buf);
             break;
         case em_gas:
             break;

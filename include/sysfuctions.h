@@ -126,6 +126,7 @@ extern uint8 Str2Bin(char *str, uint8 *array,uint16 lens);
 extern uint8 PUBLIC_CountCS(uint8* _data, uint16 _len);
 extern void FileSend(uint8 Dev, FILE *fp);
 extern uint8 asc_to_datestr(char* src, char* dest);
+extern uint16 crc16ModRtu(const uint8 *nData, uint16 wLength);
 
 
 

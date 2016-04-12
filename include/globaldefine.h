@@ -37,33 +37,6 @@ typedef unsigned int uint32;
 #define ELECTMETER	0x40
 #define GASMETER	0x30
 
-//热表需要的数据项索引
-#define	HITEM_CUR_COLD_E			0x01//当前冷量
-#define	HITEM_CUR_HEAT_E			0x02//当前热量
-#define	HITEM_HEAT_POWER			0x03//热功率
-#define	HITEM_FLOWRATE			0x04//流速
-#define	HITEM_ACCUM_FLOW			0x05//累积流量
-#define	HITEM_IN_TEMP				0x06//供水温度
-#define	HITEM_OUT_TEMP			0x07//回水温度
-#define	HITEM_ACCUM_WORK_TIME	    0x08//累计工作时间
-#define	HITEM_REAL_TIME			0x09//实时时间
-#define	HITEM_STATE				0x0a//状态ST
-//水表需要的数据项索引
-#define	WITEM_CUR_ACCUM_FLOW			0x01//当前累计流量
-#define	WITEM_FLOWRATE					0x02//流速
-#define	WITEM_SETTLE_DATE_ACCUM_FLOW	0x03//结算日累积流量
-#define	WITEM_SETTLE_DATE				0x04//结算日
-#define	WITEM_ACCUM_WORK_TIME			0x05//累计工作时间
-//电表需要的数据项索引
-#define	EITEM_ACTIVE_TOTAL_ELECTRICITY	0x01//有功总电能
-#define	EITEM_CUR_VOLTAGE					0x02//当前电压值
-#define	EITEM_CUR_CURRENT					0x03//当前电流值
-#define	EITEM_CUR_ACTIVE_POWER				0x04//当前有功功率值
-#define	EITEM_CUR_FREQ						0x05//当前频率值
-#define	EITEM_CUR_REACTIVE_POWER			0x06//当前无功功率值
-#define	EITEM_CUR_APPARENT_POWER			0x07//当前视在功率值
-#define	EITEM_CUR_POWER_FACTOR				0x08//当前功率因数值
-
 #define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
 #define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
 #define LENGTH_SYS_ANSWER       2048//系统命令返回的信息长度
@@ -74,6 +47,17 @@ typedef unsigned int uint32;
 #define LEN_BYTE	8//一个字节的比特数
 #define LEN_HALF_BYTE	4//一半字节的比特数
 #define BYTE_BCD_CNT	2//一个字节由多少个BCD码表示
+
+#define LC_ELEC_REG_BYTES      2//力创DTSD106三相电表, 每个寄存器的字节数
+#define LC_ELEC_WORK_BYTES	    4//力创DTSD106三相电表, 每个电能参数对应的字节数
+/********************************************************************************
+ ** MODBUS相关
+ ********************************************************************************/
+#define MODBUS_READ    0x03//读多路寄存器
+#define LC_ELEC_WORK_START  0x000C//力创电表电量参数的起始寄存器地址
+#define LC_ELEC_WORK_LEN    0x000C//力创电表电量参数的寄存器个数
+
+
 
 //定义设备文件名称
 #define DEVICE4851		"/dev/ttyS1"
@@ -285,7 +269,7 @@ typedef enum T_System_Config {
 #define SYS_CONFIG_COUNT	15//基本配置项的数量
 
 typedef enum item_idx_heat {//按照CJ188协议规定的字段域
-    em_HColdE=0,        //冷量, 实际用于结算日热量
+    em_HColdE=1,        //冷量, 实际用于结算日热量
     em_HHeatE,          //累积热量
     em_HPower,          //热功率
     em_HFlowrate,       //流速
@@ -298,7 +282,7 @@ typedef enum item_idx_heat {//按照CJ188协议规定的字段域
 }hItem_idx;
 
 typedef enum item_idx_water {//水表数据项
-    em_WCurAccumFlow=0, //当前累积流量
+    em_WCurAccumFlow=1, //当前累积流量
     em_WFlowrate,       //流速
     em_WSettleAccumFlow,//结算日累积流量
     em_WSettleSate,     //结算日
@@ -306,7 +290,7 @@ typedef enum item_idx_water {//水表数据项
 }wItem_idx;
 
 typedef enum item_idx_elec {//电表数据项
-    em_EPActTotElec=0,	    //正向有功总电能
+    em_EPActTotElec=1,	    //正向有功总电能
     em_ENActTotElec,	    //反向有功总电能
     em_EPReactTotElec,	    //正向无功总电能
     em_ENReactTotElec,	    //反向无功总电能

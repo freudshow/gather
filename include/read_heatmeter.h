@@ -56,6 +56,42 @@ typedef struct{
 
 #pragma pack()
 
+#pragma pack(1)
+
+typedef struct lcModSendCmd{//力创modbus电表读取命令帧
+	uint8 address;//模块地址号
+	uint8 func;//功能码
+	uint16 start;//起始寄存器地址
+	uint16 regCount;//寄存器数量
+}lcModSendStr;
+#pragma pack()
+
+#pragma pack(1)
+typedef struct{//力创电表返回值格式
+    float   pact_tot_elec;              //正向有功总电能
+    uint8   pact_tot_elec_unit[5];      //+KWh
+    float   nact_tot_elec;              //反向有功总电能
+    uint8   nact_tot_elec_unit[5];      //-KWh
+    float   preact_tot_elec;            //正向无功总电能
+    uint8   preact_tot_elec_unit[7];    //+KVarh
+    float   nreact_tot_elec;            //反向无功总电能
+    uint8   nreact_tot_elec_unit[7];    //-KVarh
+    float   act_tot_elec;               //有功总电能
+    uint8   act_tot_elec_unit[4];       //KWh
+    float   react_tot_elec;             //无功总电能
+    uint8   react_tot_elec_unit[6];     //KVarh    
+}lcModbusElec_str;
+#pragma pack()
+
+typedef enum lcElecAnswerState{//力创电表应答帧的解析状态
+    em_init_state = 0,
+    em_address_state,
+    em_func_state,
+    em_length_state,
+    em_data_state,
+    em_crc_state,
+    em_end_state
+}lcElecAnsSt;
 
 
 
@@ -64,6 +100,7 @@ typedef struct{
 
 
 extern uint8 Read_HeatMeter(MeterFileType *pmf);
+extern uint8 Read_ElecMeter(MeterFileType *pmf);
 
 
 #endif	//_READ_HEATMETER_

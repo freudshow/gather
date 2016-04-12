@@ -16,6 +16,8 @@
 
 
 #define	HEATMETER_PROTO_SUM		39	//热量表协议总数。
+#define	ELECMETER_PROTO_SUM		1	//电表协议总数。
+
 
 #define     COMSET_1		0
 #define	  COMSET_2		1
@@ -24,6 +26,8 @@
 #define     COMSET_5        	4
 #define     COMSET_6        	5			
 #define     COMSET_7        	6
+
+#define     ELEC_COMSET_1        	0
 
 
 #define DE_LU			COMSET_1
@@ -62,11 +66,13 @@
 #define LANDISGYR_T230_VER		37	     //兰吉尔T230热量表。
 #define BEITE_BEFORE2014			38		//贝特2014年及以前的大口径热表协议(日照公安局办公楼)
 
-
-
+#define ELEC_LC_MODBUS      0//力创Modbus电表
 
 extern uint8 (*METER_ComParaSetArray[])(void);
 extern uint16 gMETER_Table[HEATMETER_PROTO_SUM][4];
+
+extern uint8 (*ELEC_METER_ComParaSetArray[])(void);
+extern uint16 gELEC_METER_Table[ELECMETER_PROTO_SUM][5];
 
 
 

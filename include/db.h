@@ -93,7 +93,7 @@
  ********************************************************************************/
 #define TABLE_BASE_DEF		"t_base_define"//基本配置表
 #define TABLE_REQUEST_DATA	"t_request_data"//各类型仪表需要的数据项表
-#define TABLE_ELEC			"t_elec_data"//电表历史数据
+#define TABLE_ELEC			"t_elect_data"//电表历史数据
 #define TABLE_WATER			"t_water_data"//水表历史数据
 #define TABLE_HEAT			"t_heat_data"//热量表历史数据
 #define TABLE_GAS			"t_air_data"//天然气表历史数据

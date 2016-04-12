@@ -27,7 +27,7 @@ extern uint8 METER_ComSet4(void);
 extern uint8 METER_ComSet5(void);
 extern uint8 METER_ComSet6(void);
 extern uint8 METER_ComSet7(void);
-
+extern uint8 ELEC_METER_ComSet1(void);
 
 
 

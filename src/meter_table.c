@@ -19,7 +19,6 @@
 //抄表串口， 函数指针赋值
 uint8 (*METER_ComParaSetArray[])(void) = {METER_ComSet1, METER_ComSet2, METER_ComSet3, METER_ComSet4,METER_ComSet5,METER_ComSet6,METER_ComSet7};
 
-
 //热计量表多协议支持，通过该Table来区分不同热计量表设置及抄读等
 // 对于不同协议的读取热计量表数据的标识符不同，
 // Table 格式为：串口设置函数指针标号 + 读取热计量表数据标识符 + 前导符个数+通讯类型(0:MBUS  1:485)
@@ -72,4 +71,10 @@ uint16 gMETER_Table[HEATMETER_PROTO_SUM][4] = {
                
 };
 
+uint8 (*ELEC_METER_ComParaSetArray[])(void) = {ELEC_METER_ComSet1};
+// 对于不同协议的读取热计量表数据的标识符不同，
+// Table 格式为：串口设置函数指针标号 + 读取电表数据标识符 + 前导符个数+通讯类型(0:MBUS  1:485)+通讯协议类型(0:MODBUS  1:645)
+uint16 gELEC_METER_Table[ELECMETER_PROTO_SUM][5] = {
+    {ELEC_COMSET_1, 0x0000, 0, 0, 0}//力创电表	-----idx: -0-
+};
 

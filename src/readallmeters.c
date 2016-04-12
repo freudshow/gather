@@ -84,11 +84,11 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 
 	
 	lu8Channel = pmf->u8Channel;
+    
 	if(lu8Channel == RS485_DOWN_CHANNEL)  //操作一个设备，先请求信号量,谨防冲突。
 		sem_wait(&Opetate485Down_sem);
 	else
 		sem_wait(&OperateMBUS_sem);
-		
 	METER_ChangeChannel(lu8Channel);  //先确保在对应通道上。
 	
 	
@@ -107,7 +107,13 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 
 			break;
 		case ELECTMETER:
-
+             lu8retrytimes = 1 + 1;  //补抄次数，当前用固定1次补抄，后期要根据设置。
+			for(i=0;i<lu8retrytimes;i++){
+				err = Read_ElecMeter(pmf);
+				OSTimeDly(200); //防止抄表太快，这里以后可以改成延时可设置。
+				if(err == NO_ERR)
+					break;
+			}
 			break;
 
 		case GASMETER:
@@ -193,6 +199,7 @@ void ReadAllMeters(void)
 	asc_to_datestr(tmpstr, Qmsg.timenode);
     printf("[%s][%s][%d] Qmsg.timenode: %s\n", FILE_LINE, Qmsg.timenode );
   	msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
+    printf("[%s][%s][%d] Qmsg have been sent\n", FILE_LINE);
 }
 
 
@@ -210,7 +217,7 @@ void pthread_ReadAllMeters(void)
 {
     uint16 lu16ReadmeterMode = 0;
     uint16 lu16ReadmeterCycle = 0;
-    uint32 lu32CheckCyc_S = 31;  //检测周期，单位秒。
+    uint32 lu32CheckCyc_S = 30;  //检测周期，单位秒。
     uint32 lu32CheckCnt = 0;  //检测周期计数。
     uint32 lu32CurMin = 0;//当前时间点相对于00:00时所经历的分钟数          	
     time_t rawtime;
@@ -245,6 +252,26 @@ void pthread_ReadAllMeters(void)
     }
 }
 
+void pthread_readmeter_test()
+{	
+    time_t timep;
+    MeterFileType mf;
+    memset(&mf, 0, sizeof(mf));
+    mf.u16MeterID = 1;
+    mf.u8Channel = 7;
+    mf.u8MeterAddr[0] = 0x01;
+    mf.u8MeterType = ELECTMETER;
+    mf.u8ProtocolType = 0;
+    
+    	while(1){
+        usleep(10000000);
+        time(&timep);
+        localtime_r(&timep, &gTimeNode);
+        gTimeNode.tm_sec = 0;
+        ReaOneMeter(&mf);
+        
+	}
+}
 
 
 

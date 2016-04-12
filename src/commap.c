@@ -206,9 +206,9 @@ uint8 RS485Down_DataSend(uint8 *Data,uint32 n)
 
 	lu32delaytimes = 12000000 / 2400;  //1000000*12/RS485UP_COM_SPEED;
 	lu32delaytimes = lu32delaytimes*n;  //计算出在速率为RS485UP_COM_SPEED时，发送n个字节大概需要时间。
-
+    lu32delaytimes = lu32delaytimes/4;//9600/2400 = 4
 	usleep(lu32delaytimes); //保证本次数据发完。
-
+    
 	//最后将485方向设置为recv.
 	ioctl(g_uiIoControl,RS4852_C31,RS485_RECV);
 	usleep(100);
@@ -216,6 +216,39 @@ uint8 RS485Down_DataSend(uint8 *Data,uint32 n)
 	return NO_ERR; 
 
 }
+
+/*
+******************************************************************************
+* 函数名称： uint8 RS485Down_DataSend(uint8 *Data,uint32 n)
+* 说	明： 下行485接口发送数据。
+* 参	数： 
+******************************************************************************
+*/
+uint8 RS4852Down_DataSend_byspeed(uint8 *Data,uint32 n, uint32 speed)
+{
+    if(speed == 0){
+        return ERR_1;
+    }
+	uint32 lu32delaytimes = 0;
+
+	ioctl(g_uiIoControl,RS4852_C31,RS485_SED);
+	usleep(2000);
+
+	write(g_uiRS4852Fd, (uint8 *)Data, n);
+
+	lu32delaytimes = 12000000 / speed;  //1000000*12/RS485UP_COM_SPEED;
+	lu32delaytimes = lu32delaytimes*n;  //计算出在速率为RS485UP_COM_SPEED时，发送n个字节大概需要时间。
+	usleep(lu32delaytimes); //保证本次数据发完。
+    
+	//最后将485方向设置为recv.
+	ioctl(g_uiIoControl,RS4852_C31,RS485_RECV);
+	usleep(100);
+
+	return NO_ERR; 
+
+}
+
+
 
 
 /*

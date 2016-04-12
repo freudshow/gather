@@ -247,6 +247,36 @@ uint8 METER_ComSet7(void)
 }
 
 
+/*
+  ******************************************************************************
+  * 函数名称： uint8 METER_ComSet7(void) 
+  * 说    明： 抄表端口参数第7种设置，下行485端口。
+  * 参    数： 
+  ******************************************************************************
+*/
+
+
+uint8 ELEC_METER_ComSet1(void) 
+{
+	/* 配置下行485串口参数
+	    - BaudRate = 1200 baud
+	    - Word Length = 8 Bits
+	    - One Stop Bit
+	    - EVEN_CHECK
+	*/
+
+	uint8 err = TRUE;
+
+	if(gu8485DownComSetIndex != 7){
+		err = set_com_para(g_uiRS4852Fd,9600,8,1,'N');
+		if(err == TRUE)
+			gu8485DownComSetIndex = 7;
+
+		usleep(1000);
+	}
+
+	return err;
+}
 
 
 

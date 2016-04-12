@@ -1730,8 +1730,8 @@ void pthread_up_long_data(void)
     printf("pthread_up_long_data start.\n");
     while(1){
         msgrcv(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0,0);
-        printf("have receive msg from sender\n");
-        printf("Qmsg.dev: %d, Qmsg.functype: %d\n", Qmsg.dev, Qmsg.functype);
+        printf("[%s][%s][%d] have receive msg from sender\n", FILE_LINE);
+        printf("[%s][%s][%d] Qmsg.dev: %d, Qmsg.functype: %d\n", FILE_LINE, Qmsg.dev, Qmsg.functype);
 	   
 	   ret = sem_init(&His_asw_sem,0,0);  //防止信号错误，每次上传时初始化一次。
 		if(ret != 0)

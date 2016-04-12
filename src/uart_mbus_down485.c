@@ -167,7 +167,7 @@ int32 UartDown485_Rec(void)
 		   
 					OSSemPost(DOWN_COMMU_DEV_485);
 
-					//printf("%x \n",lu8data);  //≤‚ ‘”√
+					//printf("\n[%s][%s][%d] 0x%02X \n",FILE_LINE,lu8data);  //≤‚ ‘”√
 		   
 				}
 		    }

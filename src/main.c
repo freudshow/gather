@@ -42,7 +42,9 @@ int main(int argc, char **argv)
 	sysinit();
 	create_pthread();
 
+    
 	while(1){
+
 		usleep(1000000);
 	}
 
@@ -95,6 +97,17 @@ void create_pthread(void)
     }
     else
         printf ("Create pthread_up_long_data OK!\n");
+
+    /*
+    pthread_t pthReadmeter_test;
+    lReg = pthread_create(&pthReadmeter_test,NULL,(void *)pthread_readmeter_test,NULL);
+    if(0 != lReg){
+        printf ("Create pthread_up_long_data error!\n");
+        exit (1);
+    }
+    else
+        printf ("Create pthread_up_long_data OK!\n");
+    */
 }
 
 
