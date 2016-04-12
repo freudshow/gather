@@ -664,9 +664,32 @@
 
 
 <!---------------- 13.	抄表任意透传(proto_trans)  待定义 ---------------->
+<!--上位机下发抄表透传命令-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>1</channel><!--1~7-->
+	<com>9600,n,8,1</com>
+	<meterinfo>20,0</meterinfo><!--仪表类型, 协议版本, 以从MBus中截取有效的应答帧-->
+	<cmd>1</cmd>
+</root>
 
-
-
+<!--下位机直接返回抄表结果-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>12</func_type>
+		<oper_type>3</oper_type>
+	</common>
+	<result>1</result>
+</root>
 
 
 <!---------------- 14.	集中器校时(clock_set) ---------------->
@@ -676,10 +699,10 @@
 	<common>
 		<sadd>0001</sadd>
 		<oadd>5001</oadd>
-		<func_type>clock_set</func_type>
-		<oper_type>write</oper_type>
+		<func_type>13</func_type>
+		<oper_type>1</oper_type>
 	</common>
-	<time>20160305121314</time>  <!--年月日时分秒-->
+	<time>2016-03-05 12:13:14</time>  <!--年月日时分秒-->
 </root>
 
 <!-- 校时指令集中器返回 -->
@@ -688,8 +711,8 @@
 	<common>
 		<sadd>5001</sadd>
 		<oadd>0001</oadd>
-		<func_type>clock_set</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>13</func_type>
+		<oper_type>3</oper_type>
 	</common>
 	<result>success/fail</result>  <!--执行成功或失败-->
 </root>

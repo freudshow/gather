@@ -24,6 +24,7 @@ insert into t_base_define(f_id, f_config_name, f_config_value)values(11, 'collec
 insert into t_base_define(f_id, f_config_name, f_config_value)values(12, 'collect_cycle', '15');
 insert into t_base_define(f_id, f_config_name, f_config_value)values(13, 'report_mode', '0');-- 数据上报模式. 0 - 主动上报; 1 - 被动请求.
 insert into t_base_define(f_id, f_config_name, f_config_value)values(14, 'beat_cycle', '2');
+insert into t_base_define(f_id, f_config_name, f_config_value)values(15, 'svr_num', '0001');
 ---------------------------------
 --仪表地址信息配置表
 ---------------------------------
@@ -40,17 +41,10 @@ create table t_meter_info
 	f_install_pos	varchar(50)
 );
 
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('10', 1, '11110021147872', 1, 0, '6#管道井');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('10', 2, '11110052310292', 7, 1, '5#管道井');
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 1, '11110021147872', 1, 0, '6#管道井');--德鲁热表
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 2, '11110021147872', 1, 0, '5#管道井');--德鲁热表
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 3, '11110021147872', 1, 0, '3#地下室');--德鲁热表
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 4, '11110053110202', 0, 3, '3#地下室');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 5, '1', 7, 6, '2#电表间');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 5, '12', 7, 6, '2#电表间');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 5, '123', 7, 6, '2#电表间');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 5, '1234', 7, 6, '2#电表间');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 5, '12345', 7, 6, '2#电表间');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 6, '123456', 7, 6, '1#电表间');
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 6, '1234567', 7, 6, '1#电表间');
+
 ---------------------------------
 --电表历史数据表
 ---------------------------------
@@ -64,14 +58,14 @@ create table t_elect_data
 	f_meter_address	varchar(50),
 	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
-	f_active_total_electricity varchar(50),
-	f_cur_voltage varchar(50),
-	f_cur_current varchar(50),
-	f_cur_active_power varchar(50),
-	f_cur_freq varchar(50),
-	f_cur_reactive_power varchar(50),
-	f_cur_ apparent_power varchar(50),
-	f_cur_power_factor varchar(50)
+	f_pact_tot_elec varchar(50),
+	f_nact_tot_elec varchar(50),
+	f_preact_tot_elec varchar(50),
+	f_nreact_tot_elec varchar(50),
+	f_act_tot_elec varchar(50),
+	f_react_tot_elec varchar(50),
+	f_ovr_pow_fac varchar(50),
+	f_pmax_dem varchar(50)
 );
 
 ---------------------------------
@@ -148,14 +142,14 @@ insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_t
 insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(13, '10', '03', 'f_settle_date_accum_flow', 'varchar(50)');
 insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(14, '10', '04', 'f_settle_date', 'varchar(50)');
 insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(15, '10', '05', 'f_accum_work_time', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(16, '40', '01', 'f_active_total_electricity', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(17, '40', '02', 'f_cur_voltage', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(18, '40', '03', 'f_cur_current', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(19, '40', '04', 'f_cur_active_power', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(20, '40', '05', 'f_cur_freq', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(21, '40', '06', 'f_cur_reactive_power', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(22, '40', '07', 'f_cur_apparent_power', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(23, '40', '08', 'f_cur_power_factor', 'varchar(50)');
+insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(16, '40', '01', 'f_pact_tot_elec', 'varchar(50)');
+insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(17, '40', '02', 'f_nact_tot_elec', 'varchar(50)');
+insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(18, '40', '03', 'f_preact_tot_elec', 'varchar(50)');
+insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(19, '40', '04', 'f_nreact_tot_elec', 'varchar(50)');
+insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(20, '40', '05', 'f_act_tot_elec', 'varchar(50)');
+insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(21, '40', '06', 'f_react_tot_elec', 'varchar(50)');
+insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(22, '40', '07', 'f_ovr_pow_fac', 'varchar(50)');
+insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(23, '40', '08', 'f_pmax_dem', 'varchar(50)');
 
 ---------------------------------
 --时间点配置表
