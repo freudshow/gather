@@ -1,0 +1,24 @@
+<!---------------- 14.	设置集中器时钟（clock_set） ---------------->
+<!-- 上位机下发集中器校时指令 -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>clock_set</func_type>
+		<oper_type>write</oper_type>
+	</common>
+	<time>20160305121314</time>  <!--年月日时分秒-->
+</root>
+
+<!-- 校时指令集中器返回 -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>5001</sadd>
+		<oadd>0001</oadd>
+		<func_type>clock_set</func_type>
+		<oper_type>answer</oper_type>
+	</common>
+	<result>success/fail</result>  <!--执行成功或失败-->
+</root>

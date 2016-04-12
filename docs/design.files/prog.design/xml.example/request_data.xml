@@ -1,0 +1,115 @@
+<!-- 上位机设置下位机配置-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>3</func_type>
+		<oper_type>1</oper_type>
+	</common>
+	<row_num>23</row_num>	
+	<row id="1">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>01</f_item_index>
+	</row>
+	<row id="2">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>02</f_item_index>
+	</row>
+	<row id="3">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>03</f_item_index>
+	</row>
+	<row id="4">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>04</f_item_index>
+	</row>
+	<row id="5">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>05</f_item_index>
+	</row>
+	<row id="6">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>06</f_item_index>
+	</row>
+	<row id="7">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>07</f_item_index>
+	</row>
+	<row id="8">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>08</f_item_index>
+	</row>
+	<row id="9">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>09</f_item_index>
+	</row>
+	<row id="10">
+		<f_meter_type>20</f_meter_type>
+		<f_item_index>10</f_item_index>
+	</row>
+	<row id="1">
+		<f_meter_type>10</f_meter_type>
+		<f_item_index>01</f_item_index>
+	</row>
+	<row id="2">
+		<f_meter_type>10</f_meter_type>
+		<f_item_index>02</f_item_index>
+	</row>
+	<row id="3">
+		<f_meter_type>10</f_meter_type>
+		<f_item_index>03</f_item_index>
+	</row>
+	<row id="4">
+		<f_meter_type>10</f_meter_type>
+		<f_item_index>04</f_item_index>
+	</row>
+	<row id="5">
+		<f_meter_type>10</f_meter_type>
+		<f_item_index>05</f_item_index>
+	</row>
+	<row id="1">
+		<f_meter_type>40</f_meter_type>
+		<f_item_index>01</f_item_index>
+	</row>
+	<row id="2">
+		<f_meter_type>40</f_meter_type>
+		<f_item_index>02</f_item_index>
+	</row>
+	<row id="3">
+		<f_meter_type>40</f_meter_type>
+		<f_item_index>03</f_item_index>
+	</row>
+	<row id="4">
+		<f_meter_type>40</f_meter_type>
+		<f_item_index>04</f_item_index>
+	</row>
+	<row id="5">
+		<f_meter_type>40</f_meter_type>
+		<f_item_index>05</f_item_index>
+	</row>
+	<row id="6">
+		<f_meter_type>40</f_meter_type>
+		<f_item_index>06</f_item_index>
+	</row>
+	<row id="7">
+		<f_meter_type>40</f_meter_type>
+		<f_item_index>07</f_item_index>
+	</row>
+	<row id="8">
+		<f_meter_type>40</f_meter_type>
+		<f_item_index>08</f_item_index>
+	</row>
+</root>
+
+<!-- 下位机返回应答-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>5001</sadd>
+		<oadd>0001</oadd>
+		<func_type>3</func_type>
+		<oper_type>3</oper_type>
+	</common>
+	<result>success</result>
+</root>

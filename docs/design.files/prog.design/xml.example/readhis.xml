@@ -1,0 +1,59 @@
+<!-- 14 -->
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<common>
+	<sadd>5001</sadd>
+	<oadd>5001</oadd>
+	<func_type>6</func_type>
+	<oper_type>0</oper_type>
+	</common>
+	<time>2016-03-31 14:01:00</time>
+</root>
+
+<!-- 14 -->
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<common>
+	<sadd>5001</sadd>
+	<oadd>5001</oadd>
+	<func_type>6</func_type>
+	<oper_type>0</oper_type>
+	</common>
+	<time>2016-04-11 09:15:00</time>
+</root>
+
+
+<!-- 6 -->
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<common>
+	<sadd>5001</sadd>
+	<oadd>5001</oadd>
+	<func_type>6</func_type>
+	<oper_type>0</oper_type>
+	</common>
+	<time>2016-03-31 10:50:00</time>
+</root>
+
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<common>
+	<sadd>5001</sadd>
+	<oadd>3706000001</oadd>
+	<func_type>6</func_type>
+	<oper_type>0</oper_type>
+	</common>
+	<time>2016-04-1 09:54:00</time>
+</root>
+
+<!-- 孙若榆的集中器 -->
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<common>
+	<sadd>0001</sadd>
+	<oadd>261425C00101</oadd>
+	<func_type>6</func_type>
+	<oper_type>0</oper_type>
+	</common>
+	<time>2016-03-31 14:01:00</time>
+</root>

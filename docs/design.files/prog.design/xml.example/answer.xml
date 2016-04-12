@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root><common><sadd>5001</sadd><oadd>5001</oadd><func_type>0</func_type><oper_type>3</oper_type></common></root>
+
+<?xml version="1.0" encoding="utf-8"?>
+<root><common><sadd>0001</sadd><oadd>3706000001</oadd><func_type>0</func_type><oper_type>3</oper_type></common></root>
+
+<?xml version="1.0" encoding="utf-8"?>
+<root><common><sadd>5001</sadd><oadd>5001</oadd><func_type>1</func_type><oper_type>3</oper_type></common></root>
+
+<?xml version="1.0" encoding="utf-8"?>
+<root><common><sadd>5001</sadd><oadd>5001</oadd><func_type>6</func_type><oper_type>3</oper_type></common></root>
+
+<?xml version="1.0" encoding="utf-8"?>
+<root><common><sadd>0001</sadd><oadd>3706000001</oadd><func_type>6</func_type><oper_type>3</oper_type></common></root>

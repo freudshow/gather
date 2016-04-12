@@ -1,0 +1,45 @@
+<!---------------- 7. 电表抄表数据上传(report_update) ---------------->
+
+<!-- 下位机主动上报电表抄表数据 -->
+
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>5001</sadd>
+		<oadd>0001</oadd>
+		<func_type>6</func_type>
+		<oper_type>3</oper_type>
+	</common>
+	<trans>
+		<total_meter_num>3</total_meter_num>
+		<frame_idx>1</frame_idx>
+		<meter_num>3</meter_num>
+		<time_node>2016-03-24 16:25:00</time_node>
+	</trans>
+	<row id="1">
+		<f_id>145</f_id>
+		<f_device_id>2</f_device_id>
+		<f_meter_address>1</f_meter_address>
+		<f_meter_type>40</f_meter_type>
+		<f_timestamp>2016-03-24 16:25:08</f_timestamp>
+		<f_time>2016-03-24 16:25:00</f_time>
+		<f_pact_tot_elec>16.04 +KWh</f_pact_tot_elec><!--正向有功总电能 +KWh-->
+		<f_nact_tot_elec>16.04 -KWh</f_nact_tot_elec><!--反向有功总电能 -KWh-->
+		<f_preact_tot_elec>16.04 +KVarh</f_preact_tot_elec><!--正向无功总电能 +KVarh-->
+		<f_nreact_tot_elec>16.04 -KVarh</f_nreact_tot_elec><!--反向无功总电能 -KVarh-->
+		<f_act_tot_elec>16.04 KWh</f_act_tot_elec><!--有功总电能 KWh-->
+		<f_react_tot_elec>16.04 KVarh</f_react_tot_elec><!--无功总电能 KVarh-->
+	</row>
+</root>
+
+<!-- 上位机的接收结果 -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>6</func_type>
+		<oper_type>3</oper_type>
+	</common>
+	<result>success</result>
+</root>

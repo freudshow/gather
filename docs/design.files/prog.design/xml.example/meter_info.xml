@@ -1,0 +1,125 @@
+<!---------------- 6. 操作表地址信息(meter_info) ---------------->
+
+<!--上位机下发表地址-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>meter_info</func_type>
+		<oper_type>write</oper_type>
+	</common>
+	<trans>
+		<total_meter_num>4</total_meter_num><!--总共要下发的表地址数量 -->
+		<frame_idx>1</frame_idx><!--本帧的序号 -->
+		<meter_num>4</meter_num><!--本帧共包含多少个表地址 -->
+	</trans>
+	<row id="1">
+		<f_meter_type>20</f_meter_type>
+		<f_device_id>1</f_device_id>
+		<f_meter_address>11110021147872</f_meter_address>
+		<f_meter_proto_type>0</f_meter_proto_type>
+		<f_meter_channel>1</f_meter_channel>
+		<f_install_pos>3#地下室</f_install_pos>
+	</row>
+	<row id="2">
+		<f_meter_type>20</f_meter_type>
+		<f_device_id>2</f_device_id>
+		<f_meter_address>11110021147872</f_meter_address>
+		<f_meter_proto_type>0</f_meter_proto_type>
+		<f_meter_channel>1</f_meter_channel>
+		<f_install_pos>3#地下室</f_install_pos>
+	</row>
+	<row id="3">
+		<f_meter_type>20</f_meter_type>
+		<f_device_id>3</f_device_id>
+		<f_meter_address>11110021147872</f_meter_address>
+		<f_meter_proto_type>0</f_meter_proto_type>
+		<f_meter_channel>1</f_meter_channel>
+		<f_install_pos>3#地下室</f_install_pos>
+	</row>
+	<row id="4">
+		<f_meter_type>20</f_meter_type>
+		<f_device_id>4</f_device_id>
+		<f_meter_address>11110021147872</f_meter_address>
+		<f_meter_proto_type>0</f_meter_proto_type>
+		<f_meter_channel>1</f_meter_channel>
+		<f_install_pos>3#地下室</f_install_pos>
+	</row>
+</root>
+
+<!-- 下位机的执行结果 -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>5001</sadd>
+		<oadd>0001</oadd>
+		<func_type>meter_info</func_type>
+		<oper_type>answer</oper_type>
+	</common>
+	<result>SUCCESS/FAIL</result>
+</root>
+<!----------------------------------------------------------------------------------------------------------------------------------------------------------------->
+
+<!-- 上位机查询下位机表地址信息 -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>meter_info</func_type>
+		<oper_type>read</oper_type>
+	</common>
+	<!-- 可选参数trans, 用来进行错误重连时, 具体要第几帧的数据 -->
+	<trans>
+		<frame_idx>1</frame_idx><!--要查询的帧的索引 -->
+	</trans>
+</root>
+
+<!-- 下位机的执行结果 -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>5001</sadd>
+		<oadd>0001</oadd>
+		<func_type>meter_info</func_type>
+		<oper_type>answer</oper_type>
+	</common>
+	<trans>
+		<total_meter_num>4</total_meter_num><!--总共表地址数量 -->
+		<frame_idx>1</frame_idx><!--本帧的索引 -->
+		<meter_num>4</meter_num><!--本帧共包含多少个表地址 -->
+	</trans>
+	<row id="1">
+		<f_meter_type>20</f_meter_type>
+		<f_device_id>1</f_device_id>
+		<f_meter_address>11110021147872</f_meter_address>
+		<f_meter_proto_type>0</f_meter_proto_type>
+		<f_meter_channel>1</f_meter_channel>
+		<f_install_pos>3#地下室</f_install_pos>
+	</row>
+	<row id="2">
+		<f_meter_type>20</f_meter_type>
+		<f_device_id>2</f_device_id>
+		<f_meter_address>11110021147872</f_meter_address>
+		<f_meter_proto_type>0</f_meter_proto_type>
+		<f_meter_channel>1</f_meter_channel>
+		<f_install_pos>3#地下室</f_install_pos>
+	</row>
+	<row id="3">
+		<f_meter_type>20</f_meter_type>
+		<f_device_id>3</f_device_id>
+		<f_meter_address>11110021147872</f_meter_address>
+		<f_meter_proto_type>0</f_meter_proto_type>
+		<f_meter_channel>1</f_meter_channel>
+		<f_install_pos>3#地下室</f_install_pos>
+	</row>
+	<row id="4">
+		<f_meter_type>20</f_meter_type>
+		<f_device_id>4</f_device_id>
+		<f_meter_address>11110021147872</f_meter_address>
+		<f_meter_proto_type>0</f_meter_proto_type>
+		<f_meter_channel>1</f_meter_channel>
+		<f_install_pos>3#地下室</f_install_pos>
+	</row>
+</root>

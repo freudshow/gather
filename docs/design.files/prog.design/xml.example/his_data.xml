@@ -1,0 +1,186 @@
+<!---------------- 7. 抄表数据上传(report_update) ---------------->
+
+<!-- 下位机主动上报抄表数据 -->
+
+<!-- 目前只有热量表的数据, 电表水表气表没有测试条件 -->
+	<?xml version="1.0" encoding="utf-8" ?>
+	<root>
+		<common>
+			<sadd>5001</sadd>
+			<oadd>0001</oadd>
+			<func_type>report_update</func_type>
+			<oper_type>write</oper_type>
+		</common>
+		<result>SUCCESS/FAIL</result><!--如果抄表成功, 则 SUCCESS, 否则 FAIL-->
+		<trans>
+			<total_meter_num>62</total_meter_num><!--总共要上报的抄表数据条数 -->
+			<frame_idx>1</frame_idx><!--本帧的索引 -->
+			<meter_num>3</meter_num><!--本帧共包含多少条抄表数据 -->
+			<time_node>2016-03-24 16:25:00</time_node><!--上报的是哪个时间点的数据, 下位机主动上报抄表数据时, 默认写入当前的日期 -->
+		</trans>
+		<row id="1"><!--id只做区分具体的xml行用, 而不做集中器数据表内的行索引 -->
+			<f_id>145</f_id>
+			<f_device_id>2</f_device_id>
+			<f_meter_address>11110021147872</f_meter_address>
+			<f_meter_type>20</f_meter_type>
+			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
+			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
+			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
+			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
+			<f_flowrate>0000000035</f_flowrate><!--流速 -->
+			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
+			<f_in_temp>121800</f_in_temp><!--进口温度 -->
+			<f_out_temp>321800</f_out_temp><!--出口温度 -->
+			<f_accum_work_time>387801</f_accum_work_time><!--累积工作时间 -->
+			<f_cur_time>17311724031620</f_cur_time><!--当前时间 -->
+			<f_state>0000</f_state><!--状态 -->
+		</row>
+		<row id="2"><!--id只做区分具体的xml行用, 而不做集中器数据表内的行索引 -->
+			<f_id>146</f_id>
+			<f_device_id>2</f_device_id>
+			<f_meter_address>11110021147872</f_meter_address>
+			<f_meter_type>20</f_meter_type>
+			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
+			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
+			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
+			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
+			<f_flowrate>0000000035</f_flowrate><!--流速 -->
+			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
+			<f_in_temp>121800</f_in_temp><!--进口温度 -->
+			<f_out_temp>321800</f_out_temp><!--出口温度 -->
+			<f_accum_work_time>387801</f_accum_work_time><!--累积工作时间 -->
+			<f_cur_time>17311724031620</f_cur_time><!--当前时间 -->
+			<f_state>0000</f_state><!--状态 -->
+		</row>
+		<row id="3"><!--id只做区分具体的xml行用, 而不做集中器数据表内的行索引 -->
+			<f_id>147</f_id>
+			<f_device_id>2</f_device_id>
+			<f_meter_address>11110021147872</f_meter_address>
+			<f_meter_type>20</f_meter_type>
+			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
+			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
+			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
+			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
+			<f_flowrate>0000000035</f_flowrate><!--流速 -->
+			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
+			<f_in_temp>121800</f_in_temp><!--进口温度 -->
+			<f_out_temp>321800</f_out_temp><!--出口温度 -->
+			<f_accum_work_time>387801</f_accum_work_time><!--累积工作时间 -->
+			<f_cur_time>17311724031620</f_cur_time><!--当前时间 -->
+			<f_state>0000</f_state><!--状态 -->
+		</row>
+	</root>
+
+<!-- 上位机的接收结果 -->
+	<?xml version="1.0" encoding="utf-8" ?>
+	<root>
+		<common>
+			<sadd>0001</sadd>
+			<oadd>5001</oadd>
+			<func_type>report_update</func_type>
+			<oper_type>answer</oper_type>
+		</common>
+		<result>SUCCESS/FAIL</result><!-- 上位机接收完毕, 向下位机返回接收结果; 若成功, 下位机继续上推下一帧数据, 若一定时间内接收不到此应答, 则重新登录, 登录成功后继续上推本帧数据-->
+	</root>
+<!----------------------------------------------------------------------------------------------------------------------------------------------------------------->
+
+
+<!-- 上位机主动请求读定点数据 -->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>report_update</func_type>
+		<oper_type>read</oper_type>
+	</common>
+	<time>2016-03-25 13:40:00</time><!--以空格字符分离日期与时间(前面是日期, 后面是时间点)请求读xx:xx时间的抄表数据, 如果不加日期,默认日期为当天-->
+</root>
+
+
+<!-- 下位机返回抄表数据 -->
+<?xml version="1.0" encoding="utf-8" ?>
+	<root>
+		<common>
+			<sadd>5001</sadd>
+			<oadd>0001</oadd>
+			<func_type>report_update</func_type>
+			<oper_type>write</oper_type>
+		</common>
+		<result>SUCCESS/FAIL</result><!--如果抄表成功, 则 SUCCESS, 否则 FAIL-->
+		<trans>
+			<total_meter_num>62</total_meter_num><!--总共要上报的抄表数据条数 -->
+			<frame_idx>1</frame_idx><!--本帧的索引 -->
+			<meter_num>3</meter_num><!--本帧共包含多少条抄表数据 -->
+			<time_node>2016-03-24 16:25:00</time_node><!--上报的是哪个时间点的数据 -->
+		</trans>
+		<row id="1"><!--id只做区分具体的xml行用, 而不做集中器数据表内的行索引 -->
+			<f_id>145</f_id>
+			<f_device_id>2</f_device_id>
+			<f_meter_address>11110021147872</f_meter_address>
+			<f_meter_type>20</f_meter_type>
+			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
+			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
+			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
+			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
+			<f_flowrate>0000000035</f_flowrate><!--流速 -->
+			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
+			<f_in_temp>121800</f_in_temp><!--进口温度 -->
+			<f_out_temp>321800</f_out_temp><!--出口温度 -->
+			<f_accum_work_time>387801</f_accum_work_time><!--累积工作时间 -->
+			<f_cur_time>17311724031620</f_cur_time><!--当前时间 -->
+			<f_state>0000</f_state><!--状态 -->
+		</row>
+		<row id="2"><!--id只做区分具体的xml行用, 而不做集中器数据表内的行索引 -->
+			<f_id>146</f_id>
+			<f_device_id>2</f_device_id>
+			<f_meter_address>11110021147872</f_meter_address>
+			<f_meter_type>20</f_meter_type>
+			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
+			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
+			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
+			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
+			<f_flowrate>0000000035</f_flowrate><!--流速 -->
+			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
+			<f_in_temp>121800</f_in_temp><!--进口温度 -->
+			<f_out_temp>321800</f_out_temp><!--出口温度 -->
+			<f_accum_work_time>387801</f_accum_work_time><!--累积工作时间 -->
+			<f_cur_time>17311724031620</f_cur_time><!--当前时间 -->
+			<f_state>0000</f_state><!--状态 -->
+		</row>
+		<row id="3"><!--id只做区分具体的xml行用, 而不做集中器数据表内的行索引 -->
+			<f_id>147</f_id>
+			<f_device_id>2</f_device_id>
+			<f_meter_address>11110021147872</f_meter_address>
+			<f_meter_type>20</f_meter_type>
+			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
+			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
+			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
+			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
+			<f_flowrate>0000000035</f_flowrate><!--流速 -->
+			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
+			<f_in_temp>121800</f_in_temp><!--进口温度 -->
+			<f_out_temp>321800</f_out_temp><!--出口温度 -->
+			<f_accum_work_time>387801</f_accum_work_time><!--累积工作时间 -->
+			<f_cur_time>17311724031620</f_cur_time><!--当前时间 -->
+			<f_state>0000</f_state><!--状态 -->
+		</row>
+	</root>
+	
+<!-- 上位机的接收结果 -->
+	<?xml version="1.0" encoding="utf-8" ?>
+	<root>
+		<common>
+			<sadd>0001</sadd>
+			<oadd>5001</oadd>
+			<func_type>report_update</func_type>
+			<oper_type>answer</oper_type>
+		</common>
+		<result>SUCCESS/FAIL</result><!-- 上位机接收完毕, 向下位机返回接收结果; 若成功, 下位机继续上推下一帧数据, 若一定时间内接收不到此应答, 则重新登录, 登录成功后继续上推本帧数据-->
+	</root>

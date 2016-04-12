@@ -1,0 +1,37 @@
+<!--上位机下发基本配置-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>2</func_type>
+		<oper_type>1</oper_type>
+	</common>
+	<primary_server>122.5.18.174</primary_server>
+	<primary_dns>219.146.0.130</primary_dns>
+	<primary_port>9026</primary_port>
+	<second_server>219.146.0.130</second_server>
+	<second_dns>219.146.0.130</second_dns>
+	<second_port>9024</second_port>
+	<server_id>0001</server_id>
+	<gateway_id>5001</gateway_id>
+	<net_type>0</net_type>
+	<md5_key>863CA654</md5_key>
+	<aes_key>d41d8cd98f00b204e9800998ecf8427e</aes_key>
+	<collect_cycle>15</collect_cycle><!--采集周期(分钟)-->
+	<report_mode>0</report_mode><!--上报方式, 0-主动向上位机推送; 1被动等上位机查询-->
+	<collect_mode>0</collect_mode><!--采集方式, 0-从00:00点开始每隔多久抄一次; 1-按照上位机配置的时间点抄表-->
+	<beat_cycle>2</beat_cycle><!--心跳周期(分钟)-->
+</root>
+
+<!--集中器应答-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>5001</sadd>
+		<oadd>0001</oadd>
+		<func_type>2</func_type>
+		<oper_type>3</oper_type>
+	</common>
+	<result>success</result>
+</root>
