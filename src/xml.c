@@ -15,7 +15,8 @@
 #include "includes.h"
 #include "queue.h"
 #include "commap.h"
-
+#include "bsp.h"
+#include "uart_set.h"
 
 char *pXMLFileName[XML_BUF_FILE_NUM]={"buff0.xml","buff1.xml","buff2.xml","buff3.xml","buff4.xml","buff5.xml",
  		"buff6.xml","buff7.xml","buff8.xml","buff9.xml","buff10.xml","buff11.xml","buff12.xml",
@@ -1562,9 +1563,6 @@ uint8 parse_proto_trs(uint8 dev, pProto_trans pProtoTrs)
     }
     return retErr;
 }
-int8 set_com_para(int32 fd,int32 speed, int32 databits,int32 stopbits,int32 parity);
-uint8 RS4852Down_DataSend_byspeed(uint8 * Data,uint32 n,uint32 speed);
-uint8 MBUS_DataSend_byspeed(uint8 * Data,uint32 n,uint32 speed);
 
 uint8 send_cmd_and_rcv(uint8 dev, proto_trans_str* pProtoTrs)
 {    
@@ -1572,52 +1570,39 @@ uint8 send_cmd_and_rcv(uint8 dev, proto_trans_str* pProtoTrs)
         return ERR_1;
     }
     uint8 retErr = NO_ERR;
-    int32* pfd;
+    uint8 down_dev;
     uint8 lu8data = 0;
-    uint8 *pData;
-    uint16 datalen = 0;
-    fd_set ReadSetFD;
-    struct timeval stTimeVal;
-
+    int32 fd;
     
     if(pProtoTrs->channel == RS485_DOWN_CHANNEL){//操作一个设备，先请求信号量,谨防冲突。
-        pfd = &g_uiRS4852Fd;
+        down_dev = DOWN_COMMU_DEV_485;
+        fd = g_uiRS4852Fd;
         sem_wait(&Opetate485Down_sem);
+        gu8485DownComSetIndex = 0;
+        gu32Down485BaudRate = pProtoTrs->baud;
     } else {
-        pfd = &g_uiMbusFd;
+        down_dev = DOWN_COMMU_DEV_MBUS;
+        fd = g_uiMbusFd;
         sem_wait(&OperateMBUS_sem);
+        gu8MbusComSetIndex = 0;
+        gu32MbusBaudRate = pProtoTrs->baud;
     }
-    printf("\n[%s][%s][%d] g_uiRS4852Fd: %d, g_uiMbusFd: %d, fd: %d \n",FILE_LINE,g_uiRS4852Fd, g_uiMbusFd, *pfd);
+    printf("\n[%s][%s][%d] g_uiRS4852Fd: %d, g_uiMbusFd: %d, fd: %d \n",FILE_LINE,g_uiRS4852Fd, g_uiMbusFd, fd);
     METER_ChangeChannel(pProtoTrs->channel);  //先确保在对应通道上。
     uint8 lu8retrytimes = 3;
-    do{//设置3遍串口参数
-        retErr = set_com_para(*pfd,pProtoTrs->baud,pProtoTrs->databits,pProtoTrs->stop,pProtoTrs->parity);
+    do{//设置串口参数
+        retErr = set_com_para(fd,pProtoTrs->baud,pProtoTrs->databits,pProtoTrs->stop,pProtoTrs->parity);
         lu8retrytimes--;
     }while((retErr != TRUE) && (lu8retrytimes > 0));
 
-    if(pProtoTrs->channel == RS485_DOWN_CHANNEL){
-        RS4852Down_DataSend_byspeed(pProtoTrs->cmd, pProtoTrs->cmdlen, pProtoTrs->baud);
-    } else {
-        MBUS_DataSend_byspeed(pProtoTrs->cmd, pProtoTrs->cmdlen, pProtoTrs->baud);
-    }
+    DownDevSend(down_dev, pProtoTrs->cmd, pProtoTrs->cmdlen);
     memset(pProtoTrs->res, 0, sizeof(pProtoTrs->res));
-    pData = pProtoTrs->res;
-    while(1){
-        FD_ZERO(&ReadSetFD);
-        FD_SET(*pfd, &ReadSetFD);
-        /* 设置等待的超时时间 */
-        stTimeVal.tv_sec = REC_TIMEOUT_SEC;
-        stTimeVal.tv_usec = REC_TIMEOUT_USEC;
-        if (select(*pfd+1, &ReadSetFD, NULL, NULL,&stTimeVal) > 0) {
-            if (FD_ISSET(*pfd, &ReadSetFD)){
-                if(read(*pfd, &lu8data, 1)==1){
-                    *pData++ = lu8data;
-                    datalen++;
-                    printf("0x%02x ",pProtoTrs->res[datalen-1]);  //测试用
-                    if(datalen>sizeof(pProtoTrs->res))
-                        break;
-                }
-            }
+    pProtoTrs->resLen = 0;
+    while((retErr=DownDevGetch(down_dev, &lu8data, REC_TIMEOUT_SEC*1000)) == NO_ERR){
+        pProtoTrs->res[pProtoTrs->resLen] = lu8data;
+        pProtoTrs->resLen++;
+        if (pProtoTrs->resLen > sizeof(pProtoTrs->res)) {
+            break;
         }
     }
 
@@ -1631,8 +1616,63 @@ uint8 send_cmd_and_rcv(uint8 dev, proto_trans_str* pProtoTrs)
 
 uint8 send_trs_answer(uint8 dev, proto_trans_str* pProtoTrs)
 {
-    uint8 retErr = NO_ERR;
-    return retErr;
+    char resData[3*PROTO_RES_LEN+1] = {0};//用于返回抄表结果, 由于1个字节对应2个字符, 再加上1个空格, 所以用3倍
+    char tmpStr[3];
+    uint8 err=NO_ERR;
+    FILE *fp;
+    int nRel;
+    uint8 lu8xmlIndex;
+    int i;
+    printf("[%s][%s][%d]\n", FILE_LINE);
+    g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
+    xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
+    xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
+    xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
+    xmlAddChild(root_node,common_node);
+    sys_config_str sysConfig;
+    get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",(xmlChar *)g_xml_info[dev].oadd);
+    get_sys_config(CONFIG_PRIMARY_SERVER,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
+    char str[100];
+    sprintf(str, "%d", g_xml_info[dev].func_type);
+    printf("[%s][%s][%d] func_type: %d\n", FILE_LINE, g_xml_info[dev].func_type);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "func_type",(xmlChar *)str);
+    sprintf(str, "%d", em_OPER_ASW);
+    printf("[%s][%s][%d] oper_type: %s\n", FILE_LINE, str);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "oper_type",(xmlChar *)str);
+
+    for(i=0;i<pProtoTrs->resLen;i++){
+        sprintf(tmpStr, "%02X", pProtoTrs->res[i]);
+        strcat(resData, tmpStr);
+        strcat(resData, " ");
+    }
+    xmlNewTextChild(root_node,NULL,BAD_CAST "result",BAD_CAST resData);
+    sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
+    printf("[%s][%s][%d]\n", FILE_LINE);
+    do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
+        lu8xmlIndex = Get_XMLBuf();
+    }while(lu8xmlIndex == ERR_FF);
+    g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
+    printf("[%s][%s][%d]\n", FILE_LINE);
+    
+    fp = fopen(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile,"w+");
+    nRel = xmlSaveFileEnc(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xmldoc_wr,"utf-8");
+    fclose(fp);
+    if(nRel != -1){
+        xmlFreeDoc(g_xml_info[dev].xmldoc_wr);
+        printf("[%s][%s][%d]\n", FILE_LINE);
+        printf("make xml %s Index = %d.\n", gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xml_wr_file_idx);
+    }
+    printf("[%s][%s][%d]\n", FILE_LINE);
+    if(err == NO_ERR) {//发送文件
+        fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
+        FileSend(dev, fp);
+        printf("[%s][%s][%d]xml file have been sent\n", FILE_LINE);
+        fclose(fp);
+    }
+    Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
+    return err;
 }
 
 uint8 do_proto_trs(uint8 dev)
@@ -1642,8 +1682,8 @@ uint8 do_proto_trs(uint8 dev)
     retErr = parse_proto_trs(dev, &proto_trs);
     retErr = send_cmd_and_rcv(dev, &proto_trs);
     int readidx;
-    printf("[%s][%s][%d]out of select loop!!\n", FILE_LINE);
-    for(readidx=0;readidx<sizeof(proto_trs.res);readidx++)
+    printf("[%s][%s][%d]proto_trs.resLen: %d \n", FILE_LINE, proto_trs.resLen);
+    for(readidx=0;readidx<proto_trs.resLen;readidx++)
       printf("0x%02X ",proto_trs.res[readidx]);
     printf("[%s][%s][%d]",FILE_LINE);
     retErr = send_trs_answer(dev, &proto_trs);

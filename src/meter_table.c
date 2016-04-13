@@ -71,7 +71,7 @@ uint16 gMETER_Table[HEATMETER_PROTO_SUM][4] = {
                
 };
 
-uint8 (*ELEC_METER_ComParaSetArray[])(void) = {ELEC_METER_ComSet1};
+uint8 (*ELEC_METER_ComParaSetArray[])(void) = {METER_ComSet8};
 // 对于不同协议的读取热计量表数据的标识符不同，
 // Table 格式为：串口设置函数指针标号 + 读取电表数据标识符 + 前导符个数+通讯类型(0:MBUS  1:485)+通讯协议类型(0:MODBUS  1:645)
 uint16 gELEC_METER_Table[ELECMETER_PROTO_SUM][5] = {
