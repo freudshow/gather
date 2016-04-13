@@ -1,0 +1,40 @@
+<!--上位机下发抄表透传命令-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>1</channel><!--1~7-->
+	<com>9600,n,8,1</com><!-- 波特率,校验位,数据位,停止位 -->
+	<meterinfo>20,0</meterinfo><!--仪表类型, 协议版本, 以从MBus中截取有效的应答帧-->
+	<cmd>01 03 00 0c 00 0c 85 cc</cmd><!--透传命令帧-->
+</root>
+
+<!--下位机直接返回抄表结果-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>12</func_type>
+		<oper_type>3</oper_type>
+	</common>
+	<result>0x01 0x03 0x00 0x0C 0x00 0x0C 0x85 0xCC 0x01 0x03 0x18 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x6C 0xF4</result>
+</root>
+
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>261425C00101</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>7</channel>
+	<com>9600,n,8,1</com>
+	<meterinfo>20,0</meterinfo>
+	<cmd>01 03 00 03 00 0C B5 CF</cmd>
+</root>
