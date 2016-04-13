@@ -274,6 +274,21 @@ uint8 MBUS_DataSend(uint8 *Data,uint32 n)
 
 }
 
+uint8 MBUS_DataSend_byspeed(uint8 *Data,uint32 n, uint32 speed)
+{
+	uint32 lu32delaytimes = 0;
+
+	write(g_uiMbusFd, (uint8 *)Data, n);
+
+	lu32delaytimes = 12000000 / speed;  //1000000*12/RS485UP_COM_SPEED;
+	lu32delaytimes = lu32delaytimes*n;  //计算出在速率为RS485UP_COM_SPEED时，发送n个字节大概需要时间。
+
+	usleep(lu32delaytimes); //保证本次数据发完。
+	
+
+	return NO_ERR; 
+
+}
 
 
 

@@ -338,66 +338,6 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
         case em_heat:
             heatdata = (CJ188_Format*)pData;
             get_heatdata_sql(heatdata, item_list, sql_buf);
-            /*while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
-                memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
-                switch(item_list->f_item_index) {
-                case em_HColdE:
-                    p=(uint8 *)&(heatdata->DailyHeat);
-                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
-                    *(p+3), heatdata->DailyHeatUnit);//实际为冷量, 而不是结算日热量
-                    break;
-                case em_HHeatE:
-                    p=(uint8 *)&(heatdata->CurrentHeat);
-                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
-                    *(p+3), heatdata->CurrentHeatUnit);
-                    break;
-                case em_HPower:
-                    p=(uint8 *)&(heatdata->HeatPower);
-                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
-                    *(p+3), heatdata->HeatPowerUnit);
-                    break;
-                case em_HFlowrate:
-                    p=(uint8 *)&(heatdata->Flow);
-                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
-                    *(p+3), heatdata->FlowUnit);
-                    break;
-                case em_HAccumFlow:
-                    p=(uint8 *)&(heatdata->AccumulateFlow);
-                    sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
-                    *(p+3), heatdata->AccumulateFlowUnit);
-                    break;
-                case em_HInTemp:
-                    sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterInTemp[0], \
-                    heatdata->WaterInTemp[1], heatdata->WaterInTemp[2]);
-                    break;
-                case em_HOutTemp:
-                    sprintf(tmp_data, "%02x%02x%02x", heatdata->WaterOutTemp[0], \
-                    heatdata->WaterOutTemp[1], heatdata->WaterOutTemp[2]);
-                    break;
-                case em_HAccumWorkTime:
-                    sprintf(tmp_data, "%02x%02x%02x", heatdata->AccumulateWorkTime[0], \
-                    heatdata->AccumulateWorkTime[1], heatdata->AccumulateWorkTime[2]);
-                    break;
-                case em_HCurTime:					
-                    sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", heatdata->RealTime[0], \
-                    heatdata->RealTime[1], heatdata->RealTime[2], \
-                    heatdata->RealTime[3], heatdata->RealTime[4], 
-                    heatdata->RealTime[5], heatdata->RealTime[6]);
-                    break;
-                case em_HState:
-                    sprintf(tmp_data, "%04x", heatdata->ST);
-                    break;
-                default:
-                    sprintf(tmp_data, "Err");
-                    break;
-                }
-                strcat(sql_buf, SQL_SINGLE_QUOTES);
-                strcat(sql_buf, tmp_data);
-                strcat(sql_buf, SQL_SINGLE_QUOTES);
-                if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
-                strcat(sql_buf, ",");
-                item_list = item_list->pNext;
-            }*/
             break;
         case em_water:
             break;
@@ -583,7 +523,7 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         
     memset(pRtn_his, 0, sizeof(struct his_data_str));
     
-    while(pTmp_his && (i<cnt) && (i<hisdata_idx_array[idx])) {//要读取的行数不能大于剩下的行数
+    while(pTmp_his && (i<cnt)) {//要读取的行数不能大于剩下的行数
         printf("@@@@@[%s][%s][%d]hisdata_idx_array[%d]: %d @@@@@\n",FILE_LINE, idx, hisdata_idx_array[idx]);
         printf("@@@@@[%s][%s][%d]pTmp_his: %p @@@@@\n",FILE_LINE, pTmp_his);
         printf("@@@@@[%s][%s][%d], idx is: %d, cnt: %d, hisdata_idx_array[%d]: %d\n", FILE_LINE, i, cnt, idx, hisdata_idx_array[idx]);
@@ -608,6 +548,7 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         printf("[%s][%s][%d]pTmp_his: %p, his_data_list_array[idx]: %p\n",FILE_LINE, pTmp_his, his_data_list_array[idx]);
         i++;
         hisdata_idx_array[idx]--;
+        printf("[%s][%s][%d]meter_type: %d, read %d rows, %d rows left, request cnt: %d\n",FILE_LINE, idx, i, hisdata_idx_array[idx], cnt);
         printf("[%s][%s][%d]finish delete one node, idx is: %d\n",FILE_LINE, i);
     }
     free(pRtn_his);

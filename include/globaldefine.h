@@ -307,9 +307,10 @@ typedef struct {//透传命令相关信息
     uint32 stop;        //停止位
     uint8 parity;      //校验位
     uint8 cmd[256];     //透传命令
-    uint8 cmdlen;       //透传命令的长度
+    uint16 cmdlen;       //透传命令的长度
     uint8 meter_type;    //仪表类型
     uint8 proto_type;    //协议类型
+    uint8 res[512];     //透传的结果
 } proto_trans_str;
 typedef proto_trans_str* pProto_trans;
 
