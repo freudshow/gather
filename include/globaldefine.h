@@ -300,6 +300,7 @@ typedef enum item_idx_elec {//电表数据项
     em_EPMaxDem	        //正向有功总最大需量
 }eItem_idx;
 
+#define PROTO_RES_LEN 512
 typedef struct {//透传命令相关信息
     uint8 channel;      //通道号
     uint32 baud;        //波特率
@@ -307,9 +308,11 @@ typedef struct {//透传命令相关信息
     uint32 stop;        //停止位
     uint8 parity;      //校验位
     uint8 cmd[256];     //透传命令
-    uint8 cmdlen;       //透传命令的长度
+    uint16 cmdlen;       //透传命令的长度
     uint8 meter_type;    //仪表类型
     uint8 proto_type;    //协议类型
+    uint8 res[PROTO_RES_LEN];     //透传的结果
+    uint16 resLen;
 } proto_trans_str;
 typedef proto_trans_str* pProto_trans;
 

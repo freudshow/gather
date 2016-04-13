@@ -18,6 +18,9 @@
 
 extern uint8 gu8MbusComSetIndex;
 extern uint8 gu8485DownComSetIndex;
+extern uint32 gu32MbusBaudRate;  //Mbus通道波特率记录.
+extern uint32 gu32Down485BaudRate;  //下行485通道波特率记录.
+
 
 
 extern uint8 METER_ComSet1(void);
@@ -27,7 +30,7 @@ extern uint8 METER_ComSet4(void);
 extern uint8 METER_ComSet5(void);
 extern uint8 METER_ComSet6(void);
 extern uint8 METER_ComSet7(void);
-extern uint8 ELEC_METER_ComSet1(void);
+extern uint8 METER_ComSet8(void);
 
 
 
