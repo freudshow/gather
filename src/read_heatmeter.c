@@ -310,7 +310,6 @@ uint8 HeatMeter_DataSendAndRec(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
 	uint8 lu8protocoltype = 0;
 	uint16 lu16OutTime = 2000;//ºÁÃë¡£
 	uint8 lu8DownComDev = DOWN_COMMU_DEV_485;
-
 	if(pmf->u8Channel == RS485_DOWN_CHANNEL)
 		lu8DownComDev = DOWN_COMMU_DEV_485;
 	else
@@ -429,6 +428,8 @@ uint8 HeatMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen,CJ188_F
 	uint8 lu8len = 0;
 	uint8 lu8ProtocolType = 0;
 	//CJ188_Format  MeterData={0,0x05,0,0x05,0,0x17,0,0x35,0,0x2c};
+
+
 
 	lu8ProtocolType = pmf->u8ProtocolType;
 
