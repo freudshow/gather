@@ -1257,6 +1257,7 @@ uint8 up_his_data(uint8 dev)
             		    printf("[%s][%s][%d] xml_wr_file_idx'name: %s\n", FILE_LINE, gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile);
                 		fp = fopen(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile,"r");
                 		FileSend(dev, fp);
+                        FileSend(UP_COMMU_DEV_485, fp);
                 		fclose(fp);
             		}
 		  
@@ -1399,7 +1400,6 @@ uint8 send_syscmd_answer(uint8 dev, char* result)
     }
     Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
     return err;
-
 }
 
 uint8 do_shell_cmd(uint8 dev)
@@ -1594,11 +1594,11 @@ uint8 send_cmd_and_rcv(uint8 dev, proto_trans_str* pProtoTrs)
         retErr = set_com_para(fd,pProtoTrs->baud,pProtoTrs->databits,pProtoTrs->stop,pProtoTrs->parity);
         lu8retrytimes--;
     }while((retErr != TRUE) && (lu8retrytimes > 0));
-
+    QueueFlush((void*)pQueues[dev]);
     DownDevSend(down_dev, pProtoTrs->cmd, pProtoTrs->cmdlen);
     memset(pProtoTrs->res, 0, sizeof(pProtoTrs->res));
     pProtoTrs->resLen = 0;
-    while((retErr=DownDevGetch(down_dev, &lu8data, REC_TIMEOUT_SEC*1000)) == NO_ERR){
+    while((retErr=DownDevGetch(down_dev, &lu8data, REC_TIMEOUT_SEC*500)) == NO_ERR){
         pProtoTrs->res[pProtoTrs->resLen] = lu8data;
         pProtoTrs->resLen++;
         if (pProtoTrs->resLen > sizeof(pProtoTrs->res)) {
@@ -1668,6 +1668,7 @@ uint8 send_trs_answer(uint8 dev, proto_trans_str* pProtoTrs)
     if(err == NO_ERR) {//发送文件
         fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
         FileSend(dev, fp);
+        FileSend(UP_COMMU_DEV_485, fp);
         printf("[%s][%s][%d]xml file have been sent\n", FILE_LINE);
         fclose(fp);
     }
