@@ -477,49 +477,46 @@ uint8 func_heart_beat(uint8 dev, uint8 xml_idx)
 	return err;
 }
 
-uint8 send_sysconfig_answer(uint8 dev)
+uint8 send_answer(uint8 dev, char* resNode, char* res, void* otherptr)
 {
     uint8 err=NO_ERR;
     FILE *fp;
     int nRel;
     uint8 lu8xmlIndex;
-    printf("[%s][%s][%d]\n", FILE_LINE);
+    sys_config_str sysConfig;
+    char str[100];
+
     g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
     xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
     xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
     xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
     xmlAddChild(root_node,common_node);
-    sys_config_str sysConfig;
     get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",(xmlChar *)g_xml_info[dev].oadd);
-    get_sys_config(CONFIG_PRIMARY_SERVER,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",BAD_CAST sysConfig.f_config_value);
     xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
-    char str[100];
+
     sprintf(str, "%d", g_xml_info[dev].func_type);
     printf("[%s][%s][%d] func_type: %d\n", FILE_LINE, g_xml_info[dev].func_type);
     xmlNewTextChild(common_node,NULL,BAD_CAST "func_type",(xmlChar *)str);
     sprintf(str, "%d", em_OPER_ASW);
     printf("[%s][%s][%d] oper_type: %s\n", FILE_LINE, str);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "oper_type",(xmlChar *)str);
+    xmlNewTextChild(common_node, NULL, BAD_CAST "oper_type", BAD_CAST str);
 
-    xmlNewTextChild(root_node,NULL,BAD_CAST "result",BAD_CAST "success");
-    sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
-    printf("[%s][%s][%d]\n", FILE_LINE);
+    xmlNewTextChild(root_node, NULL, BAD_CAST resNode, BAD_CAST res);
+
     do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
         lu8xmlIndex = Get_XMLBuf();
     }while(lu8xmlIndex == ERR_FF);
     g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
-    printf("[%s][%s][%d]\n", FILE_LINE);
-    
+
     fp = fopen(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile,"w+");
     nRel = xmlSaveFileEnc(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xmldoc_wr,"utf-8");
     fclose(fp);
     if(nRel != -1){
         xmlFreeDoc(g_xml_info[dev].xmldoc_wr);
-        printf("[%s][%s][%d]\n", FILE_LINE);
         printf("make xml %s Index = %d.\n", gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xml_wr_file_idx);
     }
-    printf("[%s][%s][%d]\n", FILE_LINE);
+
     if(err == NO_ERR) {//发送文件
         fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
         FileSend(dev, fp);
@@ -671,7 +668,7 @@ uint8 write_sysconfig(uint8 dev)
     err = set_sysconf(pErr);
     if (err == NO_ERR)
     {
-        err = send_sysconfig_answer(dev);
+        err = send_answer(dev, "result", "success", NULL);
         if(needReboot) {
             printf("[%s][%s][%d] reboot system after 10sec!\n", FILE_LINE);
             OSTimeDly(10000);
@@ -708,16 +705,15 @@ uint8 send_rqdata_answer(uint8 dev)
     FILE *fp;
     int nRel;
     uint8 lu8xmlIndex;
+    sys_config_str sysConfig;
     printf("[%s][%s][%d]\n", FILE_LINE);
     g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
     xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
     xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
     xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
     xmlAddChild(root_node,common_node);
-    sys_config_str sysConfig;
     get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",(xmlChar *)g_xml_info[dev].oadd);
-    get_sys_config(CONFIG_PRIMARY_SERVER,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",BAD_CAST sysConfig.f_config_value);
     xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
     char str[100];
     sprintf(str, "%d", g_xml_info[dev].func_type);
@@ -870,14 +866,16 @@ uint8 send_upmeter_answer(uint8 dev)
     FILE *fp;
     int nRel;
     uint8 lu8xmlIndex;
+    sys_config_str sysConfig;
     printf("now send_upmeter_answer()\n");
     g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
     xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
     xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
     xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
     xmlAddChild(root_node,common_node);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd", g_xml_info[dev].oadd);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "oadd", g_xml_info[dev].sadd);  //目的地址以后改成服务器地址。
+    get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",BAD_CAST sysConfig.f_config_value);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
     char str[100];
     sprintf(str, "%d", em_FUNC_MINFO);
     xmlNewTextChild(common_node,NULL,BAD_CAST "func_type",(xmlChar *)str);
@@ -1363,8 +1361,7 @@ uint8 send_syscmd_answer(uint8 dev, char* result)
     xmlAddChild(root_node,common_node);
     sys_config_str sysConfig;
     get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",(xmlChar *)g_xml_info[dev].oadd);
-    get_sys_config(CONFIG_PRIMARY_SERVER,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",BAD_CAST sysConfig.f_config_value);
     xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
     char str[100];
     sprintf(str, "%d", g_xml_info[dev].func_type);
@@ -1622,6 +1619,7 @@ uint8 send_trs_answer(uint8 dev, proto_trans_str* pProtoTrs)
     FILE *fp;
     int nRel;
     uint8 lu8xmlIndex;
+    sys_config_str sysConfig;
     int i;
     printf("[%s][%s][%d]\n", FILE_LINE);
     g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
@@ -1629,10 +1627,8 @@ uint8 send_trs_answer(uint8 dev, proto_trans_str* pProtoTrs)
     xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
     xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
     xmlAddChild(root_node,common_node);
-    sys_config_str sysConfig;
     get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",(xmlChar *)g_xml_info[dev].oadd);
-    get_sys_config(CONFIG_PRIMARY_SERVER,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",BAD_CAST sysConfig.f_config_value);
     xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
     char str[100];
     sprintf(str, "%d", g_xml_info[dev].func_type);
@@ -1726,8 +1722,7 @@ uint8 send_clock_set_answer(uint8 dev)
     xmlAddChild(root_node,common_node);
     sys_config_str sysConfig;
     get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",(xmlChar *)g_xml_info[dev].oadd);
-    get_sys_config(CONFIG_PRIMARY_SERVER,&sysConfig);
+    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",BAD_CAST sysConfig.f_config_value);
     xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
     char str[100];
     sprintf(str, "%d", g_xml_info[dev].func_type);
