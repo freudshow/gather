@@ -24,6 +24,15 @@ char *pXMLFileName[XML_BUF_FILE_NUM]={"buff0.xml","buff1.xml","buff2.xml","buff3
 
 XML_FILE gXML_File[XML_BUF_FILE_NUM];  //定义xml文件相关变量。
 static xml_info_str g_xml_info[UP_COMMU_DEV_ARRAY];
+char *colname_heat[] = {"f_cur_cold_E", "f_cur_heat_E", "f_heat_power", "f_flowrate", \
+    "f_accum_flow", "f_in_temp", "f_out_temp", "f_accum_work_time", "f_cur_time", \
+    "f_state"};
+char *colname_water[] = {"f_cur_accum_flow", "f_flowrate", "f_settle_date_accum_flow", \
+    "f_settle_date", "f_accum_work_time"};
+char *colname_elec[] = {"f_pact_tot_elec", "f_nact_tot_elec", "f_preact_tot_elec", \
+    "f_nreact_tot_elec", "f_act_tot_elec", "f_react_tot_elec", "f_ovr_pow_fac", \
+    "f_pmax_dem"};
+char *colname_gas[] = {'\0'};
 
 uint8 func_id(uint8 dev, uint8 xml_idx);
 uint8 func_heart_beat(uint8 dev, uint8 xml_idx);
@@ -501,9 +510,15 @@ uint8 send_answer(uint8 dev, char* resNode, char* res, void* otherptr)
     sprintf(str, "%d", em_OPER_ASW);
     printf("[%s][%s][%d] oper_type: %s\n", FILE_LINE, str);
     xmlNewTextChild(common_node, NULL, BAD_CAST "oper_type", BAD_CAST str);
-
     xmlNewTextChild(root_node, NULL, BAD_CAST resNode, BAD_CAST res);
-
+    switch (g_xml_info[dev].func_type) {
+    case em_FUNC_MINFO:
+        sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
+        xmlNewTextChild(root_node, NULL, BAD_CAST "frame_idx", BAD_CAST "res");
+        break;
+    default:
+        break;
+    }
     do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
         lu8xmlIndex = Get_XMLBuf();
     }while(lu8xmlIndex == ERR_FF);
@@ -520,6 +535,7 @@ uint8 send_answer(uint8 dev, char* resNode, char* res, void* otherptr)
     if(err == NO_ERR) {//发送文件
         fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
         FileSend(dev, fp);
+        FileSend(UP_COMMU_DEV_485, fp);
         printf("[%s][%s][%d]xml file have been sent\n", FILE_LINE);
         fclose(fp);
     }
@@ -699,68 +715,6 @@ uint8 func_sysconfig(uint8 dev, uint8 xml_idx)
     return err;
 }
 
-uint8 send_rqdata_answer(uint8 dev)
-{
-    uint8 err=NO_ERR;
-    FILE *fp;
-    int nRel;
-    uint8 lu8xmlIndex;
-    sys_config_str sysConfig;
-    printf("[%s][%s][%d]\n", FILE_LINE);
-    g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
-    xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
-    xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
-    xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
-    xmlAddChild(root_node,common_node);
-    get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",BAD_CAST sysConfig.f_config_value);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
-    char str[100];
-    sprintf(str, "%d", g_xml_info[dev].func_type);
-    printf("[%s][%s][%d] func_type: %d\n", FILE_LINE, g_xml_info[dev].func_type);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "func_type",(xmlChar *)str);
-    sprintf(str, "%d", em_OPER_ASW);
-    printf("[%s][%s][%d] oper_type: %s\n", FILE_LINE, str);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "oper_type",(xmlChar *)str);
-
-    xmlNewTextChild(root_node,NULL,BAD_CAST "result",BAD_CAST "success");
-    sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
-    printf("[%s][%s][%d]\n", FILE_LINE);
-    do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
-        lu8xmlIndex = Get_XMLBuf();
-    }while(lu8xmlIndex == ERR_FF);
-    g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
-    printf("[%s][%s][%d]\n", FILE_LINE);
-    
-    fp = fopen(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile,"w+");
-    nRel = xmlSaveFileEnc(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xmldoc_wr,"utf-8");
-    fclose(fp);
-    if(nRel != -1){
-        xmlFreeDoc(g_xml_info[dev].xmldoc_wr);
-        printf("[%s][%s][%d]\n", FILE_LINE);
-        printf("make xml %s Index = %d.\n", gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xml_wr_file_idx);
-    }
-    printf("[%s][%s][%d]\n", FILE_LINE);
-    if(err == NO_ERR) {//发送文件
-        fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
-        FileSend(dev, fp);
-        printf("[%s][%s][%d]xml file have been sent\n", FILE_LINE);
-        fclose(fp);
-    }
-    Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
-    return err;
-}
-
-char *colname_heat[] = {"f_cur_cold_E", "f_cur_heat_E", "f_heat_power", "f_flowrate", \
-    "f_accum_flow", "f_in_temp", "f_out_temp", "f_accum_work_time", "f_cur_time", \
-    "f_state"};
-char *colname_water[] = {"f_cur_accum_flow", "f_flowrate", "f_settle_date_accum_flow", \
-    "f_settle_date", "f_accum_work_time"};
-char *colname_elec[] = {"f_active_total_electricity", "f_cur_voltage", "f_cur_current", \
-    "f_cur_active_power", "f_cur_freq", "f_cur_reactive_power", "f_cur_apparent_power", \
-    "f_cur_power_factor"};
-char *colname_gas[] = {'\0'};
-
 uint8 get_request_col_name(pRequest_data pRqData)
 {
     uint8 err = NO_ERR;
@@ -827,7 +781,7 @@ uint8 write_request_data(uint8 dev)
     }
     err = set_request_data(pErr);
     if(err == NO_ERR) {
-        send_rqdata_answer(dev);
+        err = send_answer(dev, "result", "success", NULL);
     }
     return err;
 }
@@ -860,57 +814,9 @@ uint8 func_tnode(uint8 dev, uint8 xml_idx)
     return retErr;
 }
 
-uint8 send_upmeter_answer(uint8 dev)
-{
-    uint8 err=NO_ERR;
-    FILE *fp;
-    int nRel;
-    uint8 lu8xmlIndex;
-    sys_config_str sysConfig;
-    printf("now send_upmeter_answer()\n");
-    g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
-    xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
-    xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
-    xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
-    xmlAddChild(root_node,common_node);
-    get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",BAD_CAST sysConfig.f_config_value);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
-    char str[100];
-    sprintf(str, "%d", em_FUNC_MINFO);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "func_type",(xmlChar *)str);
-    sprintf(str, "%d", em_OPER_ASW);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "oper_type",(xmlChar *)str);
-
-    xmlNewTextChild(root_node,NULL,BAD_CAST "result",BAD_CAST "success");
-    sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
-    xmlNewTextChild(root_node,NULL,BAD_CAST "frame_idx",BAD_CAST str);
-    printf("now send_upmeter_answer(), write to file\n");
-    do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
-        lu8xmlIndex = Get_XMLBuf();
-    }while(lu8xmlIndex == ERR_FF);
-    g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
-    printf("write send_upmeter_answer xml to file.\n");
-    
-    fp = fopen(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile,"w+");
-    nRel = xmlSaveFileEnc(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xmldoc_wr,"utf-8");
-    fclose(fp);
-    if(nRel != -1){
-        xmlFreeDoc(g_xml_info[dev].xmldoc_wr);
-        printf("make xml %s Index = %d.\n", gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xml_wr_file_idx);
-    }
-    printf("now send_upmeter_answer(), send to server answer\n");
-    if(err == NO_ERR) {//发送文件
-        fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
-        FileSend(dev, fp);
-        fclose(fp);
-    }    
-    Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
-    return err;
-}
-
 uint8 update_meter_info(uint8 dev)
 {
+    uint8 err = NO_ERR;
     char pErr[100];
     pMeter_info pMInfo;
     xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
@@ -1006,16 +912,16 @@ uint8 update_meter_info(uint8 dev)
     }
     printf("read row info done\n");
     printf("now free pDoc\n");
-    send_upmeter_answer(dev);
+    err = send_answer(dev, "result", "success", NULL);
     printf("send_upmeter_answer OK\n");
     if(total_rows == g_xml_info[dev].meter_info_row_idx) {//如果上位机发完, 更新数据库
         printf("now insert_into_meter_info_table():\n");        
         empty_meter_info_table(pErr);
         insert_into_meter_info_table(pErr);
-        printf("insert_into_meter_info_table done\n");
-        //read_meter_info(pErr);//实际没有必要重新读取表地址
+        err = (strlen(pErr)>0 ? ERR_1 : NO_ERR);
+        printf("[%s][%s][%d]insert_into_meter_info_table done\n", FILE_LINE);
     }
-    return NO_ERR;
+    return err;
 }
 
 //6. 操作表地址信息(meter_info)
@@ -1347,58 +1253,6 @@ uint8 func_dbmani(uint8 dev, uint8 xml_idx)
 		return retErr;
 }
 
-uint8 send_syscmd_answer(uint8 dev, char* result)
-{
-    uint8 err=NO_ERR;
-    FILE *fp;
-    int nRel;
-    uint8 lu8xmlIndex;
-    printf("[%s][%s][%d]\n", FILE_LINE);
-    g_xml_info[dev].xmldoc_wr = xmlNewDoc(BAD_CAST"1.0");
-    xmlNodePtr root_node = xmlNewNode(NULL,BAD_CAST"root");
-    xmlDocSetRootElement(g_xml_info[dev].xmldoc_wr,root_node);
-    xmlNodePtr common_node = xmlNewNode(NULL,BAD_CAST "common");
-    xmlAddChild(root_node,common_node);
-    sys_config_str sysConfig;
-    get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "sadd",BAD_CAST sysConfig.f_config_value);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "oadd",(xmlChar *)g_xml_info[dev].sadd);
-    char str[100];
-    sprintf(str, "%d", g_xml_info[dev].func_type);
-    printf("[%s][%s][%d] func_type: %d\n", FILE_LINE, g_xml_info[dev].func_type);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "func_type",(xmlChar *)str);
-    sprintf(str, "%d", em_OPER_ASW);
-    printf("[%s][%s][%d] oper_type: %s\n", FILE_LINE, str);
-    xmlNewTextChild(common_node,NULL,BAD_CAST "oper_type",(xmlChar *)str);
-    
-    xmlNewTextChild(root_node,NULL,BAD_CAST "exec_result",BAD_CAST result);
-    sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
-    printf("[%s][%s][%d]\n", FILE_LINE);
-    do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
-        lu8xmlIndex = Get_XMLBuf();
-    }while(lu8xmlIndex == ERR_FF);
-    g_xml_info[dev].xml_wr_file_idx = lu8xmlIndex;
-    printf("[%s][%s][%d]\n", FILE_LINE);
-    
-    fp = fopen(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile,"w+");
-    nRel = xmlSaveFileEnc(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xmldoc_wr,"utf-8");
-    fclose(fp);
-    if(nRel != -1){
-        xmlFreeDoc(g_xml_info[dev].xmldoc_wr);
-        printf("[%s][%s][%d]\n", FILE_LINE);
-        printf("make xml %s Index = %d.\n", gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile, g_xml_info[dev].xml_wr_file_idx);
-    }
-    printf("[%s][%s][%d]\n", FILE_LINE);
-    if(err == NO_ERR) {//发送文件
-        fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
-        FileSend(dev, fp);
-        printf("[%s][%s][%d]xml file have been sent\n", FILE_LINE);
-        fclose(fp);
-    }
-    Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存.
-    return err;
-}
-
 uint8 do_shell_cmd(uint8 dev)
 {
     uint8 err = NO_ERR;
@@ -1430,7 +1284,7 @@ uint8 do_shell_cmd(uint8 dev)
         err = ERR_1;
     }
     pclose(fstream);
-    err = send_syscmd_answer(dev, result);
+    err = send_answer(dev, "exec_result", result, NULL);
     return err;
 }
 //11. 执行shell命令
@@ -1644,8 +1498,7 @@ uint8 send_trs_answer(uint8 dev, proto_trans_str* pProtoTrs)
         strcat(resData, " ");
     }
     xmlNewTextChild(root_node,NULL,BAD_CAST "result",BAD_CAST resData);
-    sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
-    printf("[%s][%s][%d]\n", FILE_LINE);
+
     do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
         lu8xmlIndex = Get_XMLBuf();
     }while(lu8xmlIndex == ERR_FF);
@@ -1676,6 +1529,10 @@ uint8 do_proto_trs(uint8 dev)
 {    
     uint8 retErr = NO_ERR;
     proto_trans_str proto_trs;
+    char resData[3*PROTO_RES_LEN+1] = {0};//用于返回抄表结果, 由于1个字节对应2个字符, 再加上1个空格, 所以用3倍
+    char tmpStr[3];
+    int i;
+
     retErr = parse_proto_trs(dev, &proto_trs);
     retErr = send_cmd_and_rcv(dev, &proto_trs);
     int readidx;
@@ -1683,7 +1540,12 @@ uint8 do_proto_trs(uint8 dev)
     for(readidx=0;readidx<proto_trs.resLen;readidx++)
       printf("0x%02X ",proto_trs.res[readidx]);
     printf("[%s][%s][%d]",FILE_LINE);
-    retErr = send_trs_answer(dev, &proto_trs);
+
+    for(i=0;i<proto_trs.resLen;i++){
+        sprintf(tmpStr, "%02X ", proto_trs.res[i]);
+        strcat(resData, tmpStr);
+    }
+    retErr = send_answer(dev, "result", resData, NULL);
     return retErr;
 }
 

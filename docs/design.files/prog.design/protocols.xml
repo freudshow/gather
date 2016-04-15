@@ -652,10 +652,10 @@
 	<common>
 		<sadd>5001</sadd>
 		<oadd>0001</oadd>
-		<func_type>local_sys_command</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>10</func_type>
+		<oper_type>2</oper_type>
 	</common>
-	<exec_result id="1">/home/root</exec_result><!--只用于下位机返回结果-->
+	<exec_result>/home/root</exec_result><!--只用于下位机返回结果-->
 </root>
 
 
