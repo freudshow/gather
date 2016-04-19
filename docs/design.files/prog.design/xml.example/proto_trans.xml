@@ -3,14 +3,14 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>5001</oadd>
+		<oadd>261425C00101</oadd>
 		<func_type>12</func_type>
 		<oper_type>2</oper_type>
 	</common>
-	<channel>1</channel><!--1~7-->
+	<channel>7</channel><!--1~7-->
 	<com>9600,n,8,1</com><!-- 波特率,校验位,数据位,停止位 -->
 	<meterinfo>20,0</meterinfo><!--仪表类型, 协议版本, 以从MBus中截取有效的应答帧-->
-	<cmd>01 03 00 03 00 0C B5 CF</cmd><!--透传命令帧-->
+	<cmd>02 03 00 03 00 0C B5 FC</cmd>
 </root>
 
 <!--下位机直接返回抄表结果-->
@@ -22,7 +22,7 @@
 		<func_type>12</func_type>
 		<oper_type>3</oper_type>
 	</common>
-	<result>01 03 18 2B 10 00 00 2A F3 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 13 1B </result>
+	<result>2 03 18 2E DC 1F F1 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 46 62 </result>
 </root>
 <!--下位机直接返回抄表结果的说明-->
 01 <!--Rtu设备的地址-->

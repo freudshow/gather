@@ -32,6 +32,7 @@
 	<aes_key>d41d8cd98f00b204e9800998ecf8427e</aes_key>
 	<report_mode>1</report_mode>
 	<beat_cycle>2</beat_cycle>
+	<svr_num>0001</svr_num>
 </root>
 
 <!-- 上位机设置下位机配置-->
@@ -39,23 +40,27 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>5001</oadd>
+		<oadd>261425C00101</oadd>
 		<func_type>2</func_type>
 		<oper_type>1</oper_type>
 	</common>
-	<primary_server>122.5.18.174</primary_server>
-	<primary_dns>219.146.0.130</primary_dns>
-	<primary_port>9026</primary_port>
-	<second_server>219.146.0.130</second_server>
-	<second_dns>219.146.0.130</second_dns>
-	<second_port>9027</second_port>
-	<gateway_id>5001</gateway_id>
-	<net_type>36527</net_type>
-	<md5_key>863CA654</md5_key>
-	<aes_key>d41d8cd98f00b204e9800998ecf8427e</aes_key>
-	<report_mode>1</report_mode>
-	<beat_cycle>2</beat_cycle>
+	<primary_server>122.5.18.174</primary_server><!--  主服务器IP-->
+	<primary_dns>219.146.0.130</primary_dns><!--  主DNS IP-->
+	<primary_port>9011</primary_port><!--  主服务器端口-->
+	<second_server>219.146.0.130</second_server><!--  副服务器IP-->
+	<second_dns>219.146.0.130</second_dns><!--  副DNS IP-->
+	<second_port>9027</second_port><!--  副服务器端口-->
+	<gateway_id>261425C00101</gateway_id><!--  集中器编号-->
+	<net_type>0</net_type><!--  网络类型，0-GPRS,1-485等。-->
+	<md5_key>863CA654</md5_key><!--  MD5秘钥-->
+	<aes_key>d41d8cd98f00b204e9800998ecf8427e</aes_key><!--  AES秘钥-->
+	<report_mode>1</report_mode><!--  数据上报模式,0-主动上报，1-被动请求。-->
+	<beat_cycle>2</beat_cycle><!--  心跳周期，范围1-10分钟。-->
+	<svr_num>0001</svr_num><!--  主服务器的编号-->
 </root>
+
+
+
 
 <!-- 下位机向上位机返回执行状态(成功/失败) -->
 <?xml version="1.0" encoding="utf-8" ?>

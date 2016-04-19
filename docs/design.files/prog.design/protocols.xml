@@ -187,6 +187,7 @@
 	<aes_key>d41d8cd98f00b204e9800998ecf8427e</aes_key>
 	<report_mode>1</report_mode>
 	<beat_cycle>2</beat_cycle>
+	<svr_num>0001</svr_num>
 </root>
 
 <!-- 上位机设置下位机配置-->
@@ -210,6 +211,7 @@
 	<aes_key>d41d8cd98f00b204e9800998ecf8427e</aes_key>
 	<report_mode>1</report_mode>
 	<beat_cycle>2</beat_cycle>
+	<svr_num>0001</svr_num>
 </root>
 
 <!-- 下位机向上位机返回执行状态(成功/失败) -->
@@ -660,7 +662,21 @@
 
 
 <!---------------- 12.	远程升级(code_updata)  待定义 ---------------->
-
+<!--上位机下发远程升级命令-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>11</func_type>
+		<oper_type>1</oper_type>
+	</common>
+	<trans>
+		<fbytes>4</fbytes><!--总共要下发的文件字节数数量-->
+		<frame_idx>1</frame_idx><!--本帧的序号 -->
+	</trans>	
+	<bin>01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF 01 03 00 03 00 0C B5 CF</bin><!--文件数据-->
+</root>
 
 
 <!---------------- 13.	抄表任意透传(proto_trans)  待定义 ---------------->
