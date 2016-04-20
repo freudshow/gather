@@ -115,7 +115,6 @@ extern uint8 getXmlInfo(uint8 dev,pXml_info pXml_info);
 extern uint8 parse_xml(uint8 dev, uint8 xml_idx);
 extern uint8 xml_exec(uint8 dev, uint8 xml_idx);
 extern uint8 up_his_data(uint8 dev);
-uint8 set_xml_timenode(uint8 dev, char* timenode);
-
-
+extern uint8 set_xml_timenode(uint8 dev, char* timenode);
+extern uint8 update_bin(uint8 dev);
 #endif  //_XML_H_

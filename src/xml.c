@@ -158,10 +158,13 @@ uint8 Put_XMLBuf(uint8 lu8BufIndex)
 	return NO_ERR;
 
 }
-		
-		
-		
-		
+
+/*
+  ******************************************************************************
+  * 函数名称： uint8 UpGetXMLStart(uint8 lu8BufIndex)
+  * 说    明： 用于检测xml文件的开头"<?xml version"
+  ******************************************************************************
+*/
 uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 {
 	uint8 err = 0x00;
@@ -206,10 +209,12 @@ uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 	
 }
 
-
-
-		
-		
+/*
+  ******************************************************************************
+  * 函数名称： uint8 UpGetXMLEnd(uint8 lu8BufIndex)
+  * 说    明： 用于检测xml文件的结尾"</root>"
+  ******************************************************************************
+*/
 uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 {
 	uint8 err = 0x00;
@@ -308,8 +313,6 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 	xmlAddChild(root_node,node);
 
 	fp = fopen(gXML_File[xmlIndex].pXMLFile,"w+");
-	
-	
 	switch(xmlInfo->func_type){
 		case em_FUNC_ID:
 			//在common节点直接创建文本节点
@@ -319,19 +322,14 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
     			xmlNewTextChild(node,NULL,BAD_CAST "oadd", (xmlChar *)sysConfig.f_config_value);  //目的地址以后改成服务器编号
 			xmlNewTextChild(node,NULL,BAD_CAST "func_type",(xmlChar *)"0");
 			xmlNewTextChild(node,NULL,BAD_CAST "oper_type",(xmlChar *)"0");
-
-    			//debug_info(gDebugModule[XML_MODULE], "[%s][%s][%d] optype is %d\n",FILE_LINE, optype);
-
 			nRel = xmlSaveFileEnc(gXML_File[xmlIndex].pXMLFile,doc,"utf-8");
 			fclose(fp);
 			if(nRel != -1){
 				xmlFreeDoc(doc);
 				printf("make xml success.xml Index = %d.\n",xmlIndex);
 				return NO_ERR;
-			} 
-			
+			}
 			break;
-
 		case em_FUNC_HEATBT:
 			//在common节点直接创建文本节点
 			get_sys_config(CONFIG_GATEWAY_ID,&sysConfig);
@@ -350,17 +348,11 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
 				xmlFreeDoc(doc);
 				printf("make xml success.xml Index = %d.\n",xmlIndex);
 				return NO_ERR;
-			} 
-
+			}
 			break;
-        case em_FUNC_RPTUP:
-            
 		default:
 			fclose(fp);
 			break;
-			
-
-
 	}
 
   	return ERR_1;
@@ -1317,12 +1309,37 @@ uint8 func_syscmd(uint8 dev, uint8 xml_idx)
 	return retErr;
 }
 
+uint8 update_bin(uint8 dev)
+{
+    uint8 err = NO_ERR;
+    
+    return err;
+}
+
 //12. 远程升级
 uint8 func_codeup(uint8 dev, uint8 xml_idx)
 {
-    uint8 retErr = NO_ERR;
+	uint8 retErr = NO_ERR;
+    QmsgType Qmsg;
+    switch(g_xml_info[dev].oper_type) {
+    case em_OPER_RD:
+        break;    
+    case em_OPER_WR:
+        printf("[%s][%s][%d] em_OPER_WR.\n", FILE_LINE);
+        Qmsg.mtype = 1;  //不要写0，其他都可以。
+        Qmsg.dev = dev;
+        Qmsg.functype = em_FUNC_CODEUP;
+        msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
+        break;
+    case em_OPER_DO:
+        break;    
+    case em_OPER_ASW:
+        break;
+    default:
+        break;
+    }
+	return retErr;
 
-    return retErr;
 }
 
 uint8 split_com(char* comstr, pProto_trans pProtoTrs)//comstr = "9600,n,8,1"
@@ -1681,7 +1698,11 @@ uint8 parse_xml(uint8 dev, uint8 xml_idx)
 	xmlDocPtr doc;
 	xmlNodePtr cur;
 	uint8 retErr;
-	doc = xmlParseFile(gXML_File[xml_idx].pXMLFile);
+	doc = xmlParseFile(gXML_File[xml_idx].pXMLFile);//简单的xml文件用xmlParseFile()
+    if (doc == NULL) {
+        fprintf(stderr, "Failed to parse %s\n", gXML_File[xml_idx].pXMLFile);
+        return ERR_1;
+    }
     g_xml_info[dev].xmldoc_rd = doc;
 	if(doc == NULL) {
 		fprintf(stderr, "Document not open successfully. \n");

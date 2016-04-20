@@ -127,6 +127,9 @@ extern uint8 PUBLIC_CountCS(uint8* _data, uint16 _len);
 extern void FileSend(uint8 Dev, FILE *fp);
 extern uint8 asc_to_datestr(char* src, char* dest);
 extern uint16 crc16ModRtu(const uint8 *nData, uint16 wLength);
+extern int idx_of_base64(char b);
+extern uint8 decode_base64(char* enStr, int enSize,  uint8* deStr);
+extern int cnt_of_pad(char* enStr, int enSize);
 
 
 

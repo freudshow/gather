@@ -1727,7 +1727,7 @@ void pthread_up_long_data(void)
 	int ret = 0;
     QmsgType Qmsg;
     
-    printf("pthread_up_long_data start.\n");
+    printf("[%s][%s][%d]pthread_up_long_data start.\n", FILE_LINE);
     while(1){
         msgrcv(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0,0);
         printf("[%s][%s][%d] have receive msg from sender\n", FILE_LINE);
@@ -1749,6 +1749,26 @@ void pthread_up_long_data(void)
            	 break;
         }
 
+    }
+}
+
+
+void pthread_down_long_data(void)
+{
+    QmsgType Qmsg;
+    printf("[%s][%s][%d]pthread_down_long_data start.\n", FILE_LINE);
+    while(1){
+        msgrcv(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0,0);
+        printf("[%s][%s][%d] have receive msg from sender\n", FILE_LINE);
+        printf("[%s][%s][%d] Qmsg.dev: %d, Qmsg.functype: %d\n", FILE_LINE, Qmsg.dev, Qmsg.functype);
+	   
+        switch(Qmsg.functype){
+        case em_FUNC_CODEUP:
+            update_bin(Qmsg.dev);
+            break;
+        default:
+            break;
+        }
     }
 }
 

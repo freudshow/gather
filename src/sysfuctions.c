@@ -38,7 +38,9 @@ sem_t Validate_sem;  //GPRS登录信号量。
 sem_t His_up_sem;//历史数据上传信号量
 sem_t His_asw_sem;//历史数据应答信号量
 
-
+//base64映射表
+static char base64_code[] = \
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
 
 void OSTimeDly(uint32 ms)
 {
@@ -288,12 +290,8 @@ uint8 asc_to_datestr(char* src, char* dest)
 }
 
 /* 计算ModBus-RTU传输协议的CRC校验值
- * ref: http://www.ccontrolsys.com/w/How_to_Compute_the_Modbus_RTU_Message_CRC
- * 生成多项式为 x^16+x^15+x^2+x^0, 即系数字串为 (1 1000 0000 0000 0101),
- * 舍弃16次幂的系数后为 (1000 0000 0000 0101, 即0x8005),
- * 再反序得到 (1010 0000 0000 0001, 即0xA001)
- * buf, 指向消息头的指针;
- * len, 消息体的长度
+ * nData, 指向消息头的指针;
+ * wLength, 消息体的长度
  */
 uint16 crc16ModRtu(const uint8 *nData, uint16 wLength)
 {
@@ -332,15 +330,69 @@ uint16 crc16ModRtu(const uint8 *nData, uint16 wLength)
 		0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040 
 	};
 
-		uint8 nTemp;
-		uint16 wCRCWord = 0xFFFF;
+    uint8 nTemp;
+    uint16 wCRCWord = 0xFFFF;
 
-		while (wLength--)
-		{
-			nTemp = *nData++ ^ wCRCWord;
-			wCRCWord >>= LEN_BYTE;
-			wCRCWord  ^= wCRCTable[nTemp];
-		}
-		return wCRCWord;
+    while (wLength--) {
+        nTemp = *nData++ ^ wCRCWord;
+        wCRCWord >>= LEN_BYTE;
+        wCRCWord  ^= wCRCTable[nTemp];
+    }
+    return wCRCWord;
+}
+
+int idx_of_base64(char b)
+{
+    if(b<='Z' && b>='A')
+        return (b-'A');
+    if(b<='z' && b>='a')
+        return (b-'a'+26);//a偏移了26个字母
+    if(b<='9' && b>='0')
+        return (b-'0'+52);//0偏移了52个字母
+    if(b == '+')
+        return 62;
+    if(b == '/')
+        return 63;
+    return 64;//其他字符均返回64, 以与编码表内的字符区别
+}
+
+/*
+ * 将base64编码过的字符串, 解码为相应的二进制串
+ * enStr: base64编码过的字符串
+ * enSize: 编码过的字符串长度
+ * deStr: 解码出的二进制串
+ */
+uint8 decode_base64(char* enStr, int enSize, uint8* deStr)
+{
+    if( (enSize%4) != 0)//base64编码过的字串必须为4的整数倍
+        return ERR_1;
+    uint8 b[4];
+    int i;
+    for(i=0; i<enSize; i+=4) {
+        b[0] = idx_of_base64(enStr[i]);
+        b[1] = idx_of_base64(enStr[i+1]);
+        b[2] = idx_of_base64(enStr[i+2]);
+        b[3] = idx_of_base64(enStr[i+3]);
+        *deStr++ = (b[0]<<2|b[1]>>4);
+        if (b[2] < 64) {
+            *deStr++ = ((b[1] << 4) | (b[2] >> 2));
+            if (b[3] < 64) {
+                *deStr++ = ((b[2] << 6) | b[3]);            
+            }
+        }
+    }
+    return NO_ERR;
+}
+
+//计数base64编码当中符号'='出现的次数
+int cnt_of_pad(char* enStr, int enSize)
+{
+    int cnt=0;
+    int i;
+    for(i=0;i<2;i++) {
+        if(enStr[enSize-1-i] == '=')
+            cnt++;
+    }
+    return cnt;
 }
 
