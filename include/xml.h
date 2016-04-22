@@ -106,6 +106,23 @@ extern uint8 Get_XMLBuf(void);
 extern uint8 Put_XMLBuf(uint8 lu8BufIndex);
 extern uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime);
 extern uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime);
+extern uint8 func_id(uint8 dev, uint8 xml_idx);
+extern uint8 func_heart_beat(uint8 dev, uint8 xml_idx);
+extern uint8 func_sysconfig(uint8 dev, uint8 xml_idx);
+extern uint8 func_rqdata(uint8 dev, uint8 xml_idx);
+extern uint8 func_tnode(uint8 dev, uint8 xml_idx);
+extern uint8 func_minfo(uint8 dev, uint8 xml_idx);
+extern uint8 func_rptup(uint8 dev, uint8 xml_idx);
+extern uint8 func_rdstat(uint8 dev, uint8 xml_idx);
+extern uint8 func_swip(uint8 dev, uint8 xml_idx);
+extern uint8 func_dbmani(uint8 dev, uint8 xml_idx);
+extern uint8 func_syscmd(uint8 dev, uint8 xml_idx);
+extern uint8 func_codeup(uint8 dev, uint8 xml_idx);
+extern uint8 func_prototrs(uint8 dev, uint8 xml_idx);
+extern uint8 func_clock_set(uint8 dev, uint8 xml_idx);
+extern uint8 func_collect_set(uint8 dev, uint8 xml_idx);
+extern void  init_xml_infos();
+
 
 extern uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex);
 //extern uint8 XmlInfo_Analyze(uint8 Dev, uint8 XmlIndex);

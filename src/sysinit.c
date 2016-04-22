@@ -70,11 +70,7 @@ void sysinit(void)
 
 	
 	sqldb_init();
-
-
-
-
-
+    init_xml_infos();
 }
 
 

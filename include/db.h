@@ -305,6 +305,8 @@ int get_sys_config_cnt();//读取系统配置参数的个数
 uint8 insert_sysconf(pSys_config pConf);//插入单个系统配置
 uint8 empty_sysconf_list();//清空配置列表
 uint8 set_sysconf(char* pErr);//设置系统参数
+uint8 add_one_config(pSys_config pConf, char* pErr);
+void get_sys_config_name(sys_config_idx idx, char* config_name);
 
 /**********************
  ** 仪表地址信息相关 **

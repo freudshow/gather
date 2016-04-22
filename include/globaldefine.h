@@ -205,6 +205,7 @@ enum meter_type_idx{
 
 
 #define LENGTH_ADDR	50//集中器号或者上位机ip的地址长度
+#pragma pack(1)
 typedef struct{
     uint8 sadd[LENGTH_ADDR];
     uint8 oadd[LENGTH_ADDR];
@@ -236,10 +237,11 @@ typedef struct{
     int up_total_frm;//总帧数
     int up_cur_bytes;//当前帧包含的字节数
     int up_cur_frm_idx;//远程升级时的当前帧索引
-    
+    char up_md5[50];//上位机下发的新程序的MD5值
     uint8 **pDataList;//暂存空间的指针
 } xml_info_str;
 typedef xml_info_str* pXml_info;
+#pragma pack()
 
 
 

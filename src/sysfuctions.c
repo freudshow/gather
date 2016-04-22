@@ -39,8 +39,8 @@ sem_t His_up_sem;//历史数据上传信号量
 sem_t His_asw_sem;//历史数据应答信号量
 
 //base64映射表
-static char base64_code[] = \
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+static const char base64_code[] = \
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 void OSTimeDly(uint32 ms)
 {
@@ -394,5 +394,40 @@ int cnt_of_pad(char* enStr, int enSize)
             cnt++;
     }
     return cnt;
+}
+
+//将s指向的, 长度为len的字节数组, 编码为base64字符串
+uint8 encode_base64(char* s, int len, char* enStr)
+{
+    if(len == 0)
+        return ERR_1;
+
+    int idx;
+    int i=0;
+    for(i=0;i<len;i += 3) {
+        idx = (s[i] & 0xFC) >> 2;
+        *enStr++ = base64_code[idx];
+
+        idx = ((s[i] & 0x03) << 4);
+        if (i+1 < len) {
+            idx |= ((s[i+1] & 0xF0) >> 4);
+            *enStr++ = base64_code[idx];
+            idx = ((s[i+1] & 0x0F) << 2);
+            if (i+2 < len) {
+                idx |= ((s[i+2] & 0xC0) >> 6);
+                *enStr++ = base64_code[idx];
+                idx = (s[i+2] & 0x3F);
+                *enStr++ = base64_code[idx];
+            } else {
+                *enStr++ = base64_code[idx];
+                *enStr++ = '=';
+            }
+        } else {
+            *enStr++ = base64_code[idx];
+            *enStr++ = '=';
+            *enStr++ = '=';
+        }
+    }
+    return NO_ERR;
 }
 

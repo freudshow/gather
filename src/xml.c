@@ -23,7 +23,7 @@ char *pXMLFileName[XML_BUF_FILE_NUM]={"buff0.xml","buff1.xml","buff2.xml","buff3
  		"buff13.xml","buff14.xml"};
 
 XML_FILE gXML_File[XML_BUF_FILE_NUM];  //定义xml文件相关变量。
-static xml_info_str g_xml_info[UP_COMMU_DEV_ARRAY];
+static xml_info_str g_xml_info[UP_COMMU_DEV_ARRAY];//定义时初始化
 char *colname_heat[] = {"f_cur_cold_E", "f_cur_heat_E", "f_heat_power", "f_flowrate", \
     "f_accum_flow", "f_in_temp", "f_out_temp", "f_accum_work_time", "f_cur_time", \
     "f_state"};
@@ -33,22 +33,6 @@ char *colname_elec[] = {"f_pact_tot_elec", "f_nact_tot_elec", "f_preact_tot_elec
     "f_nreact_tot_elec", "f_act_tot_elec", "f_react_tot_elec", "f_ovr_pow_fac", \
     "f_pmax_dem"};
 char *colname_gas[] = {'\0'};
-
-uint8 func_id(uint8 dev, uint8 xml_idx);
-uint8 func_heart_beat(uint8 dev, uint8 xml_idx);
-uint8 func_sysconfig(uint8 dev, uint8 xml_idx);
-uint8 func_rqdata(uint8 dev, uint8 xml_idx);
-uint8 func_tnode(uint8 dev, uint8 xml_idx);
-uint8 func_minfo(uint8 dev, uint8 xml_idx);
-uint8 func_rptup(uint8 dev, uint8 xml_idx);
-uint8 func_rdstat(uint8 dev, uint8 xml_idx);
-uint8 func_swip(uint8 dev, uint8 xml_idx);
-uint8 func_dbmani(uint8 dev, uint8 xml_idx);
-uint8 func_syscmd(uint8 dev, uint8 xml_idx);
-uint8 func_codeup(uint8 dev, uint8 xml_idx);
-uint8 func_prototrs(uint8 dev, uint8 xml_idx);
-uint8 func_clock_set(uint8 dev, uint8 xml_idx);
-uint8 func_collect_set(uint8 dev, uint8 xml_idx);
 
 static uint8 (*xml_exec_array[])(uint8 dev, uint8 xml_idx) = {
 func_id,        // -0-登录
@@ -358,6 +342,10 @@ uint8 makexml(xml_info_str *xmlInfo,uint8 xmlIndex)
   	return ERR_1;
 }
 
+void init_xml_infos()
+{
+    memset(&g_xml_info, 0, UP_COMMU_DEV_ARRAY*sizeof(xml_info_str));
+}
 /*
   ******************************************************************************
   * 函数名称： uint8 setXmlInfo()
@@ -1309,29 +1297,262 @@ uint8 func_syscmd(uint8 dev, uint8 xml_idx)
 	return retErr;
 }
 
+void empty_update_list(uint8 dev)
+{
+    int idx;//上次异常更新时的总帧数
+    if(g_xml_info[dev].pDataList != NULL){
+        //先释放每帧的数据空间
+        for(idx=0; idx<g_xml_info[dev].up_total_frm;idx++) {
+            if(g_xml_info[dev].pDataList[idx]) {
+                free(g_xml_info[dev].pDataList[idx]);
+            }
+        }
+        //最后释放指针数组的空间
+        free(g_xml_info[dev].pDataList);
+        g_xml_info[dev].pDataList = NULL;
+    }
+}
+
+uint8 malloc_space(uint8 dev)
+{
+    printf("sizeof(uint8*): %d", sizeof(uint8*));//注意指针类型的长度为int型的长度, 而不是1个字节
+    g_xml_info[dev].pDataList = malloc(g_xml_info[dev].up_total_frm*sizeof(uint8*));
+    if(g_xml_info[dev].pDataList == NULL)
+        return ERR_1;
+    memset(g_xml_info[dev].pDataList, 0, g_xml_info[dev].up_total_frm);
+    return NO_ERR;
+}
+
 uint8 update_bin(uint8 dev)
 {
     uint8 err = NO_ERR;
+    xmlNodePtr rootNode      = NULL;
+    xmlNodePtr curNode       = NULL;
+    xmlNodePtr transInfoNode = NULL;
+    xmlNodePtr binNode       = NULL;
+    sys_config_str sysconfig;
+    uint16 crc;//上位机发来的是低位在前, 赋值时要交换为高位在前, 便于比较
+    xmlChar* pValue;
+    uint32 enLen=0;//当前帧编码后的字符串长度
+    uint32 deLen=0;//当前帧解码后的字节串长度
+    rootNode = xmlDocGetRootElement(g_xml_info[dev].xmldoc_rd);
+    if(NULL == rootNode)
+        return ERR_1;
+    curNode = rootNode->children;//commonNode
+    while(curNode) {//找到trans节点
+        if(xmlStrEqual(curNode->name, CONST_CAST "trans")) {
+            transInfoNode = curNode;
+            break;
+        }
+        curNode = curNode->next;
+    }
+    printf("[%s][%s][%d]transInfoNode: %p\n",FILE_LINE, transInfoNode);
+    if(transInfoNode == NULL)
+        return ERR_1;
     
+    printf("[%s][%s][%d]transInfoNode->name: %s\n",FILE_LINE, transInfoNode->name);
+    transInfoNode = transInfoNode->children;
+    while(transInfoNode) {
+        printf("[%s][%s][%d]transNode->name: %s\n",FILE_LINE, transInfoNode->name);
+        if(xmlStrEqual(transInfoNode->name, CONST_CAST "fb")) {//总共要下发的文件字节数量
+            pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
+            g_xml_info[dev].up_total_bytes = atoi((char*)pValue);
+        } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "frmc")) {//一共下发多少帧数
+            pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
+            g_xml_info[dev].up_total_frm = atoi((char*)pValue);
+        } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "md5")) {//本次更新的程序的md5值
+            pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
+            printf("[%s][%s][%d]server's md5: %s\n",FILE_LINE, (char*)pValue);
+            get_sys_config(CONFIG_APP_MD5, &sysconfig);
+            printf("[%s][%s][%d]local's md5: %s\n",FILE_LINE, sysconfig.f_config_value);
+            if(strcmp(sysconfig.f_config_value, (char*)pValue) == 0) {//如果md5值一样, 那么返回"md5same"应答, 终止升级过程
+                send_answer(dev, "md5", "same", NULL);
+                return NO_ERR;
+            }
+            strcpy(g_xml_info[dev].up_md5, (char*)pValue);
+        } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "frmid")) {//本帧的索引号
+            pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
+            g_xml_info[dev].up_cur_frm_idx = (atoi((char*)pValue)-1);
+            printf("[%s][%s][%d]up_cur_frm_idx: %d\n",FILE_LINE, g_xml_info[dev].up_cur_frm_idx);
+        } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "bc")) {//本帧的字节数
+            pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
+            g_xml_info[dev].up_cur_bytes = atoi((char*)pValue);
+        } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "ck")) {//本帧的字节串的CRC校验值
+            pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
+            crc = (Ascii2Hex(pValue[3])<<3*LEN_HALF_BYTE|\
+                    Ascii2Hex(pValue[4])<<2*LEN_HALF_BYTE|\
+                    Ascii2Hex(pValue[0])<<LEN_HALF_BYTE|\
+                    Ascii2Hex(pValue[1]));
+            printf("[%s][%s][%d] crc is: %04X\n",FILE_LINE, crc);
+        }
+        transInfoNode = transInfoNode->next;
+    }
+
+    if(g_xml_info[dev].up_cur_frm_idx == 0) {//如果是第0帧, 则初始化暂存空间, 完成后就退出
+        empty_update_list(dev);
+        if((err = malloc_space(dev)) ==ERR_1) {//任意时刻, 如果集中器申请不到内存, 向上位机发送终止升级的消息
+            send_answer(dev, "malloc", "fail", NULL);
+        } else {
+            send_answer(dev, "md5", "diff", NULL);
+        }
+        return err;
+    }
+
+    if(g_xml_info[dev].pDataList == NULL)//每次都要检测数据列表是否申请到了内存, 或者是否接收过第0帧, 因为第0帧时会申请内存
+        return ERR_1;
+
+    //得到本帧的数据
+    curNode = rootNode->children;//commonNode
+    while(curNode) {//找到trans节点
+        if(xmlStrEqual(curNode->name, CONST_CAST "bin")) {
+            binNode= curNode;
+            break;
+        }
+        curNode = curNode->next;
+    }
+    pValue = xmlNodeGetContent(binNode->xmlChildrenNode);
+    enLen = strlen((char*)pValue);
+    if((enLen%4)==0) {
+        deLen = (3*enLen/4 - cnt_of_pad((char*)pValue, enLen));
+    } else {
+        goto lenErr;
+    }
+    
+    printf("[%s][%s][%d]deLen: %d\n",FILE_LINE, deLen);
+    if(deLen == g_xml_info[dev].up_cur_bytes) {//如果长度不一致, 清空数据缓存, 返回错误
+lenErr:
+        free(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
+        g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = NULL;
+        return ERR_1;
+    }
+
+    //当下发的字节长度与计算出的字节长度一致时, 申请暂存空间
+    g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = malloc(deLen);
+    printf("[%s][%s][%d]\n",FILE_LINE);
+    //任意时刻, 如果集中器申请不到内存, 向上位机发送终止升级的消息
+    if(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] == NULL) {
+        send_answer(dev, "malloc", "fail", NULL);
+        return ERR_1;
+    }
+    err = decode_base64((char*) pValue, enLen, \
+        g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
+    printf("[%s][%s][%d]\n",FILE_LINE);
+    //如果crc校验不通过则释放内存; 通过则等待下一帧传输
+    if(crc != crc16ModRtu(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx], deLen)) {
+        free(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);        
+        g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = NULL;
+        return ERR_1;
+    }
+    //for(crc=0;crc<deLen;crc++) {
+    //    printf("%02X ",g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx][crc]);
+    //}
+    //printf("\n");
+    printf("[%s][%s][%d]\n",FILE_LINE);
+    return err;
+}
+
+uint8 send_lack_frame(uint8 dev)
+{
+    uint8 err = NO_ERR;
+    int multi_times = (g_xml_info[dev].up_total_frm/LENGHTH_LACK_STRING+1);
+    int lackLen = multi_times*LENGHTH_LACK_STRING*sizeof(char);
+    char* lackStr = malloc(lackLen);//缺帧列表
+    memset(lackStr, 0, lackLen);
+    int lack_idx=0;
+    char tmpstr[6];
+
+    for(lack_idx=0;lack_idx<g_xml_info[dev].up_total_frm;lack_idx++) {
+        if(g_xml_info[dev].pDataList[lack_idx]==NULL){
+            sprintf(tmpstr, "%d,", lack_idx+1);
+            strcat(lackStr, tmpstr);
+        }
+    }
+    send_answer(dev, "lack", lackStr, NULL);
+    free(lackStr);
+    return err;
+}
+
+uint8 merge_update_file(uint8 dev)
+{
+    uint8 err = NO_ERR;
+    FILE *fp;
+    int idx;
+    int wLen;//要写入的字节数
+    int acwLen;//实际写入的字节数
+    char cmd[100]={0};//调用shell命令
+    char result[100]={0};//shell命令的结果
+    char* sp;
+    sys_config_str sys_config;
+    
+    fp = fopen(APP_TMPNAME, "wb+");
+    for(idx=0;idx<g_xml_info[dev].up_total_frm;idx++) {
+        wLen = sizeof(g_xml_info[dev].pDataList[idx]);
+        acwLen = fwrite(g_xml_info[dev].pDataList[idx], 1, wLen, fp);
+        if(acwLen != wLen) {
+            send_answer(dev, "merge", "fail", NULL);
+            empty_update_list(dev);
+            return ERR_1;
+        }
+        free(g_xml_info[dev].pDataList[idx]);//写一帧就释放一帧
+    }
+    fclose(fp);
+    //计算新程序的MD5值, 如果与上位机下发的一致(已含文件大小一致的情况), 继续
+    //否则向上位机返回合并失败应答, 并终止函数
+    strcpy(cmd, "md5sum ");
+    strcat(cmd, APP_TMPNAME);
+    if(NULL==(fp=popen(cmd, "r"))) {
+        fprintf(stderr, "execute command failed: %s", strerror(errno));
+        send_answer(dev, "merge", "fail", NULL);
+        return ERR_1;
+    }
+    if(NULL!=fgets(result, sizeof(result), fp)) {
+        printf("%s\n",result);
+    } else {
+        send_answer(dev, "merge", "fail", NULL);
+        return ERR_1;
+    }
+    pclose(fp);
+    strtok_r(result, " ", &sp);//把md5值从得到的执行结果中分离出来
+    if(strcmp(g_xml_info[dev].up_md5, result) != 0) {
+        send_answer(dev, "merge", "fail", NULL);
+        return ERR_1;
+    }
+
+    //删除老程序
+    strcpy(cmd, "rm ");
+    strcat(cmd, APP_NAME);
+    system(cmd);
+    //将新升级的临时程序改名为原程序名
+    strcpy(cmd, "mv ");
+    strcat(cmd, APP_TMPNAME);
+    strcat(cmd, " ");
+    strcat(cmd, APP_NAME);
+    system(cmd);    
+    //将新程序的MD5值存入数据库
+    sys_config.f_id = CONFIG_APP_MD5;
+    get_sys_config_name(CONFIG_APP_MD5, sys_config.f_config_name);
+    err = add_one_config(&sys_config, NULL);
+
+    g_xml_info[dev].pDataList = NULL;
+    send_answer(dev, "merge", "success", NULL);
+    //重启Linux
+    system("reboot");
     return err;
 }
 
 //12. 远程升级
 uint8 func_codeup(uint8 dev, uint8 xml_idx)
 {
-	uint8 retErr = NO_ERR;
-    QmsgType Qmsg;
+	uint8 retErr = NO_ERR;    
     switch(g_xml_info[dev].oper_type) {
     case em_OPER_RD:
+        send_lack_frame(dev);
         break;    
     case em_OPER_WR:
-        printf("[%s][%s][%d] em_OPER_WR.\n", FILE_LINE);
-        Qmsg.mtype = 1;  //不要写0，其他都可以。
-        Qmsg.dev = dev;
-        Qmsg.functype = em_FUNC_CODEUP;
-        msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
+        update_bin(dev);
         break;
     case em_OPER_DO:
+        merge_update_file(dev);
         break;    
     case em_OPER_ASW:
         break;
@@ -1339,7 +1560,6 @@ uint8 func_codeup(uint8 dev, uint8 xml_idx)
         break;
     }
 	return retErr;
-
 }
 
 uint8 split_com(char* comstr, pProto_trans pProtoTrs)//comstr = "9600,n,8,1"

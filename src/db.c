@@ -37,6 +37,12 @@ static int set_sysconf_idx;//设置系统参数的索引号, 私有变量
 static int config_idx;//基本配置的个数索引, 私有变量
 static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 
+//各项系统配置的配置名, 索引顺序必须与globaldefine.h中的
+//sys_config_idx一致
+static char* sys_config_name[SYS_CONFIG_COUNT]={"primary_server", "primary_dns", \
+"primary_port", "second_server", "second_dns", "second_port", "gateway_id", \
+"net_type", "md5_key", "aes_key", "collect_mode", "collect_cycle", \
+"report_mode", "beat_cycle", "svr_num", "appmd5"};
 /**********************
  ** 读取仪表信息相关 **
  **********************/
@@ -1017,6 +1023,11 @@ uint8 get_sys_config(sys_config_idx idx, pSys_config pConfig)
 	return NO_ERR;
 }
 
+void get_sys_config_name(sys_config_idx idx, char* config_name)
+{
+    strcpy(sys_config_name[idx], config_name);
+}
+
 #if 0
 static uint8 del_sysconf(char* pId, char* pErr)
 {
@@ -1080,14 +1091,16 @@ uint8 add_one_config(pSys_config pConf, char* pErr)
     char *table_name = TABLE_BASE_DEF;
     char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
     char pIdstr[LENGTH_F_CONFIG_VALUE];
-    sprintf(pIdstr, "%d", pConf->f_id+1);
     char *val_buf[LENGTH_F_CONFIG_VALUE] = {pIdstr, pConf->f_config_name, pConf->f_config_value};
-    printf("[%s][%s][%d]list_set_sysconf: %p, pIdstr: %s\n", FILE_LINE, list_set_sysconf, pIdstr);
+    
     int row_cnt=0;//查询当前f_id有几行. 如果为1, 则更新配置; 如果为0, 则插入新配置
+    sqlite3_stmt *countstmt;
+    
+    sprintf(pIdstr, "%d", pConf->f_id+1);
+    printf("[%s][%s][%d]list_set_sysconf: %p, pIdstr: %s\n", FILE_LINE, list_set_sysconf, pIdstr);
     strcpy(sql_buf, "select count(*) from t_base_define where f_id=");
     strcat(sql_buf, pIdstr);
     printf("[%s][%s][%d]sql_buf: %s\n", FILE_LINE, sql_buf);
-    sqlite3_stmt *countstmt;
     if(sqlite3_prepare_v2(g_pDB, sql_buf, -1, &countstmt, NULL) == SQLITE_OK) {
         if(sqlite3_step(countstmt) == SQLITE_ROW){
             row_cnt = sqlite3_column_int(countstmt, 0);
