@@ -49,8 +49,20 @@ typedef unsigned int uint32;
 #define LEN_HALF_BYTE	4//一半字节的比特数
 #define BYTE_BCD_CNT	2//一个字节由多少个BCD码表示
 
-#define LC_ELEC_REG_BYTES      2//力创DTSD106三相电表, 每个寄存器的字节数
-#define LC_ELEC_WORK_BYTES	    4//力创DTSD106三相电表, 每个电能参数对应的字节数
+#define LC_ELEC_REG_BYTES       2//力创DTSD106三相电表, 每个寄存器的字节数
+#define LC_ELEC_WORK_BYTES      4//力创DTSD106三相电表, 每个电能参数对应的字节数
+
+#define LENGTH_MD5              50//MD5值的最大长度, 一般为32, 这里定的大一些
+
+
+/*上位机查询下位机缺少的帧索引列表长度. 假设上位机下发程序的总帧数为1024帧,
+ * 因为1~9, 9个1字符; 10~99, 90个2字符; 100~999, 900个3字符; 1000~1024, 25个4字符
+ * 加起来共2989个字符, 再加上每个索引后面的一个分隔符(','或者' '), 共1023个
+ * 这样总字符长度就是4012, 凑个整数, 4096.
+ * 如果升级程序的总帧数大于1024, 那么就用总帧数除以1024, 求出其整数部分, 再加1,
+ * 用这个数乘以4096即可, 就怕上位机不做这么大的暂存区来缓存不完整的xml帧
+ */
+#define LENGHTH_LACK_STRING     4096
 /********************************************************************************
  ** MODBUS相关
  ********************************************************************************/
@@ -73,6 +85,8 @@ typedef unsigned int uint32;
 
 //数据库名称
 #define SQLITE_NAME  "gatherdb.db"
+#define APP_NAME    "gather_V0"
+#define APP_TMPNAME "tmp_gather"
 
 //IO口控制相关
 #define IOCTLTEST_MAGIC    0xA4
@@ -217,6 +231,13 @@ typedef struct{
     wr_his_stat cur_wr_state;//当前xml所处的状态
 
     int meter_info_row_idx;
+
+    int up_total_bytes;//总字节数
+    int up_total_frm;//总帧数
+    int up_cur_bytes;//当前帧包含的字节数
+    int up_cur_frm_idx;//远程升级时的当前帧索引
+    
+    uint8 **pDataList;//暂存空间的指针
 } xml_info_str;
 typedef xml_info_str* pXml_info;
 
@@ -265,9 +286,10 @@ typedef enum T_System_Config {
     CONFIG_COLLECT_CYCLE,       //-11-, 自动采集周期，当COLLECT_MODE为0时有效。
     CONFIG_REPORT_MODE,         //-12-, 数据上报模式,0-主动上报，1-被动请求。
     CONFIG_BEAT_CYCLE,          //-13-, 心跳周期，范围1-10分钟。
-    CONFIG_SVR_NUM              //-14-, 主服务器的编号
+    CONFIG_SVR_NUM,             //-14-, 主服务器的编号
+    CONFIG_APP_MD5              //-15-, 程序文件的md5值
 }sys_config_idx;
-#define SYS_CONFIG_COUNT	15//基本配置项的数量
+#define SYS_CONFIG_COUNT	16//基本配置项的数量
 
 typedef enum item_idx_heat {//按照CJ188协议规定的字段域
     em_HColdE=1,        //冷量, 实际用于结算日热量
