@@ -25,6 +25,7 @@ insert into t_base_define(f_id, f_config_name, f_config_value)values(12, 'collec
 insert into t_base_define(f_id, f_config_name, f_config_value)values(13, 'report_mode', '0');-- 数据上报模式. 0 - 主动上报; 1 - 被动请求.
 insert into t_base_define(f_id, f_config_name, f_config_value)values(14, 'beat_cycle', '2');
 insert into t_base_define(f_id, f_config_name, f_config_value)values(15, 'svr_num', '0001');
+insert into t_base_define(f_id, f_config_name, f_config_value)values(16, 'appmd5', '28a011de19210eb7822688ba97c97c28');--这个配置是集中器执行完远程升级后自己写入, 不作为上位机下发的参数
 ---------------------------------
 --仪表地址信息配置表
 ---------------------------------

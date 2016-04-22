@@ -1,0 +1,101 @@
+<!---------------- 12.	远程升级(code_updata)  待定义 ---------------->
+<!--上位机下发远程升级准备命令-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>261425C00101</oadd>
+		<func_type>11</func_type>
+		<oper_type>1</oper_type><!--写-->
+	</common>
+	<trans>
+		<fb>256688</fb><!--总共要下发的文件字节数数量, fb = file_bytes. 在第0时下发, 以后不再下发-->
+		<frmc>512</frmc><!--一共下发多少帧数. 在第0时下发, 以后不再下发-->
+		<md5>28a011de19210eb7822688ba97c97c28</md5><!--本次更新的程序的md5值. 在第0时下发, 以后不再下发-->
+		<frmid>0</frmid><!--第0帧, 不下发文件数据-->
+	</trans>
+</root>
+
+<!--上位机下发远程升级数据命令-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>261425C00101</oadd>
+		<func_type>11</func_type>
+		<oper_type>1</oper_type><!--写-->
+	</common>
+	<trans>
+		<frmid>1</frmid><!--本帧的序号, 从1开始 -->
+		<bc>666</bc><!--本帧的字节数 bc = bytes_count-->
+		<ck>4E 65</ck><!--本帧的字节串(不是编码后的字符串)的16位ModbusRTUCRC校验值, ck = crc _check, 低位在前高位在后, 以空格分隔-->
+	</trans>
+	<bin>AQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zw==</bin><!--文件数据-->
+</root>
+
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>261425C00101</oadd>
+		<func_type>11</func_type>
+		<oper_type>0</oper_type><!--写-->
+	</common>
+	<trans>
+		<fb>256688</fb>
+		<frmc>1024</frmc>	
+		<frmid>1</frmid>
+		<md5>28a011de19210eb7852688ba97c97c28</md5>
+		<ck>4E 65</ck>
+	</trans>
+<bin>AQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zw==</bin>
+</root>
+
+<!------------------------------------------>
+<!--上位机下发完所有的远程升级文件数据, 查询缺帧命令-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>261425C00101</oadd>
+		<func_type>11</func_type>
+		<oper_type>0</oper_type><!--读, 即查询-->
+	</common>
+</root>
+
+<!--下位机返回远程升级缺帧情况-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>261425C00101</sadd>
+		<oadd>0001</oadd>
+		<func_type>11</func_type>
+		<oper_type>3</oper_type><!--应答-->
+	</common>
+	<lack>5 15 421 95 501 </lack><!--缺少的帧索引号列表, 如果列表为空, 上位机下发合并文件命令(do)-->
+</root>
+
+
+<!------------------------------------------>
+<!--上位机下发远程升级合并命令-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>261425C00101</oadd>
+		<func_type>11</func_type>
+		<oper_type>2</oper_type><!--do, 即合并成文件-->
+	</common>
+</root>
+
+<!--下位机返回远程升级成功状态-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>261425C00101</sadd>
+		<oadd>0001</oadd>
+		<func_type>11</func_type>
+		<oper_type>3</oper_type><!--do, 即合并成文件-->
+	</common>
+	<result>success</result>
+</root>
