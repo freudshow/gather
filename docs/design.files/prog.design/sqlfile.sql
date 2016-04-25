@@ -45,7 +45,8 @@ create table t_meter_info
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 1, '11110021147872', 1, 0, '6#管道井');--德鲁热表
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 2, '11110021147872', 1, 0, '5#管道井');--德鲁热表
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 3, '11110021147872', 1, 0, '3#地下室');--德鲁热表
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 3, '11110021164962', 1, 0, '3#地下室');--德鲁热表
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 4, '11110021164962', 1, 0, '3#地下室');--德鲁热表
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 5, '00000000000001', 1, 0, '3#地下室');--力创电表
 
 ---------------------------------
 --电表历史数据表

@@ -640,8 +640,8 @@
 	<common>
 		<sadd>0001</sadd>
 		<oadd>261425C00101</oadd>
-		<func_type>local_sys_command</func_type>
-		<oper_type>do</oper_type>
+		<func_type>10</func_type>
+		<oper_type>2</oper_type>
 	</common>
 	<local_command id="1">pwd</local_command><!--只用于上位机下发-->
 </root>
@@ -701,7 +701,7 @@
 	<md5>md5diff</md5>
 </root>
 
-<!--下位机的程序的MD5值如果与下发的MD5值不一样, 但申请不到足够的内存, 终止升级过程-->
+<!--下位机的程序的MD5值如果与下发的MD5值一样, 但申请不到足够的内存, 终止升级过程-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
@@ -712,6 +712,7 @@
 	</common>
 	<malloc>fail</malloc>
 </root>
+<!------------------------------------------>
 
 <!--上位机下发远程升级数据命令-->
 <?xml version="1.0" encoding="utf-8" ?>
