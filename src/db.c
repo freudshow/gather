@@ -37,12 +37,6 @@ static int set_sysconf_idx;//设置系统参数的索引号, 私有变量
 static int config_idx;//基本配置的个数索引, 私有变量
 static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name);
 
-//各项系统配置的配置名, 索引顺序必须与globaldefine.h中的
-//sys_config_idx一致
-static char* sys_config_name[SYS_CONFIG_COUNT]={"primary_server", "primary_dns", \
-"primary_port", "second_server", "second_dns", "second_port", "gateway_id", \
-"net_type", "md5_key", "aes_key", "collect_mode", "collect_cycle", \
-"report_mode", "beat_cycle", "svr_num", "appmd5"};
 /**********************
  ** 读取仪表信息相关 **
  **********************/
@@ -1021,11 +1015,6 @@ uint8 get_sys_config(sys_config_idx idx, pSys_config pConfig)
 	
 	memcpy((uint8*)pConfig, (uint8*)&sys_config_array[idx], sizeof(sys_config_str));
 	return NO_ERR;
-}
-
-void get_sys_config_name(sys_config_idx idx, char* config_name)
-{
-    strcpy(sys_config_name[idx], config_name);
 }
 
 #if 0

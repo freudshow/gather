@@ -108,6 +108,9 @@ extern sem_t  His_asw_sem;
 #endif
 
 
+#define LOG_FILE_NAME "log.txt"
+#define FILE_MAX_SIZE (2*1024*1024)//2M
+
 
 
 
@@ -130,6 +133,8 @@ extern uint16 crc16ModRtu(const uint8 *nData, uint16 wLength);
 extern int idx_of_base64(char b);
 extern uint8 decode_base64(char* enStr, int enSize,  uint8* deStr);
 extern int cnt_of_pad(char* enStr, int enSize);
+extern uint8 encode_base64(char* s, int len, char* enStr);
+extern void write_log_file(char* buffer, unsigned buf_size);
 
 
 

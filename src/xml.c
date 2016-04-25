@@ -65,7 +65,6 @@ uint8 XMLBuf_Init(void)
 {
 	uint8 i = 0;
 	int ret = 0; 
-
 	if(gsu8XmlBufInitFlag != 0)  //如果已经被调用，再次调用则返回错误。
 		return ERR_FF;
 
@@ -85,7 +84,9 @@ uint8 XMLBuf_Init(void)
 		gXML_File[i].pXMLFile = pXMLFileName[i];
 
 		//printf("i=%d.\n",i);  //调试跟踪用。
-
+        char log[256];
+        sprintf(log, "[%s][%s][%d]i=%d.\n", FILE_LINE, i);
+        write_log_file(log, strlen(log));
 	}
 
 	gsu8XmlBufInitFlag = 1;
@@ -181,7 +182,12 @@ uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 		Flag = 0;
 	}
 	
-	printf("start fopen %s . \n", gXML_File[XmlIndex].pXMLFile);
+	printf("start fopen %s . \n", gXML_File[XmlIndex].pXMLFile);   
+    
+    char log[256];
+    sprintf(log, "[%s][%s][%d]start fopen %s . \n", FILE_LINE, gXML_File[XmlIndex].pXMLFile);
+    write_log_file(log, strlen(log));
+    
 	fp=fopen(gXML_File[XmlIndex].pXMLFile,"w+");
 	
 	sem_wait(&gXML_File[XmlIndex].sem_write);
@@ -216,7 +222,10 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 			while(QueueRead(&DataTemp, (void*)pQueues[dev]) != QUEUE_OK){
 				OSSemPend(dev, OutTime, &err);
 				if(err != OS_ERR_NONE){
-					printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);
+					printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);    
+                    char log[256];
+                    sprintf(log, "[%s][%s][%d]OSSemPend err=%d\n", FILE_LINE, err);
+                    write_log_file(log, strlen(log));
 					return err;
 				}
 			}
@@ -1315,11 +1324,17 @@ void empty_update_list(uint8 dev)
 
 uint8 malloc_space(uint8 dev)
 {
-    printf("sizeof(uint8*): %d", sizeof(uint8*));//注意指针类型的长度为int型的长度, 而不是1个字节
-    g_xml_info[dev].pDataList = malloc(g_xml_info[dev].up_total_frm*sizeof(uint8*));
+    int listLen = g_xml_info[dev].up_total_frm*sizeof(uint8*);
+    g_xml_info[dev].pDataList = malloc(listLen);
     if(g_xml_info[dev].pDataList == NULL)
         return ERR_1;
-    memset(g_xml_info[dev].pDataList, 0, g_xml_info[dev].up_total_frm);
+    memset(g_xml_info[dev].pDataList, 0, listLen);
+    listLen = g_xml_info[dev].up_total_frm*sizeof(int);
+    printf("[%s][%s][%d]pDataLen's length: %d\n", FILE_LINE, listLen);
+    g_xml_info[dev].pDataLen = malloc(listLen);
+    if(g_xml_info[dev].pDataLen == NULL)
+        return ERR_1;
+    memset(g_xml_info[dev].pDataLen, 0, listLen);
     return NO_ERR;
 }
 
@@ -1332,6 +1347,7 @@ uint8 update_bin(uint8 dev)
     xmlNodePtr binNode       = NULL;
     sys_config_str sysconfig;
     uint16 crc;//上位机发来的是低位在前, 赋值时要交换为高位在前, 便于比较
+    uint16 localcrc;
     xmlChar* pValue;
     uint32 enLen=0;//当前帧编码后的字符串长度
     uint32 deLen=0;//当前帧解码后的字节串长度
@@ -1388,7 +1404,7 @@ uint8 update_bin(uint8 dev)
         transInfoNode = transInfoNode->next;
     }
 
-    if(g_xml_info[dev].up_cur_frm_idx == 0) {//如果是第0帧, 则初始化暂存空间, 完成后就退出
+    if(g_xml_info[dev].up_cur_frm_idx == -1) {//如果是第0帧, 则初始化暂存空间, 完成后就退出
         empty_update_list(dev);
         if((err = malloc_space(dev)) ==ERR_1) {//任意时刻, 如果集中器申请不到内存, 向上位机发送终止升级的消息
             send_answer(dev, "malloc", "fail", NULL);
@@ -1418,15 +1434,19 @@ uint8 update_bin(uint8 dev)
         goto lenErr;
     }
     
-    printf("[%s][%s][%d]deLen: %d\n",FILE_LINE, deLen);
-    if(deLen == g_xml_info[dev].up_cur_bytes) {//如果长度不一致, 清空数据缓存, 返回错误
+    printf("[%s][%s][%d]deLen: %d, up_cur_bytes: %d\n",FILE_LINE, deLen, \
+        g_xml_info[dev].up_cur_bytes);
+    if(deLen != g_xml_info[dev].up_cur_bytes) {//如果长度不一致, 清空数据缓存, 返回错误
 lenErr:
         free(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
         g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = NULL;
+        g_xml_info[dev].pDataLen[g_xml_info[dev].up_cur_frm_idx] = 0;
         return ERR_1;
     }
-
+    g_xml_info[dev].pDataLen[g_xml_info[dev].up_cur_frm_idx] = deLen;
     //当下发的字节长度与计算出的字节长度一致时, 申请暂存空间
+    if(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]!=NULL)
+        free(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
     g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = malloc(deLen);
     printf("[%s][%s][%d]\n",FILE_LINE);
     //任意时刻, 如果集中器申请不到内存, 向上位机发送终止升级的消息
@@ -1438,15 +1458,17 @@ lenErr:
         g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
     printf("[%s][%s][%d]\n",FILE_LINE);
     //如果crc校验不通过则释放内存; 通过则等待下一帧传输
-    if(crc != crc16ModRtu(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx], deLen)) {
+    localcrc=crc16ModRtu(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx], deLen);
+    printf("[%s][%s][%d]crc: %04X, localcrc: %04X\n", FILE_LINE, crc, localcrc);
+    if(crc != localcrc) {
         free(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);        
         g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = NULL;
         return ERR_1;
     }
-    //for(crc=0;crc<deLen;crc++) {
-    //    printf("%02X ",g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx][crc]);
-    //}
-    //printf("\n");
+    for(crc=0;crc<deLen;crc++) {
+        printf("%02X ",g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx][crc]);
+    }
+    printf("\n");
     printf("[%s][%s][%d]\n",FILE_LINE);
     return err;
 }
@@ -1480,24 +1502,49 @@ uint8 merge_update_file(uint8 dev)
     int wLen;//要写入的字节数
     int acwLen;//实际写入的字节数
     char cmd[100]={0};//调用shell命令
+    char filename[50]={0};
     char result[100]={0};//shell命令的结果
     char* sp;
     sys_config_str sys_config;
-    
-    fp = fopen(APP_TMPNAME, "wb+");
+
+    strcpy(filename, APP_TMPNAME);
+    strcat(filename, ".tar.bz2");
+    fp = fopen(filename, "wb+");
     for(idx=0;idx<g_xml_info[dev].up_total_frm;idx++) {
-        wLen = sizeof(g_xml_info[dev].pDataList[idx]);
-        acwLen = fwrite(g_xml_info[dev].pDataList[idx], 1, wLen, fp);
-        if(acwLen != wLen) {
-            send_answer(dev, "merge", "fail", NULL);
-            empty_update_list(dev);
+        if(g_xml_info[dev].pDataList[idx] != NULL) {
+            wLen = g_xml_info[dev].pDataLen[idx];
+            acwLen = fwrite(g_xml_info[dev].pDataList[idx], 1, wLen, fp);
+            printf("[%s][%s][%d]wLen: %d, acwLen: %d\n",FILE_LINE, wLen, acwLen);
+            
+            if(acwLen != wLen) {
+                //send_answer(dev, "merge", "fail", NULL);
+                //empty_update_list(dev);
+                fclose(fp);
+                //删除压缩包
+                strcpy(cmd, "rm ");
+                strcat(cmd, filename);
+                system(cmd);
+                send_lack_frame(dev);//向上位机重新要数据
+                return ERR_1;
+            }
+            free(g_xml_info[dev].pDataList[idx]);//写一帧就释放一帧
+            g_xml_info[dev].pDataList[idx] = NULL;
+        } else {//有缺帧的时候, 重新要数据
+            send_lack_frame(dev);//向上位机重新要数据
             return ERR_1;
         }
-        free(g_xml_info[dev].pDataList[idx]);//写一帧就释放一帧
     }
     fclose(fp);
-    //计算新程序的MD5值, 如果与上位机下发的一致(已含文件大小一致的情况), 继续
-    //否则向上位机返回合并失败应答, 并终止函数
+    //解压缩临时文件
+    strcpy(cmd, "tar xjvf ");
+    strcat(cmd, filename);
+    system(cmd);    
+    //删除压缩包
+    strcpy(cmd, "rm ");
+    strcat(cmd, filename);
+    system(cmd);
+
+    //对比临时文件的MD5值
     strcpy(cmd, "md5sum ");
     strcat(cmd, APP_TMPNAME);
     if(NULL==(fp=popen(cmd, "r"))) {
@@ -1512,12 +1559,13 @@ uint8 merge_update_file(uint8 dev)
         return ERR_1;
     }
     pclose(fp);
+    printf("[%s][%s][%d]\n",FILE_LINE);
     strtok_r(result, " ", &sp);//把md5值从得到的执行结果中分离出来
-    if(strcmp(g_xml_info[dev].up_md5, result) != 0) {
+    printf("[%s][%s][%d]\n",FILE_LINE);
+    if(strcmp(g_xml_info[dev].up_md5, result) != 0) {//MD5值不一致, 返回错误
         send_answer(dev, "merge", "fail", NULL);
         return ERR_1;
     }
-
     //删除老程序
     strcpy(cmd, "rm ");
     strcat(cmd, APP_NAME);
@@ -1527,10 +1575,11 @@ uint8 merge_update_file(uint8 dev)
     strcat(cmd, APP_TMPNAME);
     strcat(cmd, " ");
     strcat(cmd, APP_NAME);
-    system(cmd);    
+    system(cmd);
     //将新程序的MD5值存入数据库
     sys_config.f_id = CONFIG_APP_MD5;
-    get_sys_config_name(CONFIG_APP_MD5, sys_config.f_config_name);
+    get_sys_config(CONFIG_APP_MD5, &sys_config);
+    strcpy(sys_config.f_config_value, g_xml_info[dev].up_md5);
     err = add_one_config(&sys_config, NULL);
 
     g_xml_info[dev].pDataList = NULL;

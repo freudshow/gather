@@ -110,10 +110,6 @@
 /********************************************************************************
  ** 各字符型字段的长度 F 代表Field
  ********************************************************************************/
-#define LENGTH_F_CONFIG_NAME		16//配置名长度
-#define LENGTH_F_CONFIG_VALUE		50//配置值长度
-#define LENGTH_F_METER_ADDRESS	    15//在数据表中存储的仪表地址长度, 最大14个字符, 加上结束符'\0', 就是15个字符
-#define LENGTH_F_METER_TYPE		2//在数据表中存储的仪表类型长度, 最大2个字符
 
 #define LENGTH_F_ID                 6//行索引号的最大长度
 #define LENGTH_F_MTYPE              2//仪表类型编号的长度
@@ -306,7 +302,6 @@ uint8 insert_sysconf(pSys_config pConf);//插入单个系统配置
 uint8 empty_sysconf_list();//清空配置列表
 uint8 set_sysconf(char* pErr);//设置系统参数
 uint8 add_one_config(pSys_config pConf, char* pErr);
-void get_sys_config_name(sys_config_idx idx, char* config_name);
 
 /**********************
  ** 仪表地址信息相关 **

@@ -38,9 +38,15 @@ typedef unsigned int uint32;
 #define GASMETER	0x30//燃气表
 #define SENSORDEV  0x50//采集各种传感器的Rtu模块
 
+//字段长度定义
 #define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
 #define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
 #define LENGTH_SYS_ANSWER       2048//系统命令返回的信息长度
+
+#define LENGTH_F_CONFIG_NAME		16//配置名长度
+#define LENGTH_F_CONFIG_VALUE		50//配置值长度
+#define LENGTH_F_METER_ADDRESS	    15//在数据表中存储的仪表地址长度, 最大14个字符, 加上结束符'\0', 就是15个字符
+#define LENGTH_F_METER_TYPE		2//在数据表中存储的仪表类型长度, 最大2个字符
 
 /********************************************************************************
  ** 字符长度相关
@@ -237,8 +243,9 @@ typedef struct{
     int up_total_frm;//总帧数
     int up_cur_bytes;//当前帧包含的字节数
     int up_cur_frm_idx;//远程升级时的当前帧索引
-    char up_md5[50];//上位机下发的新程序的MD5值
+    char up_md5[LENGTH_F_CONFIG_VALUE];//上位机下发的新程序的MD5值
     uint8 **pDataList;//暂存空间的指针
+    int *pDataLen;//每一帧暂存空间的大小
 } xml_info_str;
 typedef xml_info_str* pXml_info;
 #pragma pack()
