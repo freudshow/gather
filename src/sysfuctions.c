@@ -360,7 +360,9 @@ int idx_of_base64(char b)
         return 62;
     if(b == '/')
         return 63;
-    return 64;//其他字符均返回64, 以与编码表内的字符区别
+    if(b == '=')
+        return 64;
+    return 65;//其他字符均返回65, 以与编码表内的字符区别
 }
 
 /*

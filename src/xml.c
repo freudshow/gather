@@ -1349,6 +1349,10 @@ uint8 update_bin(uint8 dev)
     uint16 crc;//上位机发来的是低位在前, 赋值时要交换为高位在前, 便于比较
     uint16 localcrc;
     xmlChar* pValue;
+    char binValue[2048]={0};//初始化为{\0}.临时存储base64字符串, 以防上位机发来的字符串中有换行符等
+    int binValueLen=0;
+    char* pChar = binValue;
+    int i=0;
     uint32 enLen=0;//当前帧编码后的字符串长度
     uint32 deLen=0;//当前帧解码后的字节串长度
     rootNode = xmlDocGetRootElement(g_xml_info[dev].xmldoc_rd);
@@ -1399,7 +1403,7 @@ uint8 update_bin(uint8 dev)
                     Ascii2Hex(pValue[4])<<2*LEN_HALF_BYTE|\
                     Ascii2Hex(pValue[0])<<LEN_HALF_BYTE|\
                     Ascii2Hex(pValue[1]));
-            printf("[%s][%s][%d] crc is: %04X\n",FILE_LINE, crc);
+            printf("[%s][%s][%d]server's crc is: %04X\n",FILE_LINE, crc);
         }
         transInfoNode = transInfoNode->next;
     }
@@ -1416,6 +1420,7 @@ uint8 update_bin(uint8 dev)
 
     if(g_xml_info[dev].pDataList == NULL)//每次都要检测数据列表是否申请到了内存, 或者是否接收过第0帧, 因为第0帧时会申请内存
         return ERR_1;
+    printf("[%s][%s][%d]pDataList is not NULL\n",FILE_LINE);
 
     //得到本帧的数据
     curNode = rootNode->children;//commonNode
@@ -1428,8 +1433,15 @@ uint8 update_bin(uint8 dev)
     }
     pValue = xmlNodeGetContent(binNode->xmlChildrenNode);
     enLen = strlen((char*)pValue);
-    if((enLen%4)==0) {
-        deLen = (3*enLen/4 - cnt_of_pad((char*)pValue, enLen));
+    for(i=0;i<enLen;i++) {
+        if(idx_of_base64(pValue[i]) < 65) {//如果是base64编码以内的字符, 追加到binValue
+            *pChar++ = pValue[i];
+            binValueLen++;
+        }
+    }
+    printf("[%s][%s][%d]binValueLen: %d", FILE_LINE, binValueLen);
+    if((binValueLen%4)==0) {
+        deLen = (3*binValueLen/4 - cnt_of_pad(binValue, binValueLen));
     } else {
         goto lenErr;
     }
@@ -1454,7 +1466,7 @@ lenErr:
         send_answer(dev, "malloc", "fail", NULL);
         return ERR_1;
     }
-    err = decode_base64((char*) pValue, enLen, \
+    err = decode_base64(binValue, binValueLen, \
         g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
     printf("[%s][%s][%d]\n",FILE_LINE);
     //如果crc校验不通过则释放内存; 通过则等待下一帧传输
@@ -1506,6 +1518,14 @@ uint8 merge_update_file(uint8 dev)
     char result[100]={0};//shell命令的结果
     char* sp;
     sys_config_str sys_config;
+    int lack_idx=0;
+
+    for(lack_idx=0;lack_idx<g_xml_info[dev].up_total_frm;lack_idx++) {
+        if(g_xml_info[dev].pDataList[lack_idx]==NULL){
+            send_lack_frame(dev);//如果有漏掉的帧, 向上位机返回缺帧列表
+            return ERR_1;
+        }
+    }
 
     strcpy(filename, APP_TMPNAME);
     strcat(filename, ".tar.bz2");
