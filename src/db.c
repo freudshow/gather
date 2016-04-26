@@ -245,7 +245,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 			strcpy(pErr, "meter type error");//不能直接赋值, 否则函数运行结束后, 常量字符串的空间就被销毁
 			return;
 	}
-	
+
 	char *sql_buf = malloc(LENGTH_SQLBUF);
 	memset(sql_buf, 0, LENGTH_SQLBUF);	
 	char *table_name = tablename_array[type_idx];

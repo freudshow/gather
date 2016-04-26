@@ -41,7 +41,7 @@ typedef unsigned int uint32;
 //字段长度定义
 #define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
 #define LENGTH_F_INSTALL_POS		50//仪表安装位置长度
-#define LENGTH_SYS_ANSWER       2048//系统命令返回的信息长度
+#define LENGTH_SYS_ANSWER       16384//系统命令返回的信息长度
 
 #define LENGTH_F_CONFIG_NAME		16//配置名长度
 #define LENGTH_F_CONFIG_VALUE		50//配置值长度

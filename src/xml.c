@@ -1244,12 +1244,31 @@ uint8 func_swip(uint8 dev, uint8 xml_idx)
 		return retErr;
 }
 
+uint8 do_db_cmd(uint8 dev)
+{
+    uint8 err = NO_ERR;
+    
+    return err;
+}
+
 //10.  ˝æ›ø‚sql”Ôæ‰÷¥––
 uint8 func_dbmani(uint8 dev, uint8 xml_idx)
 {
-		uint8 retErr = NO_ERR;
-		
-		return retErr;
+    uint8 retErr = NO_ERR;
+    switch(g_xml_info[dev].oper_type) {
+    case em_OPER_RD:
+        break;    
+    case em_OPER_WR:
+        break;    
+    case em_OPER_DO:
+        retErr = do_db_cmd(dev);
+        break;    
+    case em_OPER_ASW:
+        break;
+    default:
+        break;
+    }
+    return retErr;
 }
 
 uint8 do_shell_cmd(uint8 dev)
@@ -1270,26 +1289,26 @@ uint8 do_shell_cmd(uint8 dev)
         }
         cmdNode = cmdNode->next;
     }
-    
+
     FILE *fstream=NULL;
     if(NULL==(fstream=popen(cmd,"r"))) {
         fprintf(stderr,"execute command failed: %s",strerror(errno));
         return ERR_1;
     }
-    if(NULL!=fgets(result, sizeof(result), fstream)) { 
-        printf("%s\n",result);
-    } else
-    {
+    if(0 !=fread(result, sizeof(char), sizeof(result), fstream)) {
+        printf("[%s][%s][%d]result: %s", FILE_LINE, result);
+    } else {
         err = ERR_1;
     }
     pclose(fstream);
     err = send_answer(dev, "exec_result", result, NULL);
     return err;
 }
+
 //11. ÷¥––shell√¸¡Ó
 uint8 func_syscmd(uint8 dev, uint8 xml_idx)
 {
-	uint8 retErr = NO_ERR;
+    uint8 retErr = NO_ERR;
     switch(g_xml_info[dev].oper_type) {
     case em_OPER_RD:
         break;    
@@ -1303,7 +1322,7 @@ uint8 func_syscmd(uint8 dev, uint8 xml_idx)
     default:
         break;
     }
-	return retErr;
+    return retErr;
 }
 
 void empty_update_list(uint8 dev)
