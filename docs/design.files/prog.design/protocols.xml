@@ -587,17 +587,8 @@
 </root>
 
 <!---------------- 10. 数据库操作相关(db_mani) ---------------->
-<!--sql_stmt, 需要下位机执行的sql语句, 
-		id属性指定本语句的序列号, 
-		本语句只对上位机组帧和下位机解帧有效;
-	sql_result, 下位机执行sql语句后的结果, 
-		id属性指定本结果对应的sql系列号, 
-		本语句只对下位机组帧和上位机解帧有效;
--->
 
-<!--上位机直接下发sql语句, 交由数据库执行;
-	可同时下发多条sql指令, 以id属性作为索引.
--->
+<!--上位机下发sql语句, 暂时不支持有返回结果的select语句-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
@@ -606,13 +597,10 @@
 		<func_type>db_mani</func_type>
 		<oper_type>do</oper_type>
 	</common>
-	<sql_stmt id="1">create table meter_info (id integer primary key, address integer)</sql_stmt><!--只用于上位机下发-->
+	<sql_stmt>create table meter_info (id integer primary key, address integer)</sql_stmt><!--只用于上位机下发-->
 </root>
 
-<!--下位机的数据库执行结果, 返回到上位机, 
-	这个错误信息是数据库返回的, 而不是二次加工过的.
-	下位机返回的结果须严格对应id属性.
--->
+<!--下位机的数据库执行结果. 如果结果为空, 则说明语句成功被执行, 反之则返回错误信息-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
@@ -621,18 +609,11 @@
 		<func_type>db_mani</func_type>
 		<oper_type>answer</oper_type>
 	</common>
-	<sql_result id="1">no_error/具体返回结果</sql_result><!--只用于下位机返回结果-->
+	<sql_result>no_error/具体返回结果</sql_result><!--只用于下位机返回结果-->
 </root>
 
 
 <!---------------- 11. 执行本地系统命令或程序(local_sys_command) ---------------->
-<!--local_command, 要下位机执行的系统语句, 
-		id属性指定本语句的序列号, 
-		本语句只对上位机组帧和下位机解帧有效;
-	exec_result, 下位机执行系统语句后的结果, 
-		id属性指定本结果对应的sql系列号, 
-		本语句只对下位机组帧和上位机解帧有效;
--->
 
 <!--上位机下发下位机系统命令, 交由下位机的linux执行.-->
 <?xml version="1.0" encoding="utf-8" ?>
@@ -643,7 +624,7 @@
 		<func_type>10</func_type>
 		<oper_type>2</oper_type>
 	</common>
-	<local_command id="1">pwd</local_command><!--只用于上位机下发-->
+	<local_command>pwd</local_command><!--只用于上位机下发-->
 </root>
 
 <!-- 下位机执行上位机下发的linux命令后的结果 -->
@@ -653,7 +634,7 @@
 		<sadd>261425C00101</sadd>
 		<oadd>0001</oadd>
 		<func_type>10</func_type>
-		<oper_type>2</oper_type>
+		<oper_type>3</oper_type>
 	</common>
 	<exec_result>/home/root</exec_result><!--只用于下位机返回结果-->
 </root>
