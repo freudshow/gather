@@ -233,7 +233,7 @@ uint8 Elec_ReceiveFrame(MeterFileType *pmf, uint8 dev,uint16 Out_Time,uint8 *buf
     while(i--){
         if(DownDevGetch(dev, &data, Out_Time)) 
             return ERR_1;
-        //printf("[%s][%s][%d]data: %02x, pmf->u8MeterAddr[0]: %02x, state: %02x\n", FILE_LINE, data, pmf->u8MeterAddr[0], stat);
+        printf("[%s][%s][%d]data: %02x, pmf->u8MeterAddr[0]: %02x, state: %02x\n", FILE_LINE, data, pmf->u8MeterAddr[0], stat);
         switch(stat){
         case em_init_state:
             if((uint8)data == (uint8)pmf->u8MeterAddr[0]) {
@@ -286,8 +286,13 @@ uint8 Elec_ReceiveFrame(MeterFileType *pmf, uint8 dev,uint16 Out_Time,uint8 *buf
             break;
         }
     }
-    end:
+end:
+    if(i<0) {
+        *datalen = 0;
+        return ERR_1;
+    } else {
         *datalen = len;
+    }
     return NO_ERR;
 }
 
@@ -450,32 +455,62 @@ uint8 HeatMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen,CJ188_F
 
 }
 
+//获取力创有功电能的数值
+float get_lcMod_actE(float data)
+{
+    return (data*ELEC_LCMOD_DEF_V*ELEC_LCMOD_DEF_I)/18000000;
+}
+
+//获取力创无功电能的数值
+float get_lcMod_reactE(float data)
+{
+    return (data*ELEC_LCMOD_DEF_V*ELEC_LCMOD_DEF_I)/10800000;
+}
+
+
 uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, lcModbusElec_str *pData)
 {
     uint8 err = NO_ERR;
     uint8 len = 0;
+    int i;
+    if(pData == NULL)
+        return ERR_1;
+
     switch(pmf->u8ProtocolType){
     case ELEC_LC_MODBUS:
-        pDataBuf += 2;//略过地址域
+        pDataBuf += 2;//略过地址域和功能码域
         len = *pDataBuf++;
         len = len;
+
         pData->pact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
+        pData->pact_tot_elec = get_lcMod_actE(pData->pact_tot_elec);
         pDataBuf += 4;
         strcpy((char*)pData->pact_tot_elec_unit, "+KWh");
+
         pData->nact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
         pDataBuf += 4;
+        pData->nact_tot_elec = get_lcMod_actE(pData->nact_tot_elec);
         strcpy((char*)pData->nact_tot_elec_unit, "-KWh");
+
         pData->preact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
         pDataBuf += 4;
+        pData->preact_tot_elec = get_lcMod_reactE(pData->preact_tot_elec);
         strcpy((char*)pData->preact_tot_elec_unit, "+KVarh");
+
         pData->nreact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
         pDataBuf += 4;
+        pData->nreact_tot_elec = get_lcMod_reactE(pData->nreact_tot_elec);
         strcpy((char*)pData->nreact_tot_elec_unit, "-KVarh");
+
         pData->act_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
         pDataBuf += 4;
+        pData->act_tot_elec = get_lcMod_actE(pData->act_tot_elec);
         strcpy((char*)pData->act_tot_elec_unit, "KWh");
+
         pData->react_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
+        pData->react_tot_elec = get_lcMod_reactE(pData->react_tot_elec);
         strcpy((char*)pData->react_tot_elec_unit, "KVarh");
+
         printf("[%s][%s][%d]pact_tot_elec: %f, pact_tot_elec: %f, pact_tot_elec: %f, pact_tot_elec: %f, pact_tot_elec: %f, pact_tot_elec: %f, \n", \
             FILE_LINE, pData->pact_tot_elec, pData->nact_tot_elec, pData->preact_tot_elec, pData->nreact_tot_elec, \
             pData->act_tot_elec, pData->react_tot_elec);
