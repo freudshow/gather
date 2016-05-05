@@ -67,6 +67,8 @@
 #define BEITE_BEFORE2014			38		//贝特2014年及以前的大口径热表协议(日照公安局办公楼)
 
 #define ELEC_LC_MODBUS      0//力创Modbus电表
+#define ELEC_LCMOD_DEF_V    250//力创Modbus电表, 默认电压量程
+#define ELEC_LCMOD_DEF_I    5//力创Modbus电表, 默认电流量程
 
 extern uint8 (*METER_ComParaSetArray[])(void);
 extern uint16 gMETER_Table[HEATMETER_PROTO_SUM][4];
