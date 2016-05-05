@@ -79,64 +79,71 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 {
 	uint8 err = 0;
 	uint8 i = 0;
-	uint8 lu8retrytimes = 0;
-	uint8 lu8Channel = 0;	//抄表对象所在通道。
+	uint8 lu8retrytimes = READ_METER_TIMES;
+	uint8 lu8Channel = pmf->u8Channel;//抄表对象所在通道。
+	CJ188_Format CJ188_Data;
+    lcModbusElec_str lcModStr;
+	struct tm NowTime;
+	time_t timep;
+	char lcRet[100];
 
-	
-	lu8Channel = pmf->u8Channel;
-    
 	if(lu8Channel == RS485_DOWN_CHANNEL)  //操作一个设备，先请求信号量,谨防冲突。
 		sem_wait(&Opetate485Down_sem);
 	else
 		sem_wait(&OperateMBUS_sem);
 	METER_ChangeChannel(lu8Channel);  //先确保在对应通道上。
 	
-	
-	switch(pmf->u8MeterType){
-		case HEATMETER:
-			lu8retrytimes = 1 + 1;  //补抄次数，当前用固定1次补抄，后期要根据设置。
-			for(i=0;i<lu8retrytimes;i++){
-				err = Read_HeatMeter(pmf);
-				OSTimeDly(200); //防止抄表太快，这里以后可以改成延时可设置。
-				if(err == NO_ERR)
-					break;
-			}
+    //获取当前时间		
+    time(&timep);
+    localtime_r(&timep, &NowTime);
+    switch(pmf->u8MeterType){
+    case HEATMETER:
+        for(i=0;i<lu8retrytimes;i++){
+        err = Read_HeatMeter(pmf, &CJ188_Data);
+        OSTimeDly(200); //防止抄表太快，这里以后可以改成延时可设置。
+        if(err == NO_ERR)
+        break;
+        }
 
+        if(err == NO_ERR){
+            insert_his_data(pmf, &CJ188_Data, &NowTime, &gTimeNode, lcRet);
+            printf("[%s][%s][%d]insert_his_data over.\n", FILE_LINE);
+        } else {
+            insert_his_data(pmf, NULL, &NowTime, &gTimeNode, lcRet);
+            printf("[%s][%s][%d]critical: not read response from meter!\n", FILE_LINE);
+        }
+        break;
+    case WATERMETER:
 			break;
-		case WATERMETER:
+    case ELECTMETER:
+        for(i=0;i<lu8retrytimes;i++){
+            err = Read_ElecMeter(pmf, &lcModStr);
+            OSTimeDly(200); //防止抄表太快，这里以后可以改成延时可设置。
+            if(err == NO_ERR)
+                break;
+        }
 
-			break;
-		case ELECTMETER:
-             lu8retrytimes = 1 + 1;  //补抄次数，当前用固定1次补抄，后期要根据设置。
-			for(i=0;i<lu8retrytimes;i++){
-				err = Read_ElecMeter(pmf);
-				OSTimeDly(200); //防止抄表太快，这里以后可以改成延时可设置。
-				if(err == NO_ERR)
-					break;
-			}
-			break;
-
-		case GASMETER:
-
-			break;
-
-		default:
-			err = ERR_1;
-			break;		
-
-
+        if(err == NO_ERR){
+            insert_his_data(pmf, &lcModStr, &NowTime, &gTimeNode, lcRet);
+            printf("[%s][%s][%d]insert_his_data over.\n", FILE_LINE);
+        } else {
+            insert_his_data(pmf, NULL, &NowTime, &gTimeNode, lcRet);
+            printf("[%s][%s][%d]critical: not read response from meter!\n", FILE_LINE);
+        }
+        break;
+    case GASMETER:
+        break;
+    default:
+        err = ERR_1;
+        break;
 	}
-
 
 	if(lu8Channel == RS485_DOWN_CHANNEL)  //操作完一个设备，释放对应信号量。
 		sem_post(&Opetate485Down_sem);
 	else
 		sem_post(&OperateMBUS_sem);
-	
 
 	return err;
-
-
 }
 
 
@@ -251,28 +258,6 @@ void pthread_ReadAllMeters(void)
         OSTimeDly(lu32CheckCyc_S*1000);//固定延时30秒钟一次检测。
     }
 }
-
-void pthread_readmeter_test()
-{	
-    time_t timep;
-    MeterFileType mf;
-    memset(&mf, 0, sizeof(mf));
-    mf.u16MeterID = 1;
-    mf.u8Channel = 7;
-    mf.u8MeterAddr[0] = 0x01;
-    mf.u8MeterType = ELECTMETER;
-    mf.u8ProtocolType = 0;
-    
-    	while(1){
-        usleep(10000000);
-        time(&timep);
-        localtime_r(&timep, &gTimeNode);
-        gTimeNode.tm_sec = 0;
-        ReaOneMeter(&mf);
-        
-	}
-}
-
 
 
 /*

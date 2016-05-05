@@ -152,7 +152,7 @@ typedef unsigned int uint32;
 
 #define RS485_DOWN_CHANNEL	7		//宏定义下行485通道号。
 
-
+#define READ_METER_TIMES 2//重复读表次数
 
 
 

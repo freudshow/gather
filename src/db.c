@@ -327,7 +327,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	CJ188_Format* heatdata;
     if (NULL==pData) {//与调用者约定, 如果传入了NULL值, 就认为当前仪表的当前时间点的历史数据没抄上来
         while(item_list) {
-        strcat(sql_buf, "'NULL'");
+        strcat(sql_buf, "'null'");
         if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
         strcat(sql_buf, ",");
         item_list = item_list->pNext;

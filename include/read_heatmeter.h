@@ -99,8 +99,8 @@ typedef enum lcElecAnswerState{//力创电表应答帧的解析状态
 
 
 
-extern uint8 Read_HeatMeter(MeterFileType *pmf);
-extern uint8 Read_ElecMeter(MeterFileType *pmf);
+extern uint8 Read_HeatMeter(MeterFileType *pmf, CJ188_Format* pCj188Data);
+extern uint8 Read_ElecMeter(MeterFileType *pmf, lcModbusElec_str* pElecData);
 
 
 #endif	//_READ_HEATMETER_

@@ -472,7 +472,6 @@ uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, lcModb
 {
     uint8 err = NO_ERR;
     uint8 len = 0;
-    int i;
     if(pData == NULL)
         return ERR_1;
 
@@ -616,21 +615,15 @@ uint8 ElecMeterCommunicate(MeterFileType *pmf,lcModbusElec_str *pData)
   ******************************************************************************
 */
 
-uint8 Read_HeatMeter(MeterFileType *pmf)
+uint8 Read_HeatMeter(MeterFileType *pmf, CJ188_Format* pCj188Data)
 {
 	uint8 err = 0;
-	char lcRet[100];
 	uint8 lu8retrytimes = 0;
-	//DELU_Protocol	ProtocoalInfo;
-	CJ188_Format CJ188_Data;
-	struct tm NowTime;
-	time_t timep;
-
-	
 
 	if(pmf->u8ProtocolType >= HEATMETER_PROTO_SUM){  //防止协议版本号超限。
+	    return ERR_1;
 		//协议版本号超限处理。
-	}		
+	}	
 
 	//根据协议版本号，设置对应端口参数.
 	lu8retrytimes = 3;
@@ -641,32 +634,15 @@ uint8 Read_HeatMeter(MeterFileType *pmf)
 	}while((err != TRUE) && (lu8retrytimes > 0));
 
 	//组建抄表数据帧，抄热表,并将不同厂家的热表返回数据处理成固定统一格式。
-	err = HeatMeterCommunicate(pmf,&CJ188_Data);
-
-	//根据t_request_data参数设置，将抄表数据存入对应数据库表格。
-	if(err == NO_ERR){
-		//获取当前时间				
-		time(&timep); 
-		localtime_r(&timep, &NowTime); 
-		
-		insert_his_data(pmf,&CJ188_Data,&NowTime,&gTimeNode,lcRet);
-		//printf("insert_his_data over.\n");
-	}
-
-
+	err = HeatMeterCommunicate(pmf, pCj188Data);
 	return err;
-
 }
 
 
-uint8 Read_ElecMeter(MeterFileType *pmf)
+uint8 Read_ElecMeter(MeterFileType *pmf, lcModbusElec_str* pElecData)
 {
     uint8 err = NO_ERR;
-    char lcRet[100];
     uint8 lu8retrytimes = 0;
-    lcModbusElec_str lcModStr;
-    struct tm NowTime;
-    time_t timep;
     if(pmf->u8ProtocolType >= ELECMETER_PROTO_SUM){  //防止协议版本号超限。
         return ERR_1;
     }
@@ -679,14 +655,7 @@ uint8 Read_ElecMeter(MeterFileType *pmf)
     }while((err != TRUE) && (lu8retrytimes > 0));
 
     //组建抄表数据帧
-	err = ElecMeterCommunicate(pmf,&lcModStr);
-    
-    //根据t_request_data参数设置，将抄表数据存入对应数据库表格。
-    if(err == NO_ERR){
-        time(&timep); 
-        localtime_r(&timep, &NowTime); 
-        insert_his_data(pmf,&lcModStr,&NowTime,&gTimeNode,lcRet);
-    }
+	err = ElecMeterCommunicate(pmf, pElecData);
     return err;
 }
 

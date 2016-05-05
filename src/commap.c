@@ -321,7 +321,7 @@ void DownDevSend(uint8 dev,uint8* buf,uint32 n)
 
 uint8 DownDevGetch(uint8 dev,uint8* data,uint16 OutTime)
 {
-	uint8 err = 0x00;
+	uint8 err = NO_ERR;
 	uint8 ret;
 	while((ret=QueueRead(data, (void*)pQueues[dev])) != QUEUE_OK){	
          //printf("[%s][%s][%d] ret = %d QUEUE_EMPTY \n",FILE_LINE,ret);
