@@ -246,7 +246,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 			return;
 	}
 
-	char *sql_buf = malloc(LENGTH_SQLBUF);
+	char sql_buf[LENGTH_SQLBUF];
 	memset(sql_buf, 0, LENGTH_SQLBUF);	
 	char *table_name = tablename_array[type_idx];
 	int item_cnt = get_request_data_cnt(type_idx);
@@ -254,7 +254,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	memset(col_buf, 0, item_cnt*LENGTH_F_COL_NAME);
 	char *tmp_col_buf = col_buf;
 	request_data_list item_list = arrayRequest_list[type_idx];
-	char *tmp_data = malloc(LENGTH_F_VALUE);
+	char tmp_data[LENGTH_F_VALUE];
 	memset(tmp_data, 0, LENGTH_F_VALUE);
 	
 	int i = 0;
@@ -324,20 +324,19 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	strcat(sql_buf, SQL_SINGLE_QUOTES);
 	strcat(sql_buf, ",");
 	item_list = arrayRequest_list[type_idx];
-	CJ188_Format* heatdata;
     if (NULL==pData) {//与调用者约定, 如果传入了NULL值, 就认为当前仪表的当前时间点的历史数据没抄上来
         while(item_list) {
-        strcat(sql_buf, "'null'");
-        if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
-        strcat(sql_buf, ",");
-        item_list = item_list->pNext;
+            strcat(sql_buf, "'null'");
+            if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
+                strcat(sql_buf, ",");
+
+            item_list = item_list->pNext;
         }
     }
     else {
         switch(type_idx) {
         case em_heat:
-            heatdata = (CJ188_Format*)pData;
-            get_heatdata_sql(heatdata, item_list, sql_buf);
+            get_heatdata_sql(pData, item_list, sql_buf);
             break;
         case em_water:
             break;
@@ -355,9 +354,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 
     sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
     printf("sql_buf: %s, sql_buf length: %d, pErr: %s\n", sql_buf, strlen(sql_buf), pErr);
-    free(tmp_data);
     free(col_buf);
-    free(sql_buf);
 }
 
 int read_one_item_info(pRequest_data pReques, void* pHisData)
@@ -759,29 +756,33 @@ uint8 set_request_data(char* pErr)
 
 void read_meter_info(char	*pErr)
 {
-	if(NULL == g_pDB) {
-		pErr = "database not open";
-		return;
-	}
+    if(NULL == g_pDB) {
+        pErr = "database not open";
+        return;
+    }
 
-	char *sql_buf = malloc(LENGTH_SQLBUF);
-	char *order_buf = malloc(LENGTH_SQLORDER);
-	char *table_name = TABLE_METER_INFO;
-	char *col_buf[7] =  {FIELD_MINFO_ID, \
-				FIELD_MINFO_ADDRESS, FIELD_MINFO_TYPE, FIELD_MINFO_CHANNEL,\
-				FIELD_MINFO_POS, FIELD_MINFO_DEVICE_ID, FIELD_MINFO_PROTO_TYPE};//指针数组
-	int  col_cnt = 7;
+    char sql_buf[LENGTH_SQLBUF];
+    char order_buf[LENGTH_SQLORDER];
+    char *table_name = TABLE_METER_INFO;
+    char *col_buf[7] =  {FIELD_MINFO_ADDRESS, FIELD_MINFO_TYPE, FIELD_MINFO_CHANNEL,\
+        FIELD_MINFO_ID, FIELD_MINFO_POS, FIELD_MINFO_DEVICE_ID, \
+        FIELD_MINFO_PROTO_TYPE};//指针数组
+    int  col_cnt = 7;
 
-	meter_info_idx = 0;
-	empty_meter_info_list();//清空以前的信息, 以重新读取
-	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
-	get_orderby_sql(&col_buf[3], 1, 1, order_buf);
-	strcat(sql_buf, " ");
-	strcat(sql_buf, order_buf);
-	strcat(sql_buf, ";");
-	sqlite3_exec(g_pDB, sql_buf, each_meter_info, NULL, &pErr);
-	free(sql_buf);
-	free(order_buf);
+    meter_info_idx = 0;
+    empty_meter_info_list();//清空以前的信息, 以重新读取
+    get_select_sql(table_name, col_buf, col_cnt, sql_buf);
+    get_orderby_sql(&col_buf[2], 2, 1, order_buf);
+    strcat(sql_buf, " ");
+    strcat(sql_buf, order_buf);
+    strcat(sql_buf, ";");
+    printf("[%s][%s][%d]read meter info: %s\n", FILE_LINE, sql_buf);
+    char log[LENGTH_SQLBUF*2];
+    sprintf(log, "[%s][%s][%d]", FILE_LINE);
+    strcat(log, sql_buf);
+    strcat(log, "\n");
+    write_log_file(log, strlen(log));
+    sqlite3_exec(g_pDB, sql_buf, each_meter_info, NULL, &pErr);
 }
 
 static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
@@ -932,6 +933,9 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
 		return;
 	printf("now in  retrieve_meter_info_list():\n");
 	pMeter_info pInfo_return = malloc(sizeof(struct meter_info_str));//回传一个独立的结构体, 保证原始数据的安全
+    if(list_meter_info == NULL)
+        return;
+
 	pMeter_info pInfo = list_meter_info;
 
 	while(pInfo) {
