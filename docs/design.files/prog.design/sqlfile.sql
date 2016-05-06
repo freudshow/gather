@@ -98,22 +98,22 @@ drop table if exists "t_heat_data"
 ;
 create table t_heat_data
 (
-	f_id	integer	primary key autoincrement,
-	f_meter_type	integer,
-	f_device_id	integer,
-	f_meter_address	varchar(50),
-	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
-	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
-	f_cur_cold_E	varchar(50), 
-	f_cur_heat_E	varchar(50), 
-	f_heat_power	varchar(50), 
-	f_flowrate	varchar(50), 
-	f_accum_flow	varchar(50), 
-	f_in_temp	varchar(50), 
-	f_out_temp	varchar(50), 
-	f_accum_work_time	varchar(50), 
-	f_cur_time	varchar(50), 
-	f_state	varchar(50)
+	f_id integer primary key autoincrement,
+	f_meter_type integer,
+	f_device_id integer,
+	f_meter_address varchar(50),
+	f_timestamp timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_time timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_cur_cold_E varchar(50), 
+	f_cur_heat_E varchar(50), 
+	f_heat_power varchar(50), 
+	f_flowrate varchar(50), 
+	f_accum_flow varchar(50), 
+	f_in_temp varchar(50), 
+	f_out_temp varchar(50), 
+	f_accum_work_time varchar(50), 
+	f_cur_time varchar(50), 
+	f_state varchar(50)
 );
 
 ---------------------------------
