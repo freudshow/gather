@@ -75,6 +75,6 @@ uint8 (*ELEC_METER_ComParaSetArray[])(void) = {METER_ComSet8};
 // 对于不同协议的读取热计量表数据的标识符不同，
 // Table 格式为：串口设置函数指针标号 + 读取电表数据标识符 + 前导符个数+通讯类型(0:MBUS  1:485)+通讯协议类型(0:MODBUS  1:645)
 uint16 gELEC_METER_Table[ELECMETER_PROTO_SUM][5] = {
-    {ELEC_COMSET_1, 0x0000, 0, 0, 0}//力创电表	-----idx: -0-
+    {ELEC_COMSET_1, 0x0000, 0, 1, 0}//力创电表	-----idx: -0-
 };
 

@@ -225,7 +225,7 @@ uint8 QueueRead(QUEUE_DATA_TYPE *Ret, void *Buf)//倪 可重入
 
 #if EN_QUEUE_WRITE > 0
 
-        uint8 QueueWrite(void *Buf, QUEUE_DATA_TYPE Data)//倪 可重入
+uint8 QueueWrite(void *Buf, QUEUE_DATA_TYPE Data)//倪 可重入
 {
     uint8 err;
     DataQueue *Queue;

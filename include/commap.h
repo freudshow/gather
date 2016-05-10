@@ -86,7 +86,7 @@ extern void GprsSend(int32 fd,uint8 *Data,uint32 n);
 
 extern void DownDevSend(uint8 dev,uint8* buf,uint32 n);
 extern uint8 DownDevGetch(uint8 dev,uint8* data,uint16 OutTime);
-
+extern uint8 RS485Down_DataSend(uint8 *Data,uint32 n);
 
 #endif  //_COM_MAP_H_
 /*********************************************************************************************************

@@ -277,8 +277,8 @@ uint8 METER_ComSet8(void)
 	uint8 err = TRUE;
 
 	if(gu8485DownComSetIndex != 8){
-		err = set_com_para(g_uiRS4852Fd,9600,8,1,'N');
-         gu32Down485BaudRate = 9600;
+        gu32Down485BaudRate = 9600;
+		err = set_com_para(g_uiRS4852Fd,gu32Down485BaudRate,8,1,'N');
 		if(err == TRUE)
 			gu8485DownComSetIndex = 8;
 

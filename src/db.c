@@ -214,7 +214,16 @@ void get_elecdata_sql(lcModbusElec_str* elecdata, request_data_list item_list, c
     }
 }
 
+/*
+ * 如果这个仪表的数据表行数超过一定数量
+ * 就删除前一个采暖季的历史数据
+ */
+uint8 clean_data(mtype_idx type_idx)
+{
+    uint8 err = NO_ERR;
 
+    return err;
+}
 
 void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr)
 {
@@ -222,7 +231,7 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 		pErr = "database not open";
 		return;
 	}
-	enum meter_type_idx type_idx;
+	mtype_idx type_idx;
 
 	switch(pmf->u8MeterType){
 		case HEATMETER:
@@ -806,8 +815,7 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码(HEX String), 固定为两个字符
 			if (strlen(f_value[i]) == BYTE_BCD_CNT) {
 				tmp_info->f_meter_type = (Ascii2Hex(f_value[i][0]) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
-			}
-			else {//异常情况
+			} else {//异常情况
 			}
 		}
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_CHANNEL))//仪表通道(Dec String)
@@ -820,12 +828,16 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 			tmp_info->f_meter_proto_type = atoi(f_value[i]);
 		else {//异常情况
 
-		}
-	}
-
+        }
+    }
+    printf("[%s][%s][%d]", FILE_LINE);
+    for(i=0;i<7;i++) {
+        printf("%d",tmp_info->f_meter_address[i]);
+    }
+    printf("\n");
     add_node(list_meter_info, tmp_info)
-	meter_info_idx++;
-	return 0;
+    meter_info_idx++;
+    return 0;
 }
 
 uint8 insert_one_meter_info(pMeter_info pMinfo)

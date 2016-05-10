@@ -99,10 +99,10 @@ uint8 ReaOneMeter(MeterFileType *pmf)
     switch(pmf->u8MeterType){
     case HEATMETER:
         for(i=0;i<lu8retrytimes;i++){
-        err = Read_HeatMeter(pmf, &CJ188_Data);
-        OSTimeDly(200); //防止抄表太快，这里以后可以改成延时可设置。
-        if(err == NO_ERR)
-        break;
+            err = Read_HeatMeter(pmf, &CJ188_Data);
+            OSTimeDly(200); //防止抄表太快，这里以后可以改成延时可设置。
+            if(err == NO_ERR)
+            break;
         }
 
         if(err == NO_ERR){

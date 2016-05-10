@@ -11,7 +11,7 @@ do
 		echo "********************************************"
 		echo "              program restart!"
 		echo "********************************************"
-		sleep 10
+		sleep 5
 	fi
-	sleep 60
+	sleep 10
 done

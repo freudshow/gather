@@ -216,39 +216,6 @@ uint8 RS485Down_DataSend(uint8 *Data,uint32 n)
 
 }
 
-/*
-******************************************************************************
-* 函数名称： uint8 RS485Down_DataSend(uint8 *Data,uint32 n)
-* 说	明： 下行485接口发送数据。
-* 参	数： 
-******************************************************************************
-*/
-uint8 RS4852Down_DataSend_byspeed(uint8 *Data,uint32 n, uint32 speed)
-{
-    if(speed == 0){
-        return ERR_1;
-    }
-	uint32 lu32delaytimes = 0;
-
-	ioctl(g_uiIoControl,RS4852_C31,RS485_SED);
-	usleep(2000);
-
-	write(g_uiRS4852Fd, (uint8 *)Data, n);
-
-	lu32delaytimes = 12000000 / speed;  //1000000*12/RS485UP_COM_SPEED;
-	lu32delaytimes = lu32delaytimes*n;  //计算出在速率为RS485UP_COM_SPEED时，发送n个字节大概需要时间。
-	usleep(lu32delaytimes); //保证本次数据发完。
-    
-	//最后将485方向设置为recv.
-	ioctl(g_uiIoControl,RS4852_C31,RS485_RECV);
-	usleep(100);
-
-	return NO_ERR; 
-
-}
-
-
-
 
 /*
 ******************************************************************************
@@ -272,23 +239,6 @@ uint8 MBUS_DataSend(uint8 *Data,uint32 n)
 	return NO_ERR; 
 
 }
-
-uint8 MBUS_DataSend_byspeed(uint8 *Data,uint32 n, uint32 speed)
-{
-	uint32 lu32delaytimes = 0;
-
-	write(g_uiMbusFd, (uint8 *)Data, n);
-
-	lu32delaytimes = 12000000 / speed;  //1000000*12/RS485UP_COM_SPEED;
-	lu32delaytimes = lu32delaytimes*n;  //计算出在速率为RS485UP_COM_SPEED时，发送n个字节大概需要时间。
-
-	usleep(lu32delaytimes); //保证本次数据发完。
-	
-
-	return NO_ERR; 
-
-}
-
 
 
 void DownDevSend(uint8 dev,uint8* buf,uint32 n)
@@ -323,22 +273,21 @@ uint8 DownDevGetch(uint8 dev,uint8* data,uint16 OutTime)
 {
 	uint8 err = NO_ERR;
 	uint8 ret;
+    char log[1024];
 	while((ret=QueueRead(data, (void*)pQueues[dev])) != QUEUE_OK){	
-         //printf("[%s][%s][%d] ret = %d QUEUE_EMPTY \n",FILE_LINE,ret);
+         sprintf(log, "[%s][%s][%d] ret = %d QUEUE_EMPTY\n", FILE_LINE, ret);
+         write_log_file(log, strlen(log));
    		OSSemPend(dev, (uint32)OutTime, &err);
 		if(err != OS_ERR_NONE){
-			//debug_err(gDebugModule[GPRS_MODULE],"[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);
-			return err;
-		}
-    		else{
-    			//printf("[%s][%s][%d] err = %d\n",FILE_LINE,err);
+            sprintf(log, "[%s][%s][%d] err = %d\n",FILE_LINE,err);
+            write_log_file(log, strlen(log));
+            return err;
+		} else {
+
    		}
 	}
-	
-	//printf("%c",*data);
-	
-	return NO_ERR;
 
+	return NO_ERR;
 }
 
 

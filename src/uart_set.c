@@ -42,12 +42,12 @@ int32 open_com_dev(char *Dev)
 	//}
 
 	if(isatty(STDIN_FILENO) == 0){
-		printf("standard input is not a terminal device.\n");
+		//printf("standard input is not a terminal device.\n");
 	}
 
 	fcntl(fd, F_SETFL, O_NONBLOCK);//设置为非阻塞方式。
 
-	printf("open_com_dev %s = %d.\n",Dev,fd);
+	//printf("open_com_dev %s = %d.\n",Dev,fd);
 	
 
 	return fd; 
@@ -87,7 +87,7 @@ int8 set_com_para(int32 fd,int32 speed, int32 databits,int32 stopbits,int32 pari
 	struct termios oldtio;
 	int32 lu32speed_arr[] = {B115200,B38400,B19200,B9600,B4800,B2400,B1200,B300}; 
 	int32 lu32name_arr[] = {115200,38400,19200,9600,4800,2400,1200,300}; 
-    printf("[%s][%s][%d] speed: %d, databits: %d, stopbits: %d, parity: %c\n", FILE_LINE, speed, databits, stopbits, parity);
+    //printf("[%s][%s][%d] speed: %d, databits: %d, stopbits: %d, parity: %c\n", FILE_LINE, speed, databits, stopbits, parity);
 	if(tcgetattr(fd,&oldtio) != 0)  
 	{  
 	    perror("SetupSerial 1.\n");	

@@ -100,7 +100,7 @@ void CreateFrame_CJ188(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
 void CreateFrame_lcMod(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
 {
     uint16 crcsum;
-    pDataTemp[0] = pmf->u8MeterAddr[0];
+    pDataTemp[0] = pmf->u8MeterAddr[0];//力创modbos的表地址长度为1字节
     pDataTemp[1] = MODBUS_READ;
     pDataTemp[2] = (LC_ELEC_WORK_START >> LEN_BYTE);
     pDataTemp[3] = LC_ELEC_WORK_START;
@@ -217,86 +217,6 @@ uint8 CJ188_ReceiveFrame(uint8 dev,uint16 Out_Time,uint8 *buf,uint16 *datalen)
     
 }
 
-uint8 Elec_ReceiveFrame(MeterFileType *pmf, uint8 dev,uint16 Out_Time,uint8 *buf,uint16 *datalen)
-{
-    uint8 data 	= 0x00;
-    uint8 len	= 0x00;
-    uint8* pBuf   = buf;
-    uint32 i;
-    uint8 datafield_len = 0;//数据域的长度
-    uint8 data_idx = 0;//数据域的索引
-    *datalen = 0;
-
-    i = 500;
-    lcElecAnsSt stat = em_init_state;
-    data_idx = 0;
-    while(i--){
-        if(DownDevGetch(dev, &data, Out_Time)) 
-            return ERR_1;
-        printf("[%s][%s][%d]data: %02x, pmf->u8MeterAddr[0]: %02x, state: %02x\n", FILE_LINE, data, pmf->u8MeterAddr[0], stat);
-        switch(stat){
-        case em_init_state:
-            if((uint8)data == (uint8)pmf->u8MeterAddr[0]) {
-                len++;
-                *pBuf++ = data;
-                stat = em_address_state;
-            }
-            else
-                continue;
-            break;
-        case em_address_state:
-            if(data == MODBUS_READ) {
-                len++;
-                *pBuf++ = data;
-                stat = em_func_state;
-            }
-            else
-                return ERR_1;
-            break;
-        case em_func_state:
-            len++;
-            *pBuf++ = data;
-            datafield_len = data;
-            stat = em_length_state;
-            break;
-        case em_length_state:
-            len++;
-            *pBuf++ = data;
-            data_idx++;
-            if(data_idx > datafield_len) {
-                stat = em_crc_state;
-            }
-            else
-                stat = em_data_state;
-            break;
-        case em_data_state:
-            len++;
-            *pBuf++ = data;
-            data_idx++;
-            if(data_idx > datafield_len) {
-                stat = em_crc_state;
-            }
-            break;
-        case em_crc_state:
-            len++;
-            *pBuf++ = data;
-            goto end;
-            break;
-        default:
-            break;
-        }
-    }
-end:
-    if(i<0) {
-        *datalen = 0;
-        return ERR_1;
-    } else {
-        *datalen = len;
-    }
-    return NO_ERR;
-}
-
-
 /*
   ******************************************************************************
   * 函数名称：HeatMeter_DataSendAndRec(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
@@ -338,38 +258,6 @@ uint8 HeatMeter_DataSendAndRec(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
 
 
 
-	}	
-
-
-	return err;
-	
-}
-
-uint8 RS4852Down_DataSend_byspeed(uint8 * Data,uint32 n,uint32 speed);
-
-uint8 ElecMeter_DataSendAndRec(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
-{
-	uint8 err = 0;
-	uint32 lu32len = *plen;
-	uint16 lu16OutTime = 2000;//毫秒。
-	uint8 lu8DownComDev = DOWN_COMMU_DEV_485;
-	if(pmf->u8Channel == RS485_DOWN_CHANNEL)
-		lu8DownComDev = DOWN_COMMU_DEV_485;
-	else
-		lu8DownComDev = DOWN_COMMU_DEV_MBUS;
-
-	//DownDevSend(lu8DownComDev,pDataTemp,lu32len);  //发送数据。
-    
-	switch(pmf->u8ProtocolType){
-		case ELEC_LC_MODBUS:
-            RS4852Down_DataSend_byspeed(pDataTemp, lu32len, 9600);
-            err = Elec_ReceiveFrame(pmf,lu8DownComDev,lu16OutTime,pDataTemp,plen);
-            //for(i=0;i<*plen;i++)
-            //    printf(" 0x%02x ", pDataTemp[i]);
-            //printf("\n");
-            break;
-		default://默认抄CJ188格式。
-			break;
 	}	
 
 
@@ -455,75 +343,6 @@ uint8 HeatMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen,CJ188_F
 
 }
 
-//获取力创有功电能的数值
-float get_lcMod_actE(float data)
-{
-    return (data*ELEC_LCMOD_DEF_V*ELEC_LCMOD_DEF_I)/18000000;
-}
-
-//获取力创无功电能的数值
-float get_lcMod_reactE(float data)
-{
-    return (data*ELEC_LCMOD_DEF_V*ELEC_LCMOD_DEF_I)/10800000;
-}
-
-
-uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, lcModbusElec_str *pData)
-{
-    uint8 err = NO_ERR;
-    uint8 len = 0;
-    if(pData == NULL)
-        return ERR_1;
-
-    switch(pmf->u8ProtocolType){
-    case ELEC_LC_MODBUS:
-        pDataBuf += 2;//略过地址域和功能码域
-        len = *pDataBuf++;
-        len = len;
-
-        pData->pact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
-        pData->pact_tot_elec = get_lcMod_actE(pData->pact_tot_elec);
-        pDataBuf += 4;
-        strcpy((char*)pData->pact_tot_elec_unit, "+KWh");
-
-        pData->nact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
-        pDataBuf += 4;
-        pData->nact_tot_elec = get_lcMod_actE(pData->nact_tot_elec);
-        strcpy((char*)pData->nact_tot_elec_unit, "-KWh");
-
-        pData->preact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
-        pDataBuf += 4;
-        pData->preact_tot_elec = get_lcMod_reactE(pData->preact_tot_elec);
-        strcpy((char*)pData->preact_tot_elec_unit, "+KVarh");
-
-        pData->nreact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
-        pDataBuf += 4;
-        pData->nreact_tot_elec = get_lcMod_reactE(pData->nreact_tot_elec);
-        strcpy((char*)pData->nreact_tot_elec_unit, "-KVarh");
-
-        pData->act_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
-        pDataBuf += 4;
-        pData->act_tot_elec = get_lcMod_actE(pData->act_tot_elec);
-        strcpy((char*)pData->act_tot_elec_unit, "KWh");
-
-        pData->react_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
-        pData->react_tot_elec = get_lcMod_reactE(pData->react_tot_elec);
-        strcpy((char*)pData->react_tot_elec_unit, "KVarh");
-
-        printf("[%s][%s][%d]pact_tot_elec: %f, pact_tot_elec: %f, pact_tot_elec: %f, pact_tot_elec: %f, pact_tot_elec: %f, pact_tot_elec: %f, \n", \
-            FILE_LINE, pData->pact_tot_elec, pData->nact_tot_elec, pData->preact_tot_elec, pData->nreact_tot_elec, \
-            pData->act_tot_elec, pData->react_tot_elec);
-        break;
-    default:
-        break;
-    }
-
-    return err;
-}
-
-
-
-
 
 /*
   ******************************************************************************
@@ -559,25 +378,7 @@ uint8 HeatMeterCommunicate(MeterFileType *pmf,CJ188_Format *pCJ188Data)
 
 }
 
-uint8 ElecMeterCommunicate(MeterFileType *pmf,lcModbusElec_str *pData)
-{
-	uint8 lu8DataTemp[256] = {0};  //抄表帧
-	uint16 lu16len = 0;//抄表帧的长度
-	uint8 err = 0;
 
-	lu16len = sizeof(lu8DataTemp);  //CreateFrame_CJ188()中传入存储空间大小，以免超限。
-	CreateFrame_lcMod(pmf,lu8DataTemp,&lu16len);  //创建抄表帧。
-	err = ElecMeter_DataSendAndRec(pmf,lu8DataTemp,&lu16len);
-    //int i;
-    //printf("[%s][%s][%d] ", FILE_LINE);
-    //for(i=0;i<lu16len;i++)
-    //    printf(" 0x%02x ", lu8DataTemp[i]);
-    //printf("\n");
-	if(err == NO_ERR){
-		err = ElecMeter_DataDeal(pmf,lu8DataTemp,&lu16len, pData);//解析接收到的数据
-	}		
-	return err;
-}
 
 
 /*
@@ -639,10 +440,213 @@ uint8 Read_HeatMeter(MeterFileType *pmf, CJ188_Format* pCj188Data)
 }
 
 
+uint8 ElecLcMod_ReceiveFrame(MeterFileType *pmf, uint8 dev,uint16 Out_Time,uint8 *buf,uint16 *datalen)
+{
+    uint8 data 	= 0x00;
+    uint8 len	= 0x00;
+    uint8* pBuf   = buf;
+    uint32 i;
+    uint8 datafield_len = 0;//数据域的长度
+    uint8 data_idx = 0;//数据域的索引
+    *datalen = 0;
+
+    i = 500;
+    lcElecAnsSt stat = em_init_state;
+    data_idx = 0;
+    while(i--){
+        if(DownDevGetch(dev, &data, Out_Time)) 
+            return ERR_1;
+
+        switch(stat){
+        case em_init_state:
+            if((uint8)data == (uint8)pmf->u8MeterAddr[0]) {
+                len++;
+                *pBuf++ = data;
+                stat = em_address_state;
+            }
+            else
+                continue;
+            break;
+        case em_address_state:
+            if(data == MODBUS_READ) {
+                len++;
+                *pBuf++ = data;
+                stat = em_func_state;
+            }
+            else
+                return ERR_1;
+            break;
+        case em_func_state:
+            len++;
+            *pBuf++ = data;
+            datafield_len = data;
+            stat = em_length_state;
+            break;
+        case em_length_state:
+            len++;
+            *pBuf++ = data;
+            data_idx++;
+            if(data_idx > datafield_len) {
+                stat = em_crc_state;
+            }
+            else
+                stat = em_data_state;
+            break;
+        case em_data_state:
+            len++;
+            *pBuf++ = data;
+            data_idx++;
+            if(data_idx > datafield_len) {
+                stat = em_crc_state;
+            }
+            break;
+        case em_crc_state:
+            len++;
+            *pBuf++ = data;
+            goto end;
+            break;
+        default:
+            break;
+        }
+    }
+end:
+    if(i<0) {
+        *datalen = 0;
+        return ERR_1;
+    } else {
+        *datalen = len;
+    }
+    return NO_ERR;
+}
+
+uint8 ElecMeter_DataSendAndRec(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
+{
+    uint8 err = 0;
+    uint32 lu32len = *plen;
+    uint16 lu16OutTime = 2000;//毫秒。
+    uint8 lu8DownComDev = DOWN_COMMU_DEV_485;
+    char log[4096];
+    char tmplog[5];
+    int i;
+
+    if(pmf->u8Channel == RS485_DOWN_CHANNEL) {
+        lu8DownComDev = DOWN_COMMU_DEV_485;
+    } else {
+        lu8DownComDev = DOWN_COMMU_DEV_MBUS;
+    }
+
+    switch(pmf->u8ProtocolType){
+    case ELEC_LC_MODBUS:
+        sprintf(log, "[%s][%s][%d]", FILE_LINE);
+        for(i=0;i<lu32len;i++) {
+            sprintf(tmplog, "%02X", pDataTemp[i]);
+            strcat(log, " ");
+            strcat(log, tmplog);
+        }
+        strcat(log, "\n");
+        write_log_file(log, strlen(log));
+        err = RS485Down_DataSend(pDataTemp, lu32len);
+        sprintf(log, "[%s][%s][%d]err: %d\n", FILE_LINE, err);
+        write_log_file(log, strlen(log));
+        err = ElecLcMod_ReceiveFrame(pmf,lu8DownComDev,lu16OutTime,pDataTemp,plen);
+        sprintf(log, "[%s][%s][%d]err: %d\n", FILE_LINE, err);
+        write_log_file(log, strlen(log));
+    break;
+        default://默认抄CJ188格式。
+        break;
+    }
+
+    return err;
+}
+
+//获取力创有功电能的数值
+float get_lcMod_actE(float data)
+{
+    return (data*ELEC_LCMOD_DEF_V*ELEC_LCMOD_DEF_I)/18000000;
+}
+
+//获取力创无功电能的数值
+float get_lcMod_reactE(float data)
+{
+    return (data*ELEC_LCMOD_DEF_V*ELEC_LCMOD_DEF_I)/10800000;
+}
+
+uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, lcModbusElec_str *pData)
+{
+    uint8 err = NO_ERR;
+    uint8 len = 0;
+    if(pData == NULL)
+        return ERR_1;
+
+    switch(pmf->u8ProtocolType){
+    case ELEC_LC_MODBUS:
+        pDataBuf += 2;//略过地址域和功能码域
+        len = *pDataBuf++;
+        len = len;
+
+        pData->pact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
+        pData->pact_tot_elec = get_lcMod_actE(pData->pact_tot_elec);
+        pDataBuf += 4;
+        strcpy((char*)pData->pact_tot_elec_unit, "+KWh");
+
+        pData->nact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
+        pDataBuf += 4;
+        pData->nact_tot_elec = get_lcMod_actE(pData->nact_tot_elec);
+        strcpy((char*)pData->nact_tot_elec_unit, "-KWh");
+
+        pData->preact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
+        pDataBuf += 4;
+        pData->preact_tot_elec = get_lcMod_reactE(pData->preact_tot_elec);
+        strcpy((char*)pData->preact_tot_elec_unit, "+KVarh");
+
+        pData->nreact_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
+        pDataBuf += 4;
+        pData->nreact_tot_elec = get_lcMod_reactE(pData->nreact_tot_elec);
+        strcpy((char*)pData->nreact_tot_elec_unit, "-KVarh");
+
+        pData->act_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
+        pDataBuf += 4;
+        pData->act_tot_elec = get_lcMod_actE(pData->act_tot_elec);
+        strcpy((char*)pData->act_tot_elec_unit, "KWh");
+
+        pData->react_tot_elec = (pDataBuf[0]<<3*8 | pDataBuf[1]<<2*8 | pDataBuf[2]<<8 | pDataBuf[3]);
+        pData->react_tot_elec = get_lcMod_reactE(pData->react_tot_elec);
+        strcpy((char*)pData->react_tot_elec_unit, "KVarh");
+        break;
+    default:
+        break;
+    }
+
+    return err;
+}
+
+uint8 ElecMeterCommunicate(MeterFileType *pmf,lcModbusElec_str *pData)
+{
+    uint8 lu8DataTemp[256] = {0};  //抄表帧
+    uint16 lu16len = 0;//抄表帧的长度
+    uint8 err = 0;
+
+    lu16len = sizeof(lu8DataTemp);
+    switch (pmf->u8ProtocolType) {
+    case ELEC_LC_MODBUS:
+        CreateFrame_lcMod(pmf,lu8DataTemp,&lu16len);  //创建抄表帧。
+        break;
+    default:
+        break;
+    }
+    err = ElecMeter_DataSendAndRec(pmf,lu8DataTemp,&lu16len);
+
+    if(err == NO_ERR) {
+            err = ElecMeter_DataDeal(pmf,lu8DataTemp,&lu16len, pData);//解析接收到的数据
+    }		
+    return err;
+}
+
 uint8 Read_ElecMeter(MeterFileType *pmf, lcModbusElec_str* pElecData)
 {
     uint8 err = NO_ERR;
     uint8 lu8retrytimes = 0;
+    char log[1024];
     if(pmf->u8ProtocolType >= ELECMETER_PROTO_SUM){  //防止协议版本号超限。
         return ERR_1;
     }
@@ -653,16 +657,11 @@ uint8 Read_ElecMeter(MeterFileType *pmf, lcModbusElec_str* pElecData)
         err = (*ELEC_METER_ComParaSetArray[gELEC_METER_Table[pmf->u8ProtocolType][0]])();  //按照抄表协议，设置抄表串口参数。
         lu8retrytimes--;
     }while((err != TRUE) && (lu8retrytimes > 0));
-
+    sprintf(log, "[%s][%s][%d]err: %d\n", FILE_LINE, err);
+    write_log_file(log, strlen(log));
     //组建抄表数据帧
 	err = ElecMeterCommunicate(pmf, pElecData);
+    sprintf(log, "[%s][%s][%d]err: %d\n", FILE_LINE, err);
+    write_log_file(log, strlen(log));
     return err;
 }
-
-
-
-
-
-
-
-

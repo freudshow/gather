@@ -148,39 +148,30 @@ int32 UartDown485_Rec(void)
     fd_set ReadSetFD;
     struct timeval stTimeVal;
     uint8 ret;
-    
-    while(1)
-    {
+    char log[1024];
+
+    while(1) {
         FD_ZERO(&ReadSetFD);
         FD_SET(g_uiRS4852Fd, &ReadSetFD);
         /* 设置等待的超时时间 */
         stTimeVal.tv_sec = REC_TIMEOUT_SEC;
         stTimeVal.tv_usec = REC_TIMEOUT_USEC;
-        
+
         if (select(g_uiRS4852Fd+1, &ReadSetFD, NULL, NULL,&stTimeVal) > 0){
-		   if (FD_ISSET(g_uiRS4852Fd, &ReadSetFD)){
-				if(read(g_uiRS4852Fd, &lu8data, 1) == 1){
-					ret = QueueWrite((void*)DownRecQueue_RS485, lu8data);
-					if(ret != QUEUE_OK){
-						//printf("[%s][%s][%d] ret=%d queue full\n",FILE_LINE,ret);
-					}
-		   
-					OSSemPost(DOWN_COMMU_DEV_485);
-
-					//printf("\n[%s][%s][%d] 0x%02X \n",FILE_LINE,lu8data);  //测试用
-		   
-				}
-		    }
-
+            if (FD_ISSET(g_uiRS4852Fd, &ReadSetFD)){
+                if(read(g_uiRS4852Fd, &lu8data, 1) == 1){
+                    ret = QueueWrite((void*)DownRecQueue_RS485, lu8data);
+                    if(ret != QUEUE_OK){
+                        sprintf(log, "[%s][%s][%d]QueueWrite err, ret = %d QUEUE_EMPTY\n", FILE_LINE, ret);
+                        write_log_file(log, strlen(log));
+                    }
+                    OSSemPost(DOWN_COMMU_DEV_485);
+                    sprintf(log, "[%s][%s][%d] 0x%02X \n",FILE_LINE,lu8data);
+                    write_log_file(log, strlen(log));
+                }
+            }
         }
-	   
-
     }
-    
+
   	return(CONTROL_RET_FAIL);
-	
 }
-
-
-  
-

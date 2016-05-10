@@ -486,7 +486,7 @@ long get_file_size(char* filename)
 void write_log_file(char* buffer, unsigned buf_size)
 {
     FILE *fp;
-    char now[32];
+    char now[64];
     // 文件超过最大限制, 删除
     long length = get_file_size(LOG_FILE_NAME);
     if (length > FILE_MAX_SIZE) {
@@ -497,6 +497,7 @@ void write_log_file(char* buffer, unsigned buf_size)
     if (fp != NULL) {
         memset(now, 0, sizeof(now));
         get_local_time(now);
+        strcat(now, "---->>>> ");
         fwrite(now, strlen(now)+1, 1, fp);
         fwrite(buffer, buf_size, 1, fp);
         fclose(fp);
