@@ -5,9 +5,9 @@ drop table if exists "t_base_define"
 ;
 create table t_base_define
 (
-	f_id	integer	primary key autoincrement,
-	f_config_name	varchar(16),
-	f_config_value	varchar(50)
+	f_id integer primary key autoincrement,
+	f_config_name varchar(16),
+	f_config_value varchar(50)
 );
 
 insert into t_base_define(f_id, f_config_name, f_config_value)values(1, 'primary_server', '122.5.18.174');
@@ -33,20 +33,20 @@ drop table if exists "t_meter_info"
 ;
 create table t_meter_info
 (
-	f_id	integer primary key autoincrement,
-	f_meter_type	varchar(2),
-	f_device_id	varchar(4),
-	f_meter_address	varchar(14),
-	f_meter_channel	varchar(2),	
-	f_meter_proto_type	varchar(2),
-	f_install_pos	varchar(50)
+	f_id integer primary key autoincrement,
+	f_meter_type varchar(2),
+	f_device_id varchar(4),
+	f_meter_address varchar(14),
+	f_meter_channel varchar(2),	
+	f_meter_proto_type varchar(2),
+	f_install_pos varchar(50)
 );
 
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 1, '11110021147872', 1, 0, '6#管道井');--德鲁热表
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 2, '11110021147872', 1, 0, '5#管道井');--德鲁热表
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 3, '11110021147872', 1, 0, '3#地下室');--德鲁热表
 insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('20', 4, '11110021164962', 1, 0, '3#地下室');--德鲁热表
-insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 5, '00000000000001', 1, 0, '3#地下室');--力创电表
+insert into t_meter_info (f_meter_type, f_device_id, f_meter_address, f_meter_channel, f_meter_proto_type, f_install_pos) values ('40', 5, '00000000000001', 7, 0, '3#地下室');--力创电表
 
 ---------------------------------
 --电表历史数据表
@@ -55,12 +55,12 @@ drop table if exists "t_elect_data"
 ;
 create table t_elect_data
 (
-	f_id	integer	primary key autoincrement,
-	f_meter_type	integer,
-	f_device_id	integer,
-	f_meter_address	varchar(50),
-	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
-	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_id integer primary key autoincrement,
+	f_meter_type integer,
+	f_device_id integer,
+	f_meter_address varchar(50),
+	f_timestamp timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_time timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_pact_tot_elec varchar(50),
 	f_nact_tot_elec varchar(50),
 	f_preact_tot_elec varchar(50),
@@ -78,10 +78,10 @@ drop table if exists "t_water_data"
 ;
 create table t_water_data
 (
-	f_id	integer	primary key autoincrement,
-	f_meter_type	integer,
+	f_id integer primary key autoincrement,
+	f_meter_type integer,
 	f_device_id	integer,
-	f_meter_address	varchar(50),
+	f_meter_address varchar(50),
 	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_cur_accum_flow varchar(50),
@@ -123,11 +123,11 @@ drop table if exists "t_request_data"
 ;
 create table t_request_data
 (
-	f_id	integer	primary key autoincrement,
-	f_meter_type	varchar(2),
-	f_item_index	varchar(2),
-	f_col_name	varchar(20),
-	f_col_type	varchar(20)
+	f_id integer primary key autoincrement,
+	f_meter_type varchar(2),
+	f_item_index varchar(2),
+	f_col_name varchar(20),
+	f_col_type varchar(20)
 );
 
 insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(1, '20', '01', 'f_cur_cold_E', 'varchar(50)');
@@ -161,7 +161,7 @@ drop table if exists "t_time_node"
 ;
 create table t_time_node
 (
-	f_id	integer	primary key autoincrement,
-	f_time_name	varchar(20),
-	f_time_node	varchar(100)
+	f_id integer primary key autoincrement,
+	f_time_name varchar(20),
+	f_time_node varchar(100)
 );
