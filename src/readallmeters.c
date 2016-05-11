@@ -85,7 +85,6 @@ uint8 ReaOneMeter(MeterFileType *pmf)
     lcModbusElec_str lcModStr;
 	struct tm NowTime;
 	time_t timep;
-	char lcRet[100];
 
 	if(lu8Channel == RS485_DOWN_CHANNEL)  //操作一个设备，先请求信号量,谨防冲突。
 		sem_wait(&Opetate485Down_sem);
@@ -106,10 +105,10 @@ uint8 ReaOneMeter(MeterFileType *pmf)
         }
 
         if(err == NO_ERR){
-            insert_his_data(pmf, &CJ188_Data, &NowTime, &gTimeNode, lcRet);
+            err = insert_his_data(pmf, &CJ188_Data, &NowTime, &gTimeNode);
             printf("[%s][%s][%d]insert_his_data over.\n", FILE_LINE);
         } else {
-            insert_his_data(pmf, NULL, &NowTime, &gTimeNode, lcRet);
+            err = insert_his_data(pmf, NULL, &NowTime, &gTimeNode);
             printf("[%s][%s][%d]critical: not read response from meter!\n", FILE_LINE);
         }
         break;
@@ -124,10 +123,10 @@ uint8 ReaOneMeter(MeterFileType *pmf)
         }
 
         if(err == NO_ERR){
-            insert_his_data(pmf, &lcModStr, &NowTime, &gTimeNode, lcRet);
+            err = insert_his_data(pmf, &lcModStr, &NowTime, &gTimeNode);
             printf("[%s][%s][%d]insert_his_data over.\n", FILE_LINE);
         } else {
-            insert_his_data(pmf, NULL, &NowTime, &gTimeNode, lcRet);
+            err = insert_his_data(pmf, NULL, &NowTime, &gTimeNode);
             printf("[%s][%s][%d]critical: not read response from meter!\n", FILE_LINE);
         }
         break;

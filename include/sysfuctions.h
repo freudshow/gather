@@ -109,7 +109,7 @@ extern sem_t  His_asw_sem;
 
 
 #define LOG_FILE_NAME "log.txt"
-#define FILE_MAX_SIZE (2*1024*1024)//2M
+#define FILE_MAX_SIZE (5*1024*1024)//5M
 
 
 

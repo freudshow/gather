@@ -38,6 +38,8 @@ typedef unsigned int uint32;
 #define GASMETER	0x30//燃气表
 #define SENSORDEV  0x50//采集各种传感器的Rtu模块
 
+#define METER_TYPE_CNT 5//一共有多少种表
+
 //字段长度定义
 #define LENGTH_B_METER_ADDRESS	7//在程序中处理过的仪表地址长度, 最大7字节, B代表Byte
 #define LENGTH_F_INSTALL_POS		50//仪表安装位置长度

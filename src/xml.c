@@ -541,7 +541,6 @@ uint8 write_sysconfig(uint8 dev)
 {
     printf("[%s][%s][%d]now in write_sysconfig()\n", FILE_LINE);
     uint8 err = NO_ERR;
-    char pErr[100] = {0};
     pSys_config pConfig;//db模块中, set_config() 每次更新完成后都会清空临时配置表, 所以不必在此函数中free(pConfig)
 
     xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
@@ -549,7 +548,7 @@ uint8 write_sysconfig(uint8 dev)
     xmlNodePtr rootNode = xmlDocGetRootElement(pDoc);
     if(NULL == rootNode)
         return ERR_1;
-    
+
     printf("[%s][%s][%d] rootNode: %p\n", FILE_LINE, rootNode);
     xmlNodePtr curNode;
     curNode = rootNode->children;
@@ -683,7 +682,7 @@ uint8 write_sysconfig(uint8 dev)
         curNode = curNode->next;
     }
     printf("[%s][%s][%d]\n", FILE_LINE);
-    err = set_sysconf(pErr);
+    err = set_sysconf();
     if (err == NO_ERR)
     {
         err = send_answer(dev, "result", "success", NULL);
@@ -1084,11 +1083,13 @@ uint8 up_his_data(uint8 dev)
     uint8 lu8times = 0;
     uint8 err = NO_ERR;
     FILE *fp;
-    char pErr[100];
     uint8 type_idx;//仪表类型的索引
     
     printf("g_xml_info[dev].timenode: %s\n", g_xml_info[dev].timenode);
-    read_all_his_data(g_xml_info[dev].timenode, pErr);
+    err = read_all_his_data(g_xml_info[dev].timenode);
+    if(err != NO_ERR) {
+        return ERR_1;
+    }
     g_xml_info[dev].cur_frame_indep = 0;
     g_xml_info[dev].total_rows = 0;
     g_xml_info[dev].cur_rows = 0;
@@ -1566,8 +1567,6 @@ uint8 merge_update_file(uint8 dev)
                 send_lack_frame(dev);//向上位机重新要数据
                 return ERR_1;
             }
-            free(g_xml_info[dev].pDataList[idx]);//写一帧就释放一帧
-            g_xml_info[dev].pDataList[idx] = NULL;
         } else {//有缺帧的时候, 重新要数据
             send_lack_frame(dev);//向上位机重新要数据
             return ERR_1;
@@ -1619,9 +1618,8 @@ uint8 merge_update_file(uint8 dev)
     sys_config.f_id = CONFIG_APP_MD5;
     get_sys_config(CONFIG_APP_MD5, &sys_config);
     strcpy(sys_config.f_config_value, g_xml_info[dev].up_md5);
-    err = add_one_config(&sys_config, NULL);
-
-    g_xml_info[dev].pDataList = NULL;
+    err = add_one_config(&sys_config);
+    empty_update_list(dev);
     send_answer(dev, "merge", "success", NULL);
     //重启Linux
     system("reboot");

@@ -54,6 +54,12 @@
                                         list = list->pNext;\
                                         free(tmpNode);\
                                     }
+#define write_err(uint8err, p_err, charlog)  if(uint8err != SQLITE_OK) {\
+                                                sprintf(charlog, "[%s][%s][%d]pErr: %s\n", \
+                                                FILE_LINE, p_err);\
+                                                    write_log_file(charlog, strlen(charlog));\
+                                                    return ERR_1;\
+                                                }
 /********************************************************************************
  ** SQL动词
  ********************************************************************************/
@@ -283,8 +289,8 @@ struct his_data_str{//历史数据一行数据的格式, 每个数据域的长度都要比约定长度至少
 /***************************************
  ** 数据库打开与关闭, sql语句组合相关 **
  ***************************************/
-int open_db(void);
-int close_db(void);
+uint8 open_db(void);
+uint8 close_db(void);
 void get_select_sql(char *table_name, char **cols, int col_count, char *sql);
 void get_where_sql(char **condition, int con_count, char *sql);
 void get_orderby_sql(char **fields, int f_cnt, int asc, char *sql);
@@ -295,30 +301,30 @@ void get_delete_sql(char *table_name, char **condition, int con_count, char *sql
 /**********************
  ** 系统配置参数相关 **
  **********************/
-void read_sys_config(char *pErr);//从数据库读取基本配置
+uint8 read_sys_config();//从数据库读取基本配置
 uint8 get_sys_config(sys_config_idx idx, pSys_config pConfig);//读取单独一条配置
 int get_sys_config_cnt();//读取系统配置参数的个数
 uint8 insert_sysconf(pSys_config pConf);//插入单个系统配置
 uint8 empty_sysconf_list();//清空配置列表
-uint8 set_sysconf(char* pErr);//设置系统参数
-uint8 add_one_config(pSys_config pConf, char* pErr);
+uint8 set_sysconf();//设置系统参数
+uint8 add_one_config(pSys_config pConf);
 
 /**********************
  ** 仪表地址信息相关 **
  **********************/
-void read_meter_info(char	*pErr);//从数据库读取仪表地址信息
+uint8 read_meter_info();//从数据库读取仪表地址信息
 void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info));//顺序遍历仪表地址信息
 int  get_meter_info_cnt();//读取仪表地址信息的个数
 void empty_meter_info_list();
-uint8 empty_meter_info_table(char*);
+uint8 empty_meter_info_table();
 uint8 insert_one_meter_info(pMeter_info);
-uint8 insert_into_meter_info_table(char* pErr);
+uint8 insert_into_meter_info_table();
 
 /**********************
  ** 读取数据项相关 **
  **********************/
-void read_all_request_data(char	*pErr);
-void read_request_data(char	*pErr, mtype_idx type_idx);//按照仪表类型读取数据项
+uint8 read_all_request_data();
+uint8 read_request_data(mtype_idx type_idx);//按照仪表类型读取数据项
 void retrieve_request_data_list(int (*read_one_item)(pRequest_data, void*), mtype_idx type_idx, void* pVar);//顺序遍历数据项信息
 int  get_request_data_cnt(mtype_idx);//读取仪表数据项的个数
 uint8 insert_one_request_node(pRequest_data pRqData);
@@ -328,9 +334,9 @@ int get_request_data_setted();
 /**********************
  ** 仪表历史数据相关 **
  **********************/
-void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr);
-uint8 read_his_data(char* timenode, mtype_idx idx, char* pErr);
-uint8 read_all_his_data(char* timenode, char* pErr);
+uint8 insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode);
+uint8 read_his_data(char* timenode, mtype_idx idx);
+uint8 read_all_his_data(char* timenode);
 uint8 empty_all_hisdata(void);
 int get_his_cnt(mtype_idx idx);
 uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev);

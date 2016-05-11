@@ -49,7 +49,7 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
  **********************/
 
 //u8Meter_type和aItems_list的索引顺序不能搞乱, 须以enum meter_type_idx规定的顺序为准
-static uint8 u8Meter_type[] = {HEATMETER, WATERMETER, ELECTMETER, GASMETER};
+static uint8 u8Meter_type[] = {HEATMETER, WATERMETER, ELECTMETER, GASMETER, SENSORDEV};
 static request_data_list arrayRequest_list[MTYPE_CNT]={NULL};//仪表信息列表的数组, 私有变量
 static request_data_list list_set_request_data = NULL;
 static int set_request_data_idx=0;
@@ -74,20 +74,19 @@ static char* tablename_array[] = {TABLE_HEAT, TABLE_WATER, TABLE_ELEC, TABLE_GAS
  **	 函数名: open_db
  ** 功能	: 打开数据库
  ********************************************************************************/
-int open_db(void)
+uint8 open_db(void)
 {
-	 return (sqlite3_open(SQLITE_NAME, &g_pDB) == SQLITE_OK) ? SQLITE_OK : -1;
+	 return (sqlite3_open(SQLITE_NAME, &g_pDB) == SQLITE_OK) ? NO_ERR: ERR_1;
 }
 
 /********************************************************************************
  **	 函数名: close_db
  ** 功能	: 关闭数据库
  ********************************************************************************/
-int close_db(void)
+uint8 close_db(void)
 {
-	 return (sqlite3_close(g_pDB) == SQLITE_OK) ? SQLITE_OK : -1;
+	 return (sqlite3_close(g_pDB) == SQLITE_OK) ? NO_ERR: ERR_1;
 }
-
 
 
 /********************************************************************************
@@ -215,58 +214,142 @@ void get_elecdata_sql(lcModbusElec_str* elecdata, request_data_list item_list, c
 }
 
 /*
- * 如果这个仪表的数据表行数超过一定数量
- * 就删除前一个采暖季的历史数据
+ * 由于调用vacuum命令释放空间时,
+ * sqlite3要创建一个临时的数据库"vacuum_db",
+ * 用来临时交换现有数据库内的文件.
+ * 这个临时的数据库文件大小很可能与现有的
+ * 数据库文件大小接近.
+ * 所以系统的现有空闲空间的大小不能比现有的
+ * 数据库文件的大小更小.
  */
-uint8 clean_data(mtype_idx type_idx)
+uint8 db_too_big()
 {
     uint8 err = NO_ERR;
+    FILE* fp;
+    char log[1024];
 
+    char* cmd_disk_idle = "df | grep rootfs | awk '{print $3}'";//空闲空间
+    char* cmd_db_size = "ls -l gatherdb.db | awk '{print $5}'";//数据库大小
+    char result[20];
+    int disk_idle;
+    int db_size;
+    if(NULL==(fp=popen(cmd_disk_idle, "r"))) {
+        sprintf(log, "[%s][%s][%d]execute command failed: %s", FILE_LINE, strerror(errno));
+        write_log_file(log, strlen(log));
+        return ERR_1;
+    }
+    if(NULL!=fgets(result, sizeof(result), fp)) {
+        disk_idle = atoi(result);
+    } else {
+        sprintf(log, "[%s][%s][%d]get result failed: %s", FILE_LINE, strerror(errno));
+        write_log_file(log, strlen(log));
+        return ERR_1;
+    }
+
+    pclose(fp);
+    if(NULL==(fp=popen(cmd_db_size, "r"))) {
+        sprintf(log, "[%s][%s][%d]execute command failed: %s", FILE_LINE, strerror(errno));
+        write_log_file(log, strlen(log));
+        return ERR_1;
+    }
+    if(NULL!=fgets(result, sizeof(result), fp)) {
+        db_size = atoi(result);
+    } else {
+        sprintf(log, "[%s][%s][%d]get result failed: %s", FILE_LINE, strerror(errno));
+        write_log_file(log, strlen(log));
+        return ERR_1;
+    }
+    pclose(fp);
+
+    disk_idle *= 1024;//系统的块大小是1k
+    if(disk_idle<db_size) {//如果系统空闲空间小于现有数据库的大小, 就认为空间比较紧张了
+        sprintf(log, "[%s][%s][%d]disk_idle: %d, db_size: %d", \
+            FILE_LINE, disk_idle, db_size);
+        write_log_file(log, strlen(log));        
+        return ERR_1;
+    }
     return err;
 }
 
-void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode, char *pErr)
+/*
+ * 如果这个仪表的数据表行数超过一定数量
+ * 就删除前一个采暖季的历史数据
+ */
+uint8 clean_data(mtype_idx type_idx, char* pErr)
 {
-	if(NULL == g_pDB) {
-		pErr = "database not open";
-		return;
-	}
-	mtype_idx type_idx;
+    uint8 err = NO_ERR;
+    char log[512] = {0};
+    char sql_buf[512]= {0};
+    strcpy(sql_buf, "delete from ");
+    strcat(sql_buf, tablename_array[type_idx]);
+    strcat(sql_buf, " where date(f_time) = (select min(date(f_timestamp)) from ");
+    strcat(sql_buf, tablename_array[type_idx]);
+    strcat(sql_buf, ");");
+    sprintf(log, "[%s][%s][%d]%s\n", FILE_LINE, sql_buf);
+    write_log_file(log, strlen(log));
+    if (db_too_big()) {/*check if database is too big*/
+        err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);//删除最早一天的数据
+        if(err != SQLITE_OK) {
+            sprintf(log, "[%s][%s][%d]%s\n", FILE_LINE, pErr);
+            write_log_file(log, strlen(log));
+            return err;
+        }
+        err = sqlite3_exec(g_pDB, "vacuum;", NULL, NULL, &pErr);//释放空间
+        if(err != SQLITE_OK) {
+            sprintf(log, "[%s][%s][%d]%s\n", FILE_LINE, pErr);
+            write_log_file(log, strlen(log));
+            return err;
+        }
+    }
+    return err;
+}
 
-	switch(pmf->u8MeterType){
-		case HEATMETER:
-            printf("[%s][%s][%d], HEAT_METER\n", FILE_LINE);
-			type_idx = em_heat;
-			break;
-		case WATERMETER:
-            printf("[%s][%s][%d], WATER_METER\n", FILE_LINE);
-			type_idx = em_water;
-			break;
-		case ELECTMETER:
-            printf("[%s][%s][%d], ELECT_METER\n", FILE_LINE);
-			type_idx = em_elect;
-			break;
-		case GASMETER:
-            printf("[%s][%s][%d], GAS_METER\n", FILE_LINE);
-			type_idx = em_gas;
-			break;
-		default:
-			strcpy(pErr, "meter type error");//不能直接赋值, 否则函数运行结束后, 常量字符串的空间就被销毁
-			return;
-	}
+mtype_idx idx_of_mtype(uint8 meterType)
+{
+    int i=0;
+    for(i=0;i<METER_TYPE_CNT;i++) {
+        if(meterType == u8Meter_type[i]) {
+            return i;
+        }
+    }
+    return -1;
+}
 
-	char sql_buf[LENGTH_SQLBUF];
-	memset(sql_buf, 0, LENGTH_SQLBUF);	
-	char *table_name = tablename_array[type_idx];
-	int item_cnt = get_request_data_cnt(type_idx);
-	char *col_buf = malloc(item_cnt*LENGTH_F_COL_NAME);
-	memset(col_buf, 0, item_cnt*LENGTH_F_COL_NAME);
-	char *tmp_col_buf = col_buf;
-	request_data_list item_list = arrayRequest_list[type_idx];
-	char tmp_data[LENGTH_F_VALUE];
-	memset(tmp_data, 0, LENGTH_F_VALUE);
-	
-	int i = 0;
+uint8 insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct tm *pTimeNode)
+{
+    char log[1024] = {0};
+    uint8 err = NO_ERR;
+    char *pErr;
+    char sql_buf[LENGTH_SQLBUF] = {0};
+    mtype_idx type_idx;
+    char *table_name;
+    int item_cnt;
+    char *col_buf;
+    char *tmp_col_buf;
+    request_data_list item_list;
+    char tmp_data[LENGTH_F_VALUE] = {0};
+    int i = 0;
+
+    if(NULL == g_pDB) {
+        pErr = "database not open";
+        sprintf(log, "[%s][%s][%d]%s", FILE_LINE, pErr);
+        write_log_file(log, strlen(log));
+        return ERR_1;
+    }
+    type_idx = idx_of_mtype(pmf->u8MeterType);
+    err = clean_data(type_idx, pErr);
+    if(err == ERR_1) {//如果删除数据失败, 就不插入数据了
+        sprintf(log, "[%s][%s][%d]%s", FILE_LINE, pErr);
+        write_log_file(log, strlen(log));
+        return ERR_1;
+    }
+    table_name = tablename_array[type_idx];
+    item_cnt = get_request_data_cnt(type_idx);
+    item_list = arrayRequest_list[type_idx];
+    col_buf = malloc(item_cnt*LENGTH_F_COL_NAME);
+    memset(col_buf, 0, item_cnt*LENGTH_F_COL_NAME);
+    tmp_col_buf = col_buf;
+
 	while(item_list) {
 		strcpy(tmp_col_buf, item_list->f_col_name);
 		tmp_col_buf += LENGTH_F_COL_NAME;
@@ -291,11 +374,9 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
 	strcat(sql_buf, FIELD_HIS_TNODE);//抄表时间点
 	strcat(sql_buf, ",");
 	for(i=0;i<item_cnt-1;i++, tmp_col_buf += LENGTH_F_COL_NAME) {
-		//printf("tmp_col_buf: %s\n", tmp_col_buf);
 		strcat(sql_buf, tmp_col_buf);
 		strcat(sql_buf, ",");
 	}
-	//printf("tmp_col_buf: %s\n", tmp_col_buf);
 	strcat(sql_buf, tmp_col_buf);
 	strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
 	tmp_col_buf = col_buf;//指向第一个元素
@@ -361,9 +442,12 @@ void insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struct
     strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
     strcat(sql_buf, ";");
 
-    sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
-    printf("sql_buf: %s, sql_buf length: %d, pErr: %s\n", sql_buf, strlen(sql_buf), pErr);
+    err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+    printf("[%s][%s][%d]sql_buf: %s, sql_buf length: %d, pErr: %s\n", FILE_LINE, \
+        sql_buf, strlen(sql_buf), pErr);
     free(col_buf);
+    write_err(err,pErr,log)
+    return (err == SQLITE_OK) ? NO_ERR : ERR_1;
 }
 
 int read_one_item_info(pRequest_data pReques, void* pHisData)
@@ -418,7 +502,6 @@ int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name
                     strcpy(tmp_his->value_list[j].field_value, f_value[i]==NULL?"NULL":f_value[i]);
         }
     }
-    printf("&&&&[%s][%s][%d] his_data_list_array[%d]: %p\n", FILE_LINE, idx, his_data_list_array[idx]);
     add_node(his_data_list_array[idx], tmp_his)
     hisdata_idx_array[idx]++;
 
@@ -427,7 +510,6 @@ int each_his_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name
 
 uint8 empty_hist_data(mtype_idx idx)
 {
-    printf("&&&&[%s][%s][%d] empty_hist_data() &&&&\n", FILE_LINE);
     pHis_data tmpNode;
     while(his_data_list_array[idx]) {
         tmpNode = his_data_list_array[idx];
@@ -464,27 +546,31 @@ uint8 get_his_sql(char* timenode, mtype_idx type_idx)
     strcat(his_sql_array[type_idx], SQL_SINGLE_QUOTES);
     strcat(his_sql_array[type_idx], timenode);
     strcat(his_sql_array[type_idx], SQL_SINGLE_QUOTES);
-    //printf("his_sql_array[%d]: %s\n", type_idx, his_sql_array[type_idx]);
     return NO_ERR;
 }
 
-uint8 read_his_data(char* timenode, mtype_idx idx, char* pErr)
+uint8 read_his_data(char* timenode, mtype_idx idx)
 {
     uint8 err = NO_ERR;
+    char* pErr;
+    char log[1024];
     printf("&&&&[%s][%s][%d] retrieve_his_data() &&&&\n", FILE_LINE);
     empty_hist_data(idx);
     get_his_sql(timenode, idx);
     printf("&&&&[%s][%s][%d] sql: %s &&&&\n", FILE_LINE, his_sql_array[idx]);
     err = sqlite3_exec(g_pDB, his_sql_array[idx], each_his_data, &idx, &pErr);
-    return (err==SQLITE_OK?NO_ERR:ERR_1);
+    write_err(err,pErr,log)
+    return (err==SQLITE_OK ? NO_ERR : ERR_1);
 }
 
-uint8 read_all_his_data(char* timenode, char* pErr)
+uint8 read_all_his_data(char* timenode)
 {
     int i;
     for(i=0;i<MTYPE_CNT;i++) {
-        if(read_his_data(timenode, i, pErr))
+        if(read_his_data(timenode, i) != NO_ERR) {
+            empty_hist_data(i);
             return ERR_1;
+        }
     }
     return NO_ERR;
 }
@@ -565,28 +651,36 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
 /********************************************************************************
  ** 功能区域	: 读取数据项配置
  ********************************************************************************/
-void read_all_request_data(char	*pErr)
+uint8 read_all_request_data()
 {
 	int i;
-	for(i=0;i<MTYPE_CNT;i++){//读取t_request_data的所有数据, 如果当前t_request_data没有燃气表的信息, 
-								//那么也不会读取到arrayRequest_list中, 因为数据库在查询燃气表信息时, 不会返回结果, 
-								//也就把arrayRequest_list[燃气]的数据置之不理
-		read_request_data(pErr, i);
+    uint8 err = NO_ERR;
+	for(i=0;i<MTYPE_CNT;i++) {
+		err = read_request_data(i);
+        if(err != NO_ERR) {
+            empty_request_data_list(i);
+            return err;
+        }
 	}
+    return err;
 }
 
-void read_request_data(char *pErr, mtype_idx type_idx)
+uint8 read_request_data(mtype_idx type_idx)
 {
+    uint8 err = NO_ERR;
+    char log[1024];
+    char *pErr;
 	if(NULL == g_pDB) {
-		pErr = "database not open";
-		return;
+        sprintf(log, "[%s][%s][%d]g_db is NULL\n", FILE_LINE);
+        write_log_file(log, strlen(log));
+        return ERR_1;
 	}
 
-	char *sql_buf = malloc(LENGTH_SQLBUF);
-	char *where_buf = malloc(LENGTH_SQLCON);
-	char *order_buf = malloc(LENGTH_SQLORDER);
-	char *m_type = malloc(LENGTH_F_METER_TYPE);
-	//char *con_buf[LENGTH_SQLCONS] = {FIELD_REQUEST_MTYPE};//这样初始化后, con_buf[0]指向const char*, 不能再进行连接, copy等操作
+
+	char sql_buf[LENGTH_SQLBUF];
+	char where_buf[LENGTH_SQLCON];
+	char order_buf[LENGTH_SQLORDER];
+	char m_type[LENGTH_F_METER_TYPE];
 	char *con_buf = malloc(LENGTH_SQLCONS);
 	char *table_name = TABLE_REQUEST_DATA;
 	char *col_buf[5] =  {FIELD_REQUEST_ID, \
@@ -609,13 +703,11 @@ void read_request_data(char *pErr, mtype_idx type_idx)
 	strcat(sql_buf,	" ");
 	strcat(sql_buf, order_buf);
 	strcat(sql_buf, ";");
+    free(con_buf);
 
-	sqlite3_exec(g_pDB, sql_buf, each_request_data, (void*)(&type_idx), &pErr);
-	free(con_buf);
-	free(m_type);
-	free(order_buf);
-	free(where_buf);
-	free(sql_buf);	
+    err = sqlite3_exec(g_pDB, sql_buf, each_request_data, (void*)(&type_idx), &pErr);
+    write_err(err,pErr,log)
+    return (err==SQLITE_OK) ? NO_ERR : ERR_1;
 }
 
 static int each_request_data(void *meter_type_idx, int f_cnt, char **f_value, char **f_name)
@@ -679,7 +771,7 @@ int  get_request_data_cnt(mtype_idx idx)
 static uint8 del_request_data(char* pId, char* pErr)
 {
 	int err=0;
-	char *sql_buf = malloc(LENGTH_SQLBUF);
+	char sql_buf[LENGTH_SQLBUF];
 	strcpy(sql_buf, SQL_DELETE);
 	strcat(sql_buf, " ");
 	strcat(sql_buf, SQL_FROM);
@@ -695,8 +787,7 @@ static uint8 del_request_data(char* pId, char* pErr)
 		strcat(sql_buf, pId);
 	}
 	err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
-	free(sql_buf);
-	return err==SQLITE_OK ? NO_ERR:ERR_FF;
+	return err==SQLITE_OK ? NO_ERR : ERR_1;
 }
 
 uint8 insert_one_request_node(pRequest_data pRqData)
@@ -718,7 +809,7 @@ uint8 add_one_request_data(pRequest_data pNode, char* pErr)
     	    return ERR_1;
     }
     uint8 err=NO_ERR;
-    char *sql_buf = malloc(LENGTH_SQLBUF);
+    char sql_buf[LENGTH_SQLBUF];
     char *table_name = TABLE_REQUEST_DATA;
     char *col_buf[LENGTH_F_COL_NAME] = {FIELD_REQUEST_MTYPE, FIELD_REQUEST_ITEMIDX, FIELD_REQUEST_COLNAME, FIELD_REQUEST_COLTYPE};
     char meter_type[5];
@@ -729,7 +820,6 @@ uint8 add_one_request_data(pRequest_data pNode, char* pErr)
     get_insert_sql(table_name, col_buf, 4, val_buf, sql_buf, 1);
     err =  sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
     printf("[%s][%s][%d]pErr: %s\n", FILE_LINE, pErr);
-    free(sql_buf);
     return err==SQLITE_OK ? NO_ERR : ERR_1;
 }
 
@@ -749,7 +839,7 @@ uint8 set_request_data(char* pErr)
 
     empty_list(pRequest_data,list_set_request_data)
     set_request_data_idx = 0;
-    read_all_request_data(pErr);
+    read_all_request_data();
     if(strlen(pErr)>0)
         return ERR_1;
     return err;
@@ -763,12 +853,16 @@ uint8 set_request_data(char* pErr)
  ** 重要  : 程序加载时须置list_meter_info为NULL, 否则本程序会出现段错误
  ********************************************************************************/
 
-void read_meter_info(char	*pErr)
+uint8 read_meter_info()
 {
-    if(NULL == g_pDB) {
-        pErr = "database not open";
-        return;
-    }
+    uint8 err = NO_ERR;
+    char log[LENGTH_SQLBUF*2];
+    char *pErr;
+	if(NULL == g_pDB) {
+        sprintf(log, "[%s][%s][%d]g_db is NULL\n", FILE_LINE);
+        write_log_file(log, strlen(log));
+        return ERR_1;
+	}
 
     char sql_buf[LENGTH_SQLBUF];
     char order_buf[LENGTH_SQLORDER];
@@ -786,12 +880,11 @@ void read_meter_info(char	*pErr)
     strcat(sql_buf, order_buf);
     strcat(sql_buf, ";");
     printf("[%s][%s][%d]read meter info: %s\n", FILE_LINE, sql_buf);
-    char log[LENGTH_SQLBUF*2];
-    sprintf(log, "[%s][%s][%d]", FILE_LINE);
-    strcat(log, sql_buf);
-    strcat(log, "\n");
+    sprintf(log, "[%s][%s][%d]read meter info: %s\n", FILE_LINE, sql_buf);
     write_log_file(log, strlen(log));
-    sqlite3_exec(g_pDB, sql_buf, each_meter_info, NULL, &pErr);
+    err = sqlite3_exec(g_pDB, sql_buf, each_meter_info, NULL, &pErr);
+    write_err(err,pErr,log)
+    return (err==SQLITE_OK) ? NO_ERR : ERR_1;
 }
 
 static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_name)
@@ -966,15 +1059,19 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
  **	 函数名: read_sys_config
  ** 功能	: 从数据库中读取基本参数, 放到sys_config_array中
  ********************************************************************************/
-void read_sys_config(char *pErr)
+uint8 read_sys_config()
 {
+    uint8 err = NO_ERR;
+    char log[1024];
+    char *pErr;
 	if(NULL == g_pDB) {
-		pErr = "database not open";
-		return;
+        sprintf(log, "[%s][%s][%d]g_db is NULL\n", FILE_LINE);
+        write_log_file(log, strlen(log));
+        return ERR_1;
 	}
 
-	char *sql_buf = malloc(LENGTH_SQLBUF);
-	char *order_buf = malloc(LENGTH_SQLORDER);
+	char sql_buf[LENGTH_SQLBUF];
+	char order_buf[LENGTH_SQLORDER];
 	char *table_name = TABLE_BASE_DEF;
 	char *col_buf[3] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
 	int	col_cnt = 3;
@@ -982,16 +1079,15 @@ void read_sys_config(char *pErr)
 	memset(sys_config_array, 0, SYS_CONFIG_COUNT*sizeof(sys_config_str));//清空原有配置
 	config_idx = 0;
 
-	//读取数据表内的配置
-	get_select_sql(table_name, col_buf, col_cnt, sql_buf);
-	get_orderby_sql(col_buf, 1, 0, order_buf);
-	strcat(sql_buf, " ");
-	strcat(sql_buf, order_buf);
-	sqlite3_exec(g_pDB, sql_buf, each_config, NULL, &pErr);
-	free(sql_buf);
-	free(order_buf);
-	sysConfig_Ascii2hex();
-	printf("[%s][%s][%d]pErr: %s\n", FILE_LINE, pErr);
+    //读取数据表内的配置
+    get_select_sql(table_name, col_buf, col_cnt, sql_buf);
+    get_orderby_sql(col_buf, 1, 0, order_buf);
+    strcat(sql_buf, " ");
+    strcat(sql_buf, order_buf);
+    err = sqlite3_exec(g_pDB, sql_buf, each_config, NULL, &pErr);
+    write_err(err, pErr, log)
+    sysConfig_Ascii2hex();
+    return (err==SQLITE_OK) ? NO_ERR : ERR_1;
 }
 
 static int each_config(void *NotUsed, int f_cnt, char **f_value, char **f_name)
@@ -1086,13 +1182,15 @@ uint8 insert_sysconf(pSys_config pConfig)
 	return NO_ERR;
 }
 
-uint8 add_one_config(pSys_config pConf, char* pErr)
+uint8 add_one_config(pSys_config pConf)
 {
     if(NULL == pConf) {
     	return ERR_1;
     }
     uint8 err = NO_ERR;
-    char *sql_buf = malloc(LENGTH_SQLBUF);
+    char *pErr;
+    char log[1024];
+    char sql_buf[LENGTH_SQLBUF];
     char *table_name = TABLE_BASE_DEF;
     char *col_buf[LENGTH_F_COL_NAME] = {FIELD_BASE_DEF_ID, FIELD_BASE_DEF_NAME, FIELD_BASE_DEF_VALUE};
     char pIdstr[LENGTH_F_CONFIG_VALUE];
@@ -1100,7 +1198,7 @@ uint8 add_one_config(pSys_config pConf, char* pErr)
     
     int row_cnt=0;//查询当前f_id有几行. 如果为1, 则更新配置; 如果为0, 则插入新配置
     sqlite3_stmt *countstmt;
-    
+
     sprintf(pIdstr, "%d", pConf->f_id+1);
     printf("[%s][%s][%d]list_set_sysconf: %p, pIdstr: %s\n", FILE_LINE, list_set_sysconf, pIdstr);
     strcpy(sql_buf, "select count(*) from t_base_define where f_id=");
@@ -1127,26 +1225,22 @@ uint8 add_one_config(pSys_config pConf, char* pErr)
     }
     printf("[%s][%s][%d]sql_buf: %s\n", FILE_LINE, sql_buf);
     err =  sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
-    
-	printf("[%s][%s][%d]pErr: %s\n", FILE_LINE, pErr);
-    free(sql_buf);
+    write_err(err, pErr, log)
     return err==SQLITE_OK ? NO_ERR : ERR_1;
 }
 
-uint8 set_sysconf(char* pErr)
+uint8 set_sysconf()
 {
 	printf("[%s][%s][%d]list_set_sysconf: %p\n", FILE_LINE, list_set_sysconf);
 	pSys_config pTmp_conf = list_set_sysconf;
 	while(pTmp_conf) {
-		if(NO_ERR != add_one_config(pTmp_conf, pErr)) {
+		if(NO_ERR != add_one_config(pTmp_conf)) {
 			return ERR_1;
 		}
 		pTmp_conf = pTmp_conf->pNext;
 	}
 	empty_sysconf_list();//清空设置列表
-	read_sys_config(pErr);//重新读取数据库里的信息
-	printf("[%s][%s][%d]pErr: %s, pErr: %d\n", FILE_LINE, pErr, strlen(pErr));
-	return (strlen(pErr) ? ERR_1 : NO_ERR );
+	return read_sys_config();//重新读取数据库里的信息
 }
 
 
