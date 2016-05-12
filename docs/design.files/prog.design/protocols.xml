@@ -587,7 +587,6 @@
 </root>
 
 <!---------------- 10. 数据库操作相关(db_mani) ---------------->
-
 <!--上位机下发sql语句, 暂时不支持有返回结果的select语句-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
@@ -601,6 +600,11 @@
 </root>
 
 <!--下位机的数据库执行结果. 如果结果为空, 则说明语句成功被执行, 反之则返回错误信息-->
+<!--下位机可将sql语句处理成管道, 
+即" cmd = "sqlite3 db_name \"sql_stmt\"", 
+fp=popen(cmd, "r"),
+fread(result, sizeof(char), sizeof(result), fp), 即可
+ 而不用单独实现数据库操作相关函数-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
