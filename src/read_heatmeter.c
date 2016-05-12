@@ -97,22 +97,6 @@ void CreateFrame_CJ188(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
 }
 
 
-void CreateFrame_lcMod(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
-{
-    uint16 crcsum;
-    pDataTemp[0] = pmf->u8MeterAddr[0];//力创modbos的表地址长度为1字节
-    pDataTemp[1] = MODBUS_READ;
-    pDataTemp[2] = (LC_ELEC_WORK_START >> LEN_BYTE);
-    pDataTemp[3] = LC_ELEC_WORK_START;
-    pDataTemp[4] = (LC_ELEC_WORK_LEN >> LEN_BYTE);
-    pDataTemp[5] = LC_ELEC_WORK_LEN;
-    crcsum = crc16ModRtu(pDataTemp, 6);
-    pDataTemp[6] = crcsum;//低位
-    pDataTemp[7] = (crcsum >> LEN_BYTE);//高位 
-    *plen = 8;
-}
-
-
 
 
 /****************************************************************************************************
@@ -439,6 +423,20 @@ uint8 Read_HeatMeter(MeterFileType *pmf, CJ188_Format* pCj188Data)
 	return err;
 }
 
+void CreateFrame_lcMod(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
+{
+    uint16 crcsum;
+    pDataTemp[0] = pmf->u8MeterAddr[0];//力创modbos的表地址长度为1字节
+    pDataTemp[1] = MODBUS_READ;
+    pDataTemp[2] = (LC_ELEC_WORK_START >> LEN_BYTE);
+    pDataTemp[3] = LC_ELEC_WORK_START;
+    pDataTemp[4] = (LC_ELEC_WORK_LEN >> LEN_BYTE);
+    pDataTemp[5] = LC_ELEC_WORK_LEN;
+    crcsum = crc16ModRtu(pDataTemp, 6);
+    pDataTemp[6] = crcsum;//低位
+    pDataTemp[7] = (crcsum >> LEN_BYTE);//高位 
+    *plen = 8;
+}
 
 uint8 ElecLcMod_ReceiveFrame(MeterFileType *pmf, uint8 dev,uint16 Out_Time,uint8 *buf,uint16 *datalen)
 {
@@ -535,24 +533,25 @@ uint8 ElecMeter_DataSendAndRec(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
         lu8DownComDev = DOWN_COMMU_DEV_MBUS;
     }
 
+    sprintf(log, "[%s][%s][%d]", FILE_LINE);
+    for(i=0;i<lu32len;i++) {
+        sprintf(tmplog, "%02X", pDataTemp[i]);
+        strcat(log, " ");
+        strcat(log, tmplog);
+    }
+    strcat(log, "\n");
+    write_log_file(log, strlen(log));
+    err = RS485Down_DataSend(pDataTemp, lu32len);
+    sprintf(log, "[%s][%s][%d]err: %d\n", FILE_LINE, err);
+    write_log_file(log, strlen(log));
+
     switch(pmf->u8ProtocolType){
     case ELEC_LC_MODBUS:
-        sprintf(log, "[%s][%s][%d]", FILE_LINE);
-        for(i=0;i<lu32len;i++) {
-            sprintf(tmplog, "%02X", pDataTemp[i]);
-            strcat(log, " ");
-            strcat(log, tmplog);
-        }
-        strcat(log, "\n");
-        write_log_file(log, strlen(log));
-        err = RS485Down_DataSend(pDataTemp, lu32len);
-        sprintf(log, "[%s][%s][%d]err: %d\n", FILE_LINE, err);
-        write_log_file(log, strlen(log));
         err = ElecLcMod_ReceiveFrame(pmf,lu8DownComDev,lu16OutTime,pDataTemp,plen);
         sprintf(log, "[%s][%s][%d]err: %d\n", FILE_LINE, err);
         write_log_file(log, strlen(log));
     break;
-        default://默认抄CJ188格式。
+        default:
         break;
     }
 
@@ -575,11 +574,16 @@ uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, lcModb
 {
     uint8 err = NO_ERR;
     uint8 len = 0;
+    char log[1024];
     if(pData == NULL)
         return ERR_1;
 
     switch(pmf->u8ProtocolType){
     case ELEC_LC_MODBUS:
+        if(*pLen<(LC_ELEC_WORK_LEN*2+4)) {
+            sprintf(log, "[%s][%s][%d]pLen error: %d\n", FILE_LINE, *pLen);
+            return ERR_1;
+        }
         pDataBuf += 2;//略过地址域和功能码域
         len = *pDataBuf++;
         len = len;
@@ -637,7 +641,7 @@ uint8 ElecMeterCommunicate(MeterFileType *pmf,lcModbusElec_str *pData)
     err = ElecMeter_DataSendAndRec(pmf,lu8DataTemp,&lu16len);
 
     if(err == NO_ERR) {
-            err = ElecMeter_DataDeal(pmf,lu8DataTemp,&lu16len, pData);//解析接收到的数据
+        err = ElecMeter_DataDeal(pmf,lu8DataTemp,&lu16len, pData);//解析接收到的数据
     }		
     return err;
 }

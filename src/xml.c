@@ -929,9 +929,15 @@ uint8 update_meter_info(uint8 dev)
 uint8 func_minfo(uint8 dev, uint8 xml_idx)
 {
     uint8 err = NO_ERR;
+    QmsgType Qmsg;
     printf("now in func_minfo()\n");
     switch(g_xml_info[dev].oper_type){
     case em_OPER_RD:
+        printf("[%s][%s][%d] em_OPER_RD.\n", FILE_LINE);
+        Qmsg.mtype = 1;  //不要写0，其他都可以。
+        Qmsg.dev = dev;
+        Qmsg.functype = em_FUNC_MINFO;
+        msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
         break;
     case em_OPER_WR:
         update_meter_info(dev);

@@ -238,7 +238,7 @@ uint8 db_too_big()
         write_log_file(log, strlen(log));
         return ERR_1;
     }
-    if(NULL!=fgets(result, sizeof(result), fp)) {
+    if(fread(result, sizeof(char), sizeof(result), fp)) {
         disk_idle = atoi(result);
     } else {
         sprintf(log, "[%s][%s][%d]get result failed: %s", FILE_LINE, strerror(errno));
@@ -252,7 +252,7 @@ uint8 db_too_big()
         write_log_file(log, strlen(log));
         return ERR_1;
     }
-    if(NULL!=fgets(result, sizeof(result), fp)) {
+    if(fread(result, sizeof(char), sizeof(result), fp)) {
         db_size = atoi(result);
     } else {
         sprintf(log, "[%s][%s][%d]get result failed: %s", FILE_LINE, strerror(errno));
@@ -1129,31 +1129,6 @@ uint8 get_sys_config(sys_config_idx idx, pSys_config pConfig)
 	return NO_ERR;
 }
 
-#if 0
-static uint8 del_sysconf(char* pId, char* pErr)
-{
-	int err=0;
-	char *sql_buf = malloc(LENGTH_SQLBUF);
-	strcpy(sql_buf, SQL_DELETE);
-	strcat(sql_buf, " ");
-	strcat(sql_buf, SQL_FROM);
-	strcat(sql_buf, " ");
-	strcat(sql_buf, TABLE_BASE_DEF);
-
-	if(NULL != pId) {
-		strcat(sql_buf, " ");
-		strcat(sql_buf, SQL_WHERE);
-		strcat(sql_buf, " ");
-		strcat(sql_buf, FIELD_BASE_DEF_ID);
-		strcat(sql_buf, SQL_EQUAL);
-		strcat(sql_buf, pId);
-	}
-	err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
-	free(sql_buf);
-	return err==SQLITE_OK ? NO_ERR:ERR_FF;
-}
-#endif
-
 /*
  * 清空系统配置信息
  * 注意: 此函数应该由调用者在向列表插入数据前调用一次,
@@ -1241,16 +1216,6 @@ uint8 set_sysconf()
 	}
 	empty_sysconf_list();//清空设置列表
 	return read_sys_config();//重新读取数据库里的信息
-}
-
-
-/********************************************************************************
- **	 函数名: create_table
- ** 功能	: 创建数据表
- ********************************************************************************/
-void create_table(char* table_name, char *pErr)
-{
-	
 }
 
 /********************************************************************************
