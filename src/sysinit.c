@@ -255,38 +255,21 @@ void sem_Init(void)
 
 void sqldb_init(void)
 {
-	char lcSqlRetArry[100];
-	uint8 lu8tmp = 0;
-
-	open_db();
-	read_sys_config(lcSqlRetArry);
-	lu8tmp = strlen(lcSqlRetArry);
-	if(lu8tmp > 0){
-		printf("read_sys_config Err is %s .\n", lcSqlRetArry);
-		return;
+    char log[1024];
+	if(open_db() != NO_ERR) {
+        strcpy(log, "open db failed!\n");
+        write_log_file(log, strlen(log));
+        return;
 	}
-	
-	read_meter_info(lcSqlRetArry);  //将数据库中的表信息初始化到内存。
-	
-    printf("[%s][%s][%d]\n", FILE_LINE);
-	lu8tmp = strlen(lcSqlRetArry);
-	if(lu8tmp > 0){
-		printf("read_meter_info Err is %s .\n",lcSqlRetArry);
-		return;
-	}
-	
-    printf("[%s][%s][%d]\n", FILE_LINE);
-	read_all_request_data(lcSqlRetArry);
-	if(lu8tmp > 0){
-		printf("read_meter_info Err is %s .\n",lcSqlRetArry);
-		return;
-	}
-	printf("get_meter_info_cnt ret = %d.\n",get_meter_info_cnt());
 
-	//后续待完善。
+	if(read_sys_config() != NO_ERR)
+        return;
 
+    	if(read_meter_info() != NO_ERR)
+        return;
 
-
+    if(read_all_request_data() != NO_ERR)
+        return;
 }
 
 
