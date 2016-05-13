@@ -61,6 +61,7 @@ create table t_elect_data
 	f_meter_address varchar(50),
 	f_timestamp timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_time timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_upok char(1),
 	f_pact_tot_elec varchar(50),
 	f_nact_tot_elec varchar(50),
 	f_preact_tot_elec varchar(50),
@@ -84,6 +85,7 @@ create table t_water_data
 	f_meter_address varchar(50),
 	f_timestamp	timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_time	timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_upok char(1),
 	f_cur_accum_flow varchar(50),
 	f_flowrate varchar(50),
 	f_settle_date_accum_flow varchar(50),
@@ -104,6 +106,7 @@ create table t_heat_data
 	f_meter_address varchar(50),
 	f_timestamp timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
 	f_time timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_upok char(1),
 	f_cur_cold_E varchar(50), 
 	f_cur_heat_E varchar(50), 
 	f_heat_power varchar(50), 
