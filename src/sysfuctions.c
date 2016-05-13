@@ -16,6 +16,10 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <libxml/xmlwriter.h>
+#include <libxml/encoding.h>
+#include <libxml/parser.h>
+#include <libxml/tree.h>
 
 
 
@@ -26,6 +30,7 @@
 
 
 
+#define DEFAULT_ENCODING "utf-8"
 
 
 uint8 gDebugLevel = 1;
@@ -438,6 +443,87 @@ uint8 encode_base64(char* s, int len, char* enStr)
         }
     }
     return NO_ERR;
+}
+
+//生成用于测试的升级文件帧
+void gen_file_frame(char* filename, char* gateway_id, char* server_id)
+{
+    xmlTextWriterPtr writer;
+    xmlDocPtr doc;
+    char file[20];
+    char log[1024];
+    FILE *fp;
+    char file_buf[1024]={0};
+    int j, len;
+    char tmpstr[50];
+    uint16 crc;
+    
+    if ((fp = fopen(filename, "rb")) == NULL) {
+        sprintf(log, "[%s][%s][%d]open file err\n", FILE_LINE);
+        write_log_file(log,strlen(log));
+        return;
+    }
+    j=1;
+    while((len=fread(file_buf, 1, 1024, fp ))) {        
+        writer = xmlNewTextWriterDoc(&doc, 0);
+        xmlTextWriterStartDocument(writer, NULL, DEFAULT_ENCODING, NULL);
+        xmlTextWriterStartElement(writer, BAD_CAST "root");
+        //start common
+        xmlTextWriterStartElement(writer, BAD_CAST "common");
+        
+        //gateway_id
+        xmlTextWriterStartElement(writer, BAD_CAST "sadd");
+        xmlTextWriterWriteString(writer, BAD_CAST server_id);
+        xmlTextWriterEndElement(writer);
+        //sever_id
+        xmlTextWriterStartElement(writer, BAD_CAST "oadd");
+        xmlTextWriterWriteString(writer, BAD_CAST gateway_id);
+        xmlTextWriterEndElement(writer);
+        //func_id
+        xmlTextWriterStartElement(writer, BAD_CAST "func_type");
+        xmlTextWriterWriteString(writer, BAD_CAST "11");
+        xmlTextWriterEndElement(writer);
+        //operation_id
+        xmlTextWriterStartElement(writer, BAD_CAST "oper_type");
+        xmlTextWriterWriteString(writer, BAD_CAST "1");
+        xmlTextWriterEndElement(writer);
+        xmlTextWriterEndElement(writer);
+        //end common
+
+        //start trans
+        xmlTextWriterStartElement(writer, BAD_CAST "trans");
+        
+        xmlTextWriterStartElement(writer, BAD_CAST "frmid");
+        sprintf(tmpstr, "%d", j);
+        xmlTextWriterWriteString(writer, BAD_CAST tmpstr);
+        xmlTextWriterEndElement(writer);
+        
+        xmlTextWriterStartElement(writer, BAD_CAST "bc");
+        sprintf(tmpstr, "%d", len);
+        xmlTextWriterWriteString(writer, BAD_CAST tmpstr);
+        xmlTextWriterEndElement(writer);
+        
+        xmlTextWriterStartElement(writer, BAD_CAST "ck");
+        crc = crc16ModRtu((uint8*)file_buf, len);
+        sprintf(tmpstr, "%02X %02X", (uint8)crc, crc>>8);
+        xmlTextWriterWriteString(writer, BAD_CAST tmpstr);
+        xmlTextWriterEndElement(writer);
+
+        xmlTextWriterEndElement(writer);
+        //end trans
+
+        xmlTextWriterStartElement(writer, BAD_CAST "bin");
+        xmlTextWriterWriteBase64(writer, file_buf, 0, len);
+        xmlTextWriterEndElement(writer);
+        xmlTextWriterEndDocument(writer);
+        xmlFreeTextWriter(writer);
+        sprintf(file, "%d", j);
+        strcat(file, ".xml");
+        xmlSaveFileEnc(file, doc, DEFAULT_ENCODING);
+        xmlFreeDoc(doc);
+        j++;
+    }
+    fclose(fp);
 }
 
 /*

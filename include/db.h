@@ -234,6 +234,7 @@ struct request_data_str{
 #define FIELD_HIS_DEVID		"f_device_id"//设备编号
 #define FIELD_HIS_TSTAMP		"f_timestamp"//时间戳
 #define FIELD_HIS_TNODE		"f_time"//抄表时间点
+#define FIELD_HIS_UPOK         "f_upok"//上传数据成功标志
 
 struct meter_item;
 typedef struct meter_item *pMeter_item;
@@ -340,7 +341,8 @@ uint8 read_all_his_data(char* timenode);
 uint8 empty_all_hisdata(void);
 int get_his_cnt(mtype_idx idx);
 uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev);
-uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev);
+uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev, uint32* f_id);
+uint8 upok_flag(uint32* idx_list, uint32 len, mtype_idx type_idx);
 uint8 asc_to_datestr(char* src, char* dest);
 
 

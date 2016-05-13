@@ -1089,7 +1089,8 @@ uint8 up_his_data(uint8 dev)
     uint8 lu8times = 0;
     uint8 err = NO_ERR;
     FILE *fp;
-    uint8 type_idx;//仪表类型的索引
+    mtype_idx type_idx;//仪表类型的索引
+    uint32 *row_idx;//每一帧发送的数据表内的行索引列表
     
     printf("g_xml_info[dev].timenode: %s\n", g_xml_info[dev].timenode);
     err = read_all_his_data(g_xml_info[dev].timenode);
@@ -1154,7 +1155,8 @@ uint8 up_his_data(uint8 dev)
             wr_his_xml(NULL, dev);//写trans节点
             g_xml_info[dev].cur_row_idx = 0;
             printf("[%s][%s][%d]current row count: %d\n", FILE_LINE, g_xml_info[dev].cur_cnt);
-            retrieve_and_del_his_data(type_idx, g_xml_info[dev].cur_cnt, wr_his_xml, dev);//写row节点, 查询完就删除, 以免下一帧从头开始查
+            row_idx = malloc(g_xml_info[dev].cur_cnt*sizeof(uint32));
+            retrieve_and_del_his_data(type_idx, g_xml_info[dev].cur_cnt, wr_his_xml, dev, row_idx);//写row节点, 查询完就删除, 以免下一帧从头开始查
 
             do{//获取一个xml暂存空间,最后一定要释放该空间，获取-使用-释放。
                 g_xml_info[dev].xml_wr_file_idx = Get_XMLBuf();
@@ -1175,10 +1177,12 @@ uint8 up_his_data(uint8 dev)
 		  		if(retSem != 0){
 					printf("data report fail,times=%d .\n",lu8times+1);
 					continue;
-				}
-				else				
+				} else {//将上传成功标志设为'1'
+				    upok_flag(row_idx, g_xml_info[dev].cur_cnt, type_idx);
 					break; //如果发送后收到应答，则跳出继续发送下一帧。
+				}
             }
+            free(row_idx);
             Put_XMLBuf(g_xml_info[dev].xml_wr_file_idx);//发送完成, 释放占用的xml文件
             xmlFreeDoc(g_xml_info[dev].xmldoc_wr);//发送完成, 释放占用的xml内存
             printf("[%s][%s][%d] free write xml succeed!!\n", FILE_LINE);
@@ -1254,7 +1258,35 @@ uint8 func_swip(uint8 dev, uint8 xml_idx)
 uint8 do_db_cmd(uint8 dev)
 {
     uint8 err = NO_ERR;
-    
+    xmlNodePtr rootNode = xmlDocGetRootElement(g_xml_info[dev].xmldoc_rd);
+    if(rootNode == NULL)
+        return ERR_1;
+    xmlNodePtr cmdNode = rootNode->children;
+    char result[LENGTH_SYS_ANSWER*4] = {0};
+    char cmd[1024] = {0};
+    xmlChar* pValue;
+    FILE *fstream=NULL;
+
+    while(cmdNode) {
+        if(xmlStrEqual(cmdNode->name, CONST_CAST "sql_stmt")) {
+            pValue = xmlNodeGetContent(cmdNode->xmlChildrenNode);
+            break;
+        }
+        cmdNode = cmdNode->next;
+    }
+    sprintf(cmd, "sqlite3 %s \"%s\";", SQLITE_NAME, (char*)pValue);
+
+    if(NULL==(fstream=popen(cmd,"r"))) {
+        fprintf(stderr,"execute command failed: %s",strerror(errno));
+        return ERR_1;
+    }
+    if(0 !=fread(result, sizeof(char), sizeof(result), fstream)) {
+        printf("[%s][%s][%d]result: %s", FILE_LINE, result);
+    } else {
+        err = ERR_1;
+    }
+    pclose(fstream);
+    err = send_answer(dev, "sql_result", result, NULL);
     return err;
 }
 

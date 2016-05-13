@@ -228,7 +228,7 @@ uint8 db_too_big()
     FILE* fp;
     char log[1024];
 
-    char* cmd_disk_idle = "df | grep rootfs | awk '{print $3}'";//空闲空间
+    char* cmd_disk_idle = "df | grep rootfs | awk '{print $4}'";//空闲空间
     char* cmd_db_size = "ls -l gatherdb.db | awk '{print $5}'";//数据库大小
     char result[20];
     int disk_idle;
@@ -273,7 +273,7 @@ uint8 db_too_big()
 
 /*
  * 如果这个仪表的数据表行数超过一定数量
- * 就删除前一个采暖季的历史数据
+ * 就删除已上传成功的历史数据
  */
 uint8 clean_data(mtype_idx type_idx, char* pErr)
 {
@@ -282,9 +282,7 @@ uint8 clean_data(mtype_idx type_idx, char* pErr)
     char sql_buf[512]= {0};
     strcpy(sql_buf, "delete from ");
     strcat(sql_buf, tablename_array[type_idx]);
-    strcat(sql_buf, " where date(f_time) = (select min(date(f_timestamp)) from ");
-    strcat(sql_buf, tablename_array[type_idx]);
-    strcat(sql_buf, ");");
+    strcat(sql_buf, " where f_upok = 1;");
     sprintf(log, "[%s][%s][%d]%s\n", FILE_LINE, sql_buf);
     write_log_file(log, strlen(log));
     if (db_too_big()) {/*check if database is too big*/
@@ -373,6 +371,8 @@ uint8 insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struc
 	strcat(sql_buf, ",");
 	strcat(sql_buf, FIELD_HIS_TNODE);//抄表时间点
 	strcat(sql_buf, ",");
+    strcat(sql_buf, FIELD_HIS_UPOK);
+    strcat(sql_buf, ",");
 	for(i=0;i<item_cnt-1;i++, tmp_col_buf += LENGTH_F_COL_NAME) {
 		strcat(sql_buf, tmp_col_buf);
 		strcat(sql_buf, ",");
@@ -413,6 +413,8 @@ uint8 insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struc
 	strcat(sql_buf, dest);//抄表时间点
 	strcat(sql_buf, SQL_SINGLE_QUOTES);
 	strcat(sql_buf, ",");
+    strcat(sql_buf, "'0'");
+    strcat(sql_buf, ",");
 	item_list = arrayRequest_list[type_idx];
     if (NULL==pData) {//与调用者约定, 如果传入了NULL值, 就认为当前仪表的当前时间点的历史数据没抄上来
         while(item_list) {
@@ -603,7 +605,7 @@ uint8 retrieve_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, u
     return NO_ERR;
 }
 
-uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev)
+uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis_data, uint8), uint8 dev, uint32* f_id)
 {
     int i=0;
     pHis_data pTmp_his = his_data_list_array[idx];
@@ -626,6 +628,7 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
         pRtn_his->value_list = malloc(pTmp_his->value_cnt*sizeof(struct meter_item));    
         memcpy(pRtn_his->value_list, pTmp_his->value_list, pTmp_his->value_cnt*sizeof(struct meter_item));
         printf("@@@@@[%s][%s][%d]before read_one_his(pRtn_his, dev), pRtn_his is : %p @@@@@\n",FILE_LINE, pRtn_his);
+        f_id[i] = atoi(pRtn_his->f_id);
         read_one_his(pRtn_his, dev);
         free(pRtn_his->value_list);
         //删除已读取的节点
@@ -646,6 +649,32 @@ uint8 retrieve_and_del_his_data(mtype_idx idx, int cnt, int (*read_one_his)(pHis
     free(pRtn_his);
     return NO_ERR;
 }
+
+uint8 upok_flag(uint32* idx_list, uint32 len, mtype_idx type_idx)
+{
+    uint8 err = NO_ERR;
+    char* tablename = tablename_array[type_idx];
+    int i=0;
+    char* pErr;
+    char log[1024];
+    char sql_buf[LENGTH_SQLBUF];
+    char f_id[10]={0};
+    strcpy(sql_buf, "update ");
+    strcat(sql_buf, tablename);
+    strcat(sql_buf, " set f_upok=1 where f_id in (");
+    
+    for(i=0;i<len;i++) {
+        sprintf(f_id, "%d", idx_list[i]);
+        strcat(sql_buf, f_id);
+        if(i<(len-1))
+            strcat(sql_buf, ",");
+    }
+    strcat(sql_buf, ");");
+    err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+    write_err(err,pErr,log)
+    return err;
+}
+
 
 
 /********************************************************************************

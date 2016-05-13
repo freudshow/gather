@@ -342,7 +342,9 @@ uint8 HeatMeterCommunicate(MeterFileType *pmf,CJ188_Format *pCJ188Data)
 	uint8 lu8DataTemp[256] = {0};  //欧标比较长，这里放256.
 	uint16 lu16len = 0;
 	uint8 err = 0;
-
+    char log[2048];
+    char oneByte[5];
+    int i;
 	if(pmf->u8ProtocolType == HYDROMETER775_VER || pmf->u8ProtocolType == ZENNER_VER){  //一些欧标的表
 
 	}
@@ -350,6 +352,13 @@ uint8 HeatMeterCommunicate(MeterFileType *pmf,CJ188_Format *pCJ188Data)
 		lu16len = sizeof(lu8DataTemp);  //CreateFrame_CJ188()中传入存储空间大小，以免超限。
 		CreateFrame_CJ188(pmf,lu8DataTemp,&lu16len);  //创建抄表帧。
 		err = HeatMeter_DataSendAndRec(pmf,lu8DataTemp,&lu16len);
+        sprintf(log, "[%s][%s][%d]", FILE_LINE);
+        for(i=0;i<lu16len;i++) {
+            sprintf(oneByte, "%02X ", lu8DataTemp[i]);
+            strcat(log, oneByte);
+        }
+        strcat(log, "\n");
+        write_log_file(log, strlen(log));
 		if(err == NO_ERR){
 			err = HeatMeter_DataDeal(pmf,lu8DataTemp,&lu16len,pCJ188Data);//解析接收到的数据，并处理成统一CJ188格式。
 		}
