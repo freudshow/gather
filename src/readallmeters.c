@@ -158,11 +158,12 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 
 void ReadAllMeters(void)
 {
-	time_t timep;
-     struct tm nowTime;
-	QmsgType Qmsg;
+    time_t timep;
+    struct tm nowTime;
+    QmsgType Qmsg;
     memset(&Qmsg, 0, sizeof(QmsgType));
-	uint16 lu16netType = 0;
+    uint16 lu16netType = 0;
+    sys_config_str sysconfig;
 
      time(&timep);
      localtime_r(&timep, &gTimeNode);
@@ -176,6 +177,8 @@ void ReadAllMeters(void)
 
 
      retrieve_meter_info_list(CallBack_ReadAllMeters);  //卤茅脌煤鲁颅脠芦卤铆隆拢
+     get_sys_config(CONFIG_REPORT_MODE, &sysconfig);
+     if(RPT_ACTIVE == atoi(sysconfig.f_config_value)) {//如果是主动上报, 则发送上报消息
 /*
 	lu16netType = g_sysConfigHex.netType;
 	if(lu16netType == 0){  //使用485组网，是不允许信息主动上推的，必须等待上位要数, 如果多个集中器都往485总线上推数据, 会引发冲突
@@ -199,13 +202,14 @@ void ReadAllMeters(void)
   	else
 	  	Qmsg.dev = UP_COMMU_DEV_485;    //使用485组网，是不允许信息主动上推的，必须等待上位要数，这里测试用。
   
-  	Qmsg.functype = em_FUNC_RPTUP;
-	char tmpstr[30];
-	asctime_r(&gTimeNode, tmpstr);
-	asc_to_datestr(tmpstr, Qmsg.timenode);
-    printf("[%s][%s][%d] Qmsg.timenode: %s\n", FILE_LINE, Qmsg.timenode );
-  	msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
-    printf("[%s][%s][%d] Qmsg have been sent\n", FILE_LINE);
+        Qmsg.functype = em_FUNC_RPTUP;
+        char tmpstr[30];
+        asctime_r(&gTimeNode, tmpstr);
+        asc_to_datestr(tmpstr, Qmsg.timenode);
+        printf("[%s][%s][%d] Qmsg.timenode: %s\n", FILE_LINE, Qmsg.timenode );
+        msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
+        printf("[%s][%s][%d] Qmsg have been sent\n", FILE_LINE);
+    }
 }
 
 

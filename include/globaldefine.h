@@ -282,6 +282,8 @@ typedef enum{//上下位机操作类型编号
 	em_OPER_ASW//应答
 }oper_type_idx;
 
+#define RPT_ACTIVE  0
+#define RPT_PASSIVE 1
 typedef enum T_System_Config {
     CONFIG_PRIMARY_SERVER = 0,  //-0-, 主服务器IP
     CONFIG_PRIMARY_DNS,         //-1-, 主DNS IP
