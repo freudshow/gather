@@ -67,9 +67,7 @@ create table t_elect_data
 	f_preact_tot_elec varchar(50),
 	f_nreact_tot_elec varchar(50),
 	f_act_tot_elec varchar(50),
-	f_react_tot_elec varchar(50),
-	f_ovr_pow_fac varchar(50),
-	f_pmax_dem varchar(50)
+	f_react_tot_elec varchar(50)
 );
 
 ---------------------------------
@@ -154,8 +152,8 @@ insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_t
 insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(19, '40', '04', 'f_nreact_tot_elec', 'varchar(50)');
 insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(20, '40', '05', 'f_act_tot_elec', 'varchar(50)');
 insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(21, '40', '06', 'f_react_tot_elec', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(22, '40', '07', 'f_ovr_pow_fac', 'varchar(50)');
-insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(23, '40', '08', 'f_pmax_dem', 'varchar(50)');
+--insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(22, '40', '07', 'f_ovr_pow_fac', 'varchar(50)');
+--insert into t_request_data(f_id, f_meter_type, f_item_index, f_col_name, f_col_type)values(23, '40', '08', 'f_pmax_dem', 'varchar(50)');
 
 ---------------------------------
 --时间点配置表
