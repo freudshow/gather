@@ -34,7 +34,7 @@ int pthread_RS485up_Rec(void)
 	//上行485口初始化
 	g_uiRS4851Fd = open_com_dev(DEVICE4851);
 	if (set_com_para(g_uiRS4851Fd,RS485UP_COM_SPEED,8,1,'N') == FALSE) { 
- 
+        return (CONTROL_RET_FAIL);
 	}
 	else
 		printf("RS485Up com parameter set OK.\n");	

@@ -275,8 +275,8 @@ uint8 DownDevGetch(uint8 dev,uint8* data,uint16 OutTime)
 	uint8 ret;
     char log[1024];
 	while((ret=QueueRead(data, (void*)pQueues[dev])) != QUEUE_OK){	
-         sprintf(log, "[%s][%s][%d] ret = %d QUEUE_EMPTY\n", FILE_LINE, ret);
-         write_log_file(log, strlen(log));
+         //sprintf(log, "[%s][%s][%d] ret = %d QUEUE_EMPTY\n", FILE_LINE, ret);
+         //write_log_file(log, strlen(log));
    		OSSemPend(dev, (uint32)OutTime, &err);
 		if(err != OS_ERR_NONE){
             sprintf(log, "[%s][%s][%d] err = %d\n",FILE_LINE,err);

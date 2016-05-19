@@ -192,7 +192,6 @@ typedef struct
 
 typedef enum{//写入历史数据协议的当前状态
     stat_his_init=0,//初始状态, 文件空白
-    stat_his_result,//结果状态
     stat_his_trans,//传输相关数据状态
     stat_his_data,//row data状态
     stat_his_end//结束状态
@@ -284,6 +283,19 @@ typedef enum{//上下位机操作类型编号
 
 #define RPT_ACTIVE  0
 #define RPT_PASSIVE 1
+
+#define NETMOD_GPRS 0
+#define NETMOD_RS485 0
+#define NETMOD_ETH 0
+#define NETMOD_GPRS 0
+
+typedef enum em_net_mod{//组网方式
+    em_net_gprs   = 0,  //GPRS
+    em_net_rs485,       //RS485
+    em_net_eth,         //以太网
+    em_net_zigbee       //ZigBee
+}net_mod;
+
 typedef enum T_System_Config {
     CONFIG_PRIMARY_SERVER = 0,  //-0-, 主服务器IP
     CONFIG_PRIMARY_DNS,         //-1-, 主DNS IP

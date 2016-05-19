@@ -162,26 +162,25 @@ void ReadAllMeters(void)
     struct tm nowTime;
     QmsgType Qmsg;
     memset(&Qmsg, 0, sizeof(QmsgType));
-    uint16 lu16netType = 0;
+    net_mod lnetMod;
     sys_config_str sysconfig;
 
-     time(&timep);
-     localtime_r(&timep, &gTimeNode);
-     gTimeNode.tm_sec = 0;   //露篓脢卤鲁颅卤铆陆脷碌茫拢卢脙毛脢媒鹿脤露篓脨麓0.
-     memcpy((uint8 *)&nowTime,(uint8 *)&gTimeNode,sizeof(struct tm));
-     nowTime.tm_year +=      1900;
-     nowTime.tm_mon += 1;  //脳陋禄禄鲁脡碌卤脟掳脛锚潞脥脭脗隆拢
+    time(&timep);
+    localtime_r(&timep, &gTimeNode);
+    gTimeNode.tm_sec = 0;   //露篓脢卤鲁颅卤铆陆脷碌茫拢卢脙毛脢媒鹿脤露篓脨麓0.
+    memcpy((uint8 *)&nowTime,(uint8 *)&gTimeNode,sizeof(struct tm));
+    nowTime.tm_year +=      1900;
+    nowTime.tm_mon += 1;  //脳陋禄禄鲁脡碌卤脟掳脛锚潞脥脭脗隆拢
 
-     printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday);
-     printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
+    printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday);
+    printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
 
 
-     retrieve_meter_info_list(CallBack_ReadAllMeters);  //卤茅脌煤鲁颅脠芦卤铆隆拢
-     get_sys_config(CONFIG_REPORT_MODE, &sysconfig);
-     if(RPT_ACTIVE == atoi(sysconfig.f_config_value)) {//如果是主动上报, 则发送上报消息
-/*
-	lu16netType = g_sysConfigHex.netType;
-	if(lu16netType == 0){  //使用485组网，是不允许信息主动上推的，必须等待上位要数, 如果多个集中器都往485总线上推数据, 会引发冲突
+    retrieve_meter_info_list(CallBack_ReadAllMeters);  //卤茅脌煤鲁颅脠芦卤铆隆拢
+    get_sys_config(CONFIG_REPORT_MODE, &sysconfig);
+    if(RPT_ACTIVE == atoi(sysconfig.f_config_value)) {//如果是主动上报, 则发送上报消息
+    lnetMod = g_sysConfigHex.netType;
+	if(lnetMod != em_net_rs485){  //使用485组网，是不允许信息主动上推的，必须等待上位要数, 如果多个集中器都往485总线上推数据, 会引发冲突
 	  	Qmsg.dev = UP_COMMU_DEV_GPRS;
 		Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
 		Qmsg.functype = em_FUNC_RPTUP;
@@ -189,15 +188,14 @@ void ReadAllMeters(void)
 		asctime_r(&gTimeNode, tmpstr);
 		asc_to_datestr(tmpstr, Qmsg.timenode);
   		msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
-
 	}
-*/
-	
-    
+
+
+    /*
   	Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
   
-  	lu16netType = g_sysConfigHex.netType;
-  	if(lu16netType == 0)
+  	lnetMod = g_sysConfigHex.netType;
+  	if(lnetMod == 0)
 	  	Qmsg.dev = UP_COMMU_DEV_GPRS;
   	else
 	  	Qmsg.dev = UP_COMMU_DEV_485;    //使用485组网，是不允许信息主动上推的，必须等待上位要数，这里测试用。
@@ -209,6 +207,7 @@ void ReadAllMeters(void)
         printf("[%s][%s][%d] Qmsg.timenode: %s\n", FILE_LINE, Qmsg.timenode );
         msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
         printf("[%s][%s][%d] Qmsg have been sent\n", FILE_LINE);
+    */
     }
 }
 

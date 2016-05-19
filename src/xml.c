@@ -24,6 +24,10 @@ char *pXMLFileName[XML_BUF_FILE_NUM]={"buff0.xml","buff1.xml","buff2.xml","buff3
 
 XML_FILE gXML_File[XML_BUF_FILE_NUM];  //定义xml文件相关变量。
 static xml_info_str g_xml_info[UP_COMMU_DEV_ARRAY];//定义时初始化
+
+/* 仪表数据项
+ * 顺序要同globaldefine_h->{hItem_idx, wItem_idx, eItem_idx}
+ */
 char *colname_heat[] = {"f_cur_cold_E", "f_cur_heat_E", "f_heat_power", "f_flowrate", \
     "f_accum_flow", "f_in_temp", "f_out_temp", "f_accum_work_time", "f_cur_time", \
     "f_state"};
@@ -84,9 +88,9 @@ uint8 XMLBuf_Init(void)
 		gXML_File[i].pXMLFile = pXMLFileName[i];
 
 		//printf("i=%d.\n",i);  //调试跟踪用。
-        char log[256];
-        sprintf(log, "[%s][%s][%d]i=%d.\n", FILE_LINE, i);
-        write_log_file(log, strlen(log));
+        //char log[256];
+        //sprintf(log, "[%s][%s][%d]i=%d.\n", FILE_LINE, i);
+        //write_log_file(log, strlen(log));
 	}
 
 	gsu8XmlBufInitFlag = 1;
@@ -184,9 +188,9 @@ uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 	
 	printf("start fopen %s . \n", gXML_File[XmlIndex].pXMLFile);   
     
-    char log[256];
-    sprintf(log, "[%s][%s][%d]start fopen %s . \n", FILE_LINE, gXML_File[XmlIndex].pXMLFile);
-    write_log_file(log, strlen(log));
+    //char log[256];
+    //sprintf(log, "[%s][%s][%d]start fopen %s . \n", FILE_LINE, gXML_File[XmlIndex].pXMLFile);
+    //write_log_file(log, strlen(log));
     
 	fp=fopen(gXML_File[XmlIndex].pXMLFile,"w+");
 	
@@ -426,7 +430,7 @@ uint8 func_id(uint8 dev, uint8 xml_idx)
 		if(err == NO_ERR){
 			fp = fopen(gXML_File[xml_idx].pXMLFile,"r");
 			FileSend(dev, fp);
-             FileSend(UP_COMMU_DEV_485, fp);
+             //FileSend(UP_COMMU_DEV_485, fp);
 			fclose(fp);
 		}		
 	case em_OPER_WR:
@@ -461,7 +465,7 @@ uint8 func_heart_beat(uint8 dev, uint8 xml_idx)
 		if(err == NO_ERR){
 			fp = fopen(gXML_File[xml_idx].pXMLFile,"r");
 			FileSend(dev, fp);
-            FileSend(UP_COMMU_DEV_485, fp);
+            //FileSend(UP_COMMU_DEV_485, fp);
 			fclose(fp);
 		}		
 	case em_OPER_WR:
@@ -477,7 +481,7 @@ uint8 func_heart_beat(uint8 dev, uint8 xml_idx)
 	return err;
 }
 
-//使用同一个函数处理应答, 以便以后维护的时候方便
+//使用同一个函数处理应答, 便于维护
 uint8 send_answer(uint8 dev, char* resNode, char* res, void* otherptr)
 {
     uint8 err=NO_ERR;
@@ -529,7 +533,7 @@ uint8 send_answer(uint8 dev, char* resNode, char* res, void* otherptr)
     if(err == NO_ERR) {//发送文件
         fp = fopen(gXML_File[lu8xmlIndex].pXMLFile,"r");
         FileSend(dev, fp);
-        FileSend(UP_COMMU_DEV_485, fp);
+        //FileSend(UP_COMMU_DEV_485, fp);
         printf("[%s][%s][%d]xml file have been sent\n", FILE_LINE);
         fclose(fp);
     }
@@ -707,10 +711,9 @@ uint8 func_sysconfig(uint8 dev, uint8 xml_idx)
         err = write_sysconfig(dev);
         break;
     case em_OPER_ASW:
-        
         break;
     default:
-        err = ERR_FF;
+        err = ERR_1;
         break;
     }
     return err;
@@ -818,7 +821,6 @@ uint8 func_tnode(uint8 dev, uint8 xml_idx)
 uint8 update_meter_info(uint8 dev)
 {
     uint8 err = NO_ERR;
-    char pErr[100];
     pMeter_info pMInfo;
     xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
     if(NULL == pDoc) {
@@ -917,9 +919,8 @@ uint8 update_meter_info(uint8 dev)
     printf("send_upmeter_answer OK\n");
     if(total_rows == g_xml_info[dev].meter_info_row_idx) {//如果上位机发完, 更新数据库
         printf("now insert_into_meter_info_table():\n");        
-        empty_meter_info_table(pErr);
-        insert_into_meter_info_table(pErr);
-        err = (strlen(pErr)>0 ? ERR_1 : NO_ERR);
+        empty_meter_info_table();
+        err = insert_into_meter_info_table();
         printf("[%s][%s][%d]insert_into_meter_info_table done\n", FILE_LINE);
     }
     return err;
@@ -1091,28 +1092,32 @@ uint8 up_his_data(uint8 dev)
     FILE *fp;
     mtype_idx type_idx;//仪表类型的索引
     uint32 *row_idx;//每一帧发送的数据表内的行索引列表
+    char log[1024];
     
-    printf("g_xml_info[dev].timenode: %s\n", g_xml_info[dev].timenode);
+    printf("[%s][%s][%d]g_xml_info[dev].timenode: %s\n", FILE_LINE, g_xml_info[dev].timenode);
     err = read_all_his_data(g_xml_info[dev].timenode);
     if(err != NO_ERR) {
+        sprintf(log, "[%s][%s][%d]read_all_his_data error", FILE_LINE);
+        write_log_file(log, strlen(log));
         return ERR_1;
     }
     g_xml_info[dev].cur_frame_indep = 0;
     g_xml_info[dev].total_rows = 0;
     g_xml_info[dev].cur_rows = 0;
     for(type_idx=0;type_idx<MTYPE_CNT;type_idx++) {
-        printf("--------------current meter type: %d--------------\n", type_idx);
-        printf("--------------current meter get_his_cnt: %d--------------\n", get_his_cnt(type_idx));
+        printf("[%s][%s][%d]current meter type: %d\n", FILE_LINE, type_idx);
+        printf("[%s][%s][%d]current meter get_his_cnt: %d\n", FILE_LINE, get_his_cnt(type_idx));
         g_xml_info[dev].total_row[type_idx] = get_his_cnt(type_idx);
         g_xml_info[dev].total_rows += g_xml_info[dev].total_row[type_idx];
         g_xml_info[dev].mod[type_idx] = g_xml_info[dev].total_row[type_idx]%ROW_PER_FRAME;
-        printf("##########[%s][%s][%d]##########total_row[%d]: %d.\n", FILE_LINE, type_idx, g_xml_info[dev].total_row[type_idx]);
-        printf("##########[%s][%s][%d]##########mod[%d]: %d.\n", FILE_LINE, type_idx, g_xml_info[dev].mod[type_idx]);
+        printf("[%s][%s][%d]total_row[%d]: %d.\n", FILE_LINE, type_idx, g_xml_info[dev].total_row[type_idx]);
+        printf("[%s][%s][%d]mod[%d]: %d.\n", FILE_LINE, type_idx, g_xml_info[dev].mod[type_idx]);
         g_xml_info[dev].cur_frame[type_idx] = 0;
         g_xml_info[dev].total_frame[type_idx] = (g_xml_info[dev].total_row[type_idx]/ROW_PER_FRAME+((g_xml_info[dev].mod[type_idx])?1:0));
         printf("[%s][%s][%d]total_frame is: >>>%d<<<\n", FILE_LINE, g_xml_info[dev].total_frame[type_idx]);
     }
     if(0 == g_xml_info[dev].total_rows){//如果没有查询到相应时间点的历史数据, 返回0行信息
+        printf("[%s][%s][%d]all rows is 0\n", FILE_LINE);
         g_xml_info[dev].cur_wr_state = stat_his_init;//每次组帧之前都是初始状态
         wr_his_xml(NULL, dev);//写root节点和common节点
         wr_his_xml(NULL, dev);//写trans节点
@@ -1169,7 +1174,7 @@ uint8 up_his_data(uint8 dev)
             		    printf("[%s][%s][%d] xml_wr_file_idx'name: %s\n", FILE_LINE, gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile);
                 		fp = fopen(gXML_File[g_xml_info[dev].xml_wr_file_idx].pXMLFile,"r");
                 		FileSend(dev, fp);
-                        FileSend(UP_COMMU_DEV_485, fp);
+                      //FileSend(UP_COMMU_DEV_485, fp);
                 		fclose(fp);
             		}
 		  
@@ -1334,7 +1339,7 @@ uint8 do_shell_cmd(uint8 dev)
         fprintf(stderr,"execute command failed: %s",strerror(errno));
         return ERR_1;
     }
-    if(0 !=fread(result, sizeof(char), sizeof(result), fstream)) {
+    if(0 != fread(result, sizeof(char), sizeof(result), fstream)) {
         printf("[%s][%s][%d]result: %s", FILE_LINE, result);
     } else {
         err = ERR_1;
@@ -1468,7 +1473,7 @@ uint8 update_bin(uint8 dev)
 
     if(g_xml_info[dev].up_cur_frm_idx == -1) {//如果是第0帧, 则初始化暂存空间, 完成后就退出
         empty_update_list(dev);
-        if((err = malloc_space(dev)) ==ERR_1) {//任意时刻, 如果集中器申请不到内存, 向上位机发送终止升级的消息
+        if((err = malloc_space(dev)) ==ERR_1) {//任意时刻, 如果集中器申请不到内存, 向上位机发送"malloc fail"消息
             send_answer(dev, "malloc", "fail", NULL);
         } else {
             send_answer(dev, "md5", "diff", NULL);
@@ -1572,7 +1577,7 @@ uint8 merge_update_file(uint8 dev)
     int wLen;//要写入的字节数
     int acwLen;//实际写入的字节数
     char cmd[100]={0};//调用shell命令
-    char filename[50]={0};
+    char tarfile[50]={0};
     char result[100]={0};//shell命令的结果
     char* sp;
     sys_config_str sys_config;
@@ -1585,9 +1590,8 @@ uint8 merge_update_file(uint8 dev)
         }
     }
 
-    strcpy(filename, APP_TMPNAME);
-    strcat(filename, ".tar.bz2");
-    fp = fopen(filename, "wb+");
+    sprintf(tarfile, "%s%s", APP_TMPNAME, ".tar.bz2");
+    fp = fopen(tarfile, "wb+");
     for(idx=0;idx<g_xml_info[dev].up_total_frm;idx++) {
         if(g_xml_info[dev].pDataList[idx] != NULL) {
             wLen = g_xml_info[dev].pDataLen[idx];
@@ -1599,8 +1603,7 @@ uint8 merge_update_file(uint8 dev)
                 //empty_update_list(dev);
                 fclose(fp);
                 //删除压缩包
-                strcpy(cmd, "rm ");
-                strcat(cmd, filename);
+                sprintf(cmd, "rm %s", tarfile);
                 system(cmd);
                 send_lack_frame(dev);//向上位机重新要数据
                 return ERR_1;
@@ -1612,17 +1615,14 @@ uint8 merge_update_file(uint8 dev)
     }
     fclose(fp);
     //解压缩临时文件
-    strcpy(cmd, "tar xjvf ");
-    strcat(cmd, filename);
+    sprintf(cmd, "tar xjvf %s", tarfile);
     system(cmd);    
     //删除压缩包
-    strcpy(cmd, "rm ");
-    strcat(cmd, filename);
+    sprintf(cmd, "rm %s", tarfile);
     system(cmd);
 
     //对比临时文件的MD5值
-    strcpy(cmd, "md5sum ");
-    strcat(cmd, APP_TMPNAME);
+    sprintf(cmd, "md5sum %s", APP_TMPNAME);
     if(NULL==(fp=popen(cmd, "r"))) {
         fprintf(stderr, "execute command failed: %s", strerror(errno));
         send_answer(dev, "merge", "fail", NULL);
@@ -1638,19 +1638,17 @@ uint8 merge_update_file(uint8 dev)
     printf("[%s][%s][%d]\n",FILE_LINE);
     strtok_r(result, " ", &sp);//把md5值从得到的执行结果中分离出来
     printf("[%s][%s][%d]\n",FILE_LINE);
-    if(strcmp(g_xml_info[dev].up_md5, result) != 0) {//MD5值不一致, 返回错误
+    if(strcmp(g_xml_info[dev].up_md5, result) != 0) {//MD5值不一致, 删除解压文件, 并返回错误
+        sprintf(cmd, "rm %s", APP_TMPNAME);
+        system(cmd);
         send_answer(dev, "merge", "fail", NULL);
         return ERR_1;
     }
     //删除老程序
-    strcpy(cmd, "rm ");
-    strcat(cmd, APP_NAME);
+    sprintf(cmd, "rm %s", APP_TMPNAME);
     system(cmd);
     //将新升级的临时程序改名为原程序名
-    strcpy(cmd, "mv ");
-    strcat(cmd, APP_TMPNAME);
-    strcat(cmd, " ");
-    strcat(cmd, APP_NAME);
+    sprintf(cmd, "mv %s %s", APP_TMPNAME, APP_NAME);
     system(cmd);
     //将新程序的MD5值存入数据库
     sys_config.f_id = CONFIG_APP_MD5;
@@ -1817,13 +1815,7 @@ uint8 send_cmd_and_rcv(uint8 dev, proto_trans_str* pProtoTrs)
         lu8retrytimes--;
     }while((retErr != TRUE) && (lu8retrytimes > 0));
     QueueFlush((void*)pQueues[down_dev]);
-    /*printf("[%s][%s][%d] after flush queue: \n", FILE_LINE);
-    int i=0;    
-    DataQueue *Queue = (DataQueue *)pQueues[down_dev];
-    printf("[%s][%s][%d] queue max length: %d\n", FILE_LINE, Queue->MaxData);
-    for(i=0;i<Queue->MaxData; i++)
-        printf("i: %d, data: %02x; ", i, Queue->Buf[i]);
-    printf("\n");*/
+
     DownDevSend(down_dev, pProtoTrs->cmd, pProtoTrs->cmdlen);
     memset(pProtoTrs->res, 0, sizeof(pProtoTrs->res));
     pProtoTrs->resLen = 0;
@@ -2052,7 +2044,7 @@ uint8 parse_xml(uint8 dev, uint8 xml_idx)
 		fprintf(stderr, "Document not open successfully. \n");
 		//sem_post(fd's xml_info_str read semaphore)
 		//Put_XMLBuf
-		return ERR_FF;
+		return ERR_1;
 	}
 
 	cur = xmlDocGetRootElement(doc);
@@ -2061,7 +2053,7 @@ uint8 parse_xml(uint8 dev, uint8 xml_idx)
 		xmlFreeDoc(doc);
 		//sem_post(fd's xml_info_str read semaphore)
 		//Put_XMLBuf
-		return ERR_FF;
+		return ERR_1;
 	}
 
 	if(!xmlStrEqual(cur->name, CONST_CAST NODE_ROOT)) {

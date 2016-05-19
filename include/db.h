@@ -58,6 +58,7 @@
                                                 sprintf(charlog, "[%s][%s][%d]pErr: %s\n", \
                                                 FILE_LINE, p_err);\
                                                     write_log_file(charlog, strlen(charlog));\
+                                                    sqlite3_free(p_err);\
                                                     return ERR_1;\
                                                 }
 /********************************************************************************
@@ -314,7 +315,7 @@ uint8 add_one_config(pSys_config pConf);
  ** 仪表地址信息相关 **
  **********************/
 uint8 read_meter_info();//从数据库读取仪表地址信息
-void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info));//顺序遍历仪表地址信息
+uint8 retrieve_meter_info_list(int (*read_one_meter)(pMeter_info));//顺序遍历仪表地址信息
 int  get_meter_info_cnt();//读取仪表地址信息的个数
 void empty_meter_info_list();
 uint8 empty_meter_info_table();

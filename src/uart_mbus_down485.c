@@ -166,8 +166,8 @@ int32 UartDown485_Rec(void)
                         write_log_file(log, strlen(log));
                     }
                     OSSemPost(DOWN_COMMU_DEV_485);
-                    sprintf(log, "[%s][%s][%d] 0x%02X \n",FILE_LINE,lu8data);
-                    write_log_file(log, strlen(log));
+                    //sprintf(log, "[%s][%s][%d] 0x%02X \n",FILE_LINE,lu8data);
+                    //write_log_file(log, strlen(log));
                 }
             }
         }

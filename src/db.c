@@ -167,41 +167,35 @@ void get_elecdata_sql(lcModbusElec_str* elecdata, request_data_list item_list, c
         memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
         switch(item_list->f_item_index) {
         case em_EPActTotElec:
-            sprintf(tmp_data, "%f", elecdata->pact_tot_elec);
-            strcat(tmp_data, " ");
-            strcat(tmp_data, (char*)elecdata->pact_tot_elec_unit);
+            sprintf(tmp_data, "%f %s", elecdata->pact_tot_elec,\
+                (char*)elecdata->pact_tot_elec_unit);
             break;
         case em_ENActTotElec:
-            sprintf(tmp_data, "%f", elecdata->nact_tot_elec);
-            strcat(tmp_data, " ");
-            strcat(tmp_data, (char*)elecdata->nact_tot_elec_unit);
+            sprintf(tmp_data, "%f %s", elecdata->nact_tot_elec,\
+                (char*)elecdata->nact_tot_elec_unit);
             break;
         case em_EPReactTotElec:
-            sprintf(tmp_data, "%f", elecdata->preact_tot_elec);
-            strcat(tmp_data, " ");
-            strcat(tmp_data, (char*)elecdata->preact_tot_elec_unit);
+            sprintf(tmp_data, "%f %s", elecdata->preact_tot_elec,\
+                (char*)elecdata->preact_tot_elec_unit);
             break;
         case em_ENReactTotElec:
-            sprintf(tmp_data, "%f", elecdata->nreact_tot_elec);
-            strcat(tmp_data, " ");
-            strcat(tmp_data, (char*)elecdata->nreact_tot_elec_unit);
+            sprintf(tmp_data, "%f %s", elecdata->nreact_tot_elec,\
+                (char*)elecdata->nreact_tot_elec_unit);
             break;
         case em_EActTotElec:
-            sprintf(tmp_data, "%f", elecdata->act_tot_elec);
-            strcat(tmp_data, " ");
-            strcat(tmp_data, (char*)elecdata->act_tot_elec_unit);
+            sprintf(tmp_data, "%f %s", elecdata->act_tot_elec,\
+                (char*)elecdata->act_tot_elec_unit);
             break;
         case em_EReactTotElec:
-            sprintf(tmp_data, "%f", elecdata->react_tot_elec);
-            strcat(tmp_data, " ");
-            strcat(tmp_data, (char*)elecdata->react_tot_elec_unit);
+            sprintf(tmp_data, "%f %s", elecdata->react_tot_elec, \
+                (char*)elecdata->react_tot_elec_unit);
             break;
         case em_EOvrPowFac:
             break;
         case em_EPMaxDem:
-            break;        
+            break;
         default:
-            sprintf(tmp_data, "Err");
+            sprintf(tmp_data, "not define");
             break;
         }
         strcat(sql_buf, SQL_SINGLE_QUOTES);
@@ -385,15 +379,15 @@ uint8 insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struc
 	strcat(sql_buf, SQL_VALUES);
 	strcat(sql_buf, SQL_LEFT_PARENTHESIS);
 	//固定项
-	sprintf(tmp_data, "%02x%02x%02x%02x%02x%02x%02x", pmf->u8MeterAddr[6], \
+	sprintf(tmp_data, "'%02x%02x%02x%02x%02x%02x%02x'", pmf->u8MeterAddr[6], \
 	pmf->u8MeterAddr[5], pmf->u8MeterAddr[4], pmf->u8MeterAddr[3], 
 	pmf->u8MeterAddr[2], pmf->u8MeterAddr[1], pmf->u8MeterAddr[0]);
 	strcat(sql_buf, tmp_data);//表地址
 	strcat(sql_buf, ",");
-	sprintf(tmp_data, "%02x",pmf->u8MeterType);
+	sprintf(tmp_data, "'%02x'",pmf->u8MeterType);
 	strcat(sql_buf, tmp_data);//表类型
 	strcat(sql_buf, ",");
-	sprintf(tmp_data, "%d", pmf->u16MeterID);
+	sprintf(tmp_data, "'%d'", pmf->u16MeterID);
 	strcat(sql_buf, tmp_data);//设备编号
 	strcat(sql_buf, ",");
 
@@ -1029,11 +1023,11 @@ int insert_one_meter_info_to_table(pMeter_info pMinfo)
     return (err==SQLITE_OK) ? NO_ERR : ERR_1;
 }
 
-uint8 insert_into_meter_info_table(char* pErr)
+uint8 insert_into_meter_info_table()
 {
     int err=NO_ERR;
     printf("now in  insert_into_meter_info_table():\n");
-    retrieve_meter_info_list(insert_one_meter_info_to_table);
+    err = retrieve_meter_info_list(insert_one_meter_info_to_table);
     return err;
 }
 
@@ -1051,24 +1045,27 @@ void empty_meter_info_list()
     meter_info_idx = 0;
 }
 
-uint8 empty_meter_info_table(char* pErr)
+uint8 empty_meter_info_table()
 {
     int err;
+    char *pErr;
+    char log[1024];
     char *sql = "delete from t_meter_info";
     err = sqlite3_exec(g_pDB, sql, NULL, NULL, &pErr);
+    write_err(err,pErr,log)
     return (err == SQLITE_OK) ? NO_ERR : ERR_1;
 }
 
 
 //遍历仪表信息, 对每一个表进行read_one_meter操作
-void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
+uint8 retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
 {
 	if(!read_one_meter)
-		return;
+		return ERR_1;
 	printf("now in  retrieve_meter_info_list():\n");
 	pMeter_info pInfo_return = malloc(sizeof(struct meter_info_str));//回传一个独立的结构体, 保证原始数据的安全
     if(list_meter_info == NULL)
-        return;
+        return ERR_1;
 
 	pMeter_info pInfo = list_meter_info;
 
@@ -1080,6 +1077,7 @@ void retrieve_meter_info_list(int (*read_one_meter)(pMeter_info))
 		pInfo = pInfo->pNext;
 	}
 	free(pInfo_return);
+    return  NO_ERR;
 }
 
 
