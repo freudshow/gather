@@ -118,6 +118,22 @@ create table t_heat_data
 );
 
 ---------------------------------
+--燃气表历史数据表
+---------------------------------
+drop table if exists "t_air_data"
+;
+create table t_air_data
+(
+	f_id integer primary key autoincrement,
+	f_meter_type integer,
+	f_device_id integer,
+	f_meter_address varchar(50),
+	f_timestamp timestamp,--时间戳（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_time timestamp,--抄表时间点（'yyyy-MM-dd HH:mm:ss.zzz')
+	f_upok char(1)
+);
+
+---------------------------------
 --仪表需要返回的数据项配置表
 ---------------------------------
 drop table if exists "t_request_data"
