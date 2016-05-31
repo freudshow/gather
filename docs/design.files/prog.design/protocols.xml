@@ -444,7 +444,6 @@
 		<func_type>report_update</func_type>
 		<oper_type>write</oper_type>
 	</common>
-	<result>success</result>	<!--如果抄表成功，则success-->
 	<trans>
 		<total_meter_num>xxx</total_meter_num><!--总共要上报的抄表数据条数 -->
 		<frame_idx>xxx</frame_idx><!--本帧的索引 -->
@@ -655,14 +654,14 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 		<oper_type>1</oper_type><!--写-->
 	</common>
 	<trans>
-		<fb>256688</fb><!--总共要下发的文件字节数数量, fb = file_bytes. 在第0时下发, 以后不再下发-->
-		<frmc>512</frmc><!--一共下发多少帧数. 在第0时下发, 以后不再下发-->
-		<md5>28a011de19210eb7822688ba97c97c28</md5><!--本次更新的程序的md5值. 在第0时下发, 以后不再下发-->
+		<fb>256688</fb><!--总共要下发的压缩文件字节数数量, fb = file_bytes. 在第0帧下发, 以后不再下发-->
+		<frmc>512</frmc><!--一共下发多少帧数. 在第0帧下发, 以后不再下发-->
+		<md5>28a011de19210eb7822688ba97c97c28</md5><!--本次更新的程序的md5值. 在第0帧下发, 以后不再下发-->
 		<frmid>0</frmid><!--第0帧, 不下发文件数据-->
 	</trans>
 </root>
 
-<!--下位机的程序的MD5值如果与下发的MD5值一样, 返回"md5same"给上位机, 终止升级过程-->
+<!--下位机的程序的MD5值如果与下发的MD5值一样, 返回"same"给上位机, 终止升级过程-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
@@ -671,7 +670,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 		<func_type>11</func_type>
 		<oper_type>3</oper_type><!--应答-->
 	</common>
-	<md5>md5same</md5>
+	<md5>same</md5>
 </root>
 
 <!--下位机的程序的MD5值如果与下发的MD5值不一样, 返回"md5diff"给上位机, 继续升级过程-->
@@ -683,7 +682,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 		<func_type>11</func_type>
 		<oper_type>3</oper_type><!--应答-->
 	</common>
-	<md5>md5diff</md5>
+	<md5>diff</md5>
 </root>
 
 <!--下位机的程序的MD5值如果与下发的MD5值一样, 但申请不到足够的内存, 终止升级过程-->

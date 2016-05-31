@@ -6,12 +6,12 @@
 	<?xml version="1.0" encoding="utf-8" ?>
 	<root>
 		<common>
-			<sadd>5001</sadd>
+			<sadd>261425C00101</sadd>
 			<oadd>0001</oadd>
-			<func_type>report_update</func_type>
+			<func_type>6</func_type>
 			<oper_type>write</oper_type>
 		</common>
-		<result>SUCCESS/FAIL</result><!--如果抄表成功, 则 SUCCESS, 否则 FAIL-->
+		<result>success/fail</result><!--如果抄表成功, 则 success, 否则 fail-->
 		<trans>
 			<total_meter_num>62</total_meter_num><!--总共要上报的抄表数据条数 -->
 			<frame_idx>1</frame_idx><!--本帧的索引 -->
@@ -25,8 +25,8 @@
 			<f_meter_type>20</f_meter_type>
 			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
 			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
-			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
-			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_cur_cold_e>0000000005</f_cur_cold_e><!--当前累积冷量 -->
+			<f_cur_heat_e>9050000005</f_cur_heat_e><!--当前累积热量 -->
 			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
 			<f_flowrate>0000000035</f_flowrate><!--流速 -->
 			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
@@ -43,8 +43,8 @@
 			<f_meter_type>20</f_meter_type>
 			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
 			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
-			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
-			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_cur_cold_e>0000000005</f_cur_cold_e><!--当前累积冷量 -->
+			<f_cur_heat_e>9050000005</f_cur_heat_e><!--当前累积热量 -->
 			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
 			<f_flowrate>0000000035</f_flowrate><!--流速 -->
 			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
@@ -61,8 +61,8 @@
 			<f_meter_type>20</f_meter_type>
 			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
 			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
-			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
-			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_cur_cold_e>0000000005</f_cur_cold_e><!--当前累积冷量 -->
+			<f_cur_heat_e>9050000005</f_cur_heat_e><!--当前累积热量 -->
 			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
 			<f_flowrate>0000000035</f_flowrate><!--流速 -->
 			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
@@ -75,16 +75,28 @@
 	</root>
 
 <!-- 上位机的接收结果 -->
-	<?xml version="1.0" encoding="utf-8" ?>
+<?xml version="1.0" encoding="utf-8" ?>
 	<root>
 		<common>
 			<sadd>0001</sadd>
-			<oadd>5001</oadd>
-			<func_type>report_update</func_type>
-			<oper_type>answer</oper_type>
+			<oadd>261425C00101</oadd>
+			<func_type>6</func_type>
+			<oper_type>3</oper_type>
 		</common>
-		<result>SUCCESS/FAIL</result><!-- 上位机接收完毕, 向下位机返回接收结果; 若成功, 下位机继续上推下一帧数据, 若一定时间内接收不到此应答, 则重新登录, 登录成功后继续上推本帧数据-->
-	</root>
+		<result>success/fail</result><!-- 上位机接收完毕, 向下位机返回接收结果; 若成功, 下位机继续上推下一帧数据, 若一定时间内接收不到此应答, 则重新登录, 登录成功后继续上推本帧数据-->
+</root>
+
+<!-- 上位机的接收结果 -->
+<?xml version="1.0" encoding="utf-8" ?>
+	<root>
+		<common>
+			<sadd>0001</sadd>
+			<oadd>261425C00101</oadd>
+			<func_type>6</func_type>
+			<oper_type>3</oper_type>
+		</common>
+		<result>success</result>
+</root>
 <!----------------------------------------------------------------------------------------------------------------------------------------------------------------->
 
 
@@ -93,11 +105,11 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>5001</oadd>
-		<func_type>report_update</func_type>
-		<oper_type>read</oper_type>
+		<oadd>261425C00101</oadd>
+		<func_type>6</func_type>
+		<oper_type>0</oper_type>
 	</common>
-	<time>2016-03-25 13:40:00</time><!--以空格字符分离日期与时间(前面是日期, 后面是时间点)请求读xx:xx时间的抄表数据, 如果不加日期,默认日期为当天-->
+	<time>2016-05-31 14:00:00</time>
 </root>
 
 
@@ -105,12 +117,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 	<root>
 		<common>
-			<sadd>5001</sadd>
+			<sadd>261425C00101</sadd>
 			<oadd>0001</oadd>
-			<func_type>report_update</func_type>
+			<func_type>6</func_type>
 			<oper_type>write</oper_type>
 		</common>
-		<result>SUCCESS/FAIL</result><!--如果抄表成功, 则 SUCCESS, 否则 FAIL-->
+		<result>success/fail</result><!--如果抄表成功, 则 success, 否则 fail-->
 		<trans>
 			<total_meter_num>62</total_meter_num><!--总共要上报的抄表数据条数 -->
 			<frame_idx>1</frame_idx><!--本帧的索引 -->
@@ -124,8 +136,8 @@
 			<f_meter_type>20</f_meter_type>
 			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
 			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
-			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
-			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_cur_cold_e>0000000005</f_cur_cold_e><!--当前累积冷量 -->
+			<f_cur_heat_e>9050000005</f_cur_heat_e><!--当前累积热量 -->
 			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
 			<f_flowrate>0000000035</f_flowrate><!--流速 -->
 			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
@@ -142,8 +154,8 @@
 			<f_meter_type>20</f_meter_type>
 			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
 			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
-			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
-			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_cur_cold_e>0000000005</f_cur_cold_e><!--当前累积冷量 -->
+			<f_cur_heat_e>9050000005</f_cur_heat_e><!--当前累积热量 -->
 			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
 			<f_flowrate>0000000035</f_flowrate><!--流速 -->
 			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
@@ -160,8 +172,8 @@
 			<f_meter_type>20</f_meter_type>
 			<f_timestamp>2016-03-24 16:25:08</f_timestamp><!--本帧的索引 -->
 			<f_time>2016-03-24 16:25:00</f_time><!--本帧的索引 -->
-			<f_cur_cold_E>0000000005</f_cur_cold_E><!--当前累积冷量 -->
-			<f_cur_heat_E>9050000005</f_cur_heat_E><!--当前累积热量 -->
+			<f_cur_cold_e>0000000005</f_cur_cold_e><!--当前累积冷量 -->
+			<f_cur_heat_e>9050000005</f_cur_heat_e><!--当前累积热量 -->
 			<f_heat_power>0000000017</f_heat_power><!--热功率 -->
 			<f_flowrate>0000000035</f_flowrate><!--流速 -->
 			<f_accum_flow>330100002c</f_accum_flow><!--累积流量 -->
@@ -178,9 +190,9 @@
 	<root>
 		<common>
 			<sadd>0001</sadd>
-			<oadd>5001</oadd>
-			<func_type>report_update</func_type>
-			<oper_type>answer</oper_type>
+			<oadd>261425C00101</oadd>
+			<func_type>6</func_type>
+			<oper_type>3</oper_type>
 		</common>
-		<result>SUCCESS/FAIL</result><!-- 上位机接收完毕, 向下位机返回接收结果; 若成功, 下位机继续上推下一帧数据, 若一定时间内接收不到此应答, 则重新登录, 登录成功后继续上推本帧数据-->
+		<result>success/fail</result><!-- 上位机接收完毕, 向下位机返回接收结果; 若成功, 下位机继续上推下一帧数据, 若一定时间内接收不到此应答, 则重新登录, 登录成功后继续上推本帧数据-->
 	</root>

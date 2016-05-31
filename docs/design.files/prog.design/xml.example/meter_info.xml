@@ -5,14 +5,14 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>5001</oadd>
-		<func_type>meter_info</func_type>
-		<oper_type>write</oper_type>
+		<oadd>261425C00101</oadd>
+		<func_type>5</func_type>
+		<oper_type>1</oper_type>
 	</common>
 	<trans>
-		<total_meter_num>4</total_meter_num><!--总共要下发的表地址数量 -->
+		<total_meter_num>5</total_meter_num><!--总共要下发的表地址数量 -->
 		<frame_idx>1</frame_idx><!--本帧的序号 -->
-		<meter_num>4</meter_num><!--本帧共包含多少个表地址 -->
+		<meter_num>5</meter_num><!--本帧共包含多少个表地址 -->
 	</trans>
 	<row id="1">
 		<f_meter_type>20</f_meter_type>
@@ -20,7 +20,7 @@
 		<f_meter_address>11110021147872</f_meter_address>
 		<f_meter_proto_type>0</f_meter_proto_type>
 		<f_meter_channel>1</f_meter_channel>
-		<f_install_pos>3#地下室</f_install_pos>
+		<f_install_pos>3#basement</f_install_pos>
 	</row>
 	<row id="2">
 		<f_meter_type>20</f_meter_type>
@@ -28,7 +28,7 @@
 		<f_meter_address>11110021147872</f_meter_address>
 		<f_meter_proto_type>0</f_meter_proto_type>
 		<f_meter_channel>1</f_meter_channel>
-		<f_install_pos>3#地下室</f_install_pos>
+		<f_install_pos>3#basement</f_install_pos>
 	</row>
 	<row id="3">
 		<f_meter_type>20</f_meter_type>
@@ -36,15 +36,23 @@
 		<f_meter_address>11110021147872</f_meter_address>
 		<f_meter_proto_type>0</f_meter_proto_type>
 		<f_meter_channel>1</f_meter_channel>
-		<f_install_pos>3#地下室</f_install_pos>
+		<f_install_pos>3#basement</f_install_pos>
 	</row>
 	<row id="4">
 		<f_meter_type>20</f_meter_type>
 		<f_device_id>4</f_device_id>
-		<f_meter_address>11110021147872</f_meter_address>
+		<f_meter_address>11110021164962</f_meter_address>
 		<f_meter_proto_type>0</f_meter_proto_type>
 		<f_meter_channel>1</f_meter_channel>
-		<f_install_pos>3#地下室</f_install_pos>
+		<f_install_pos>3#basement</f_install_pos>
+	</row>
+	<row id="5">
+		<f_meter_type>40</f_meter_type>
+		<f_device_id>5</f_device_id>
+		<f_meter_address>00000000000001</f_meter_address>
+		<f_meter_proto_type>0</f_meter_proto_type>
+		<f_meter_channel>7</f_meter_channel>
+		<f_install_pos>3#basement</f_install_pos>
 	</row>
 </root>
 
@@ -52,12 +60,12 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>5001</sadd>
+		<sadd>261425C00101</sadd>
 		<oadd>0001</oadd>
 		<func_type>meter_info</func_type>
 		<oper_type>answer</oper_type>
 	</common>
-	<result>SUCCESS/FAIL</result>
+	<result>success/fail</result>
 </root>
 <!----------------------------------------------------------------------------------------------------------------------------------------------------------------->
 
@@ -66,7 +74,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>5001</oadd>
+		<oadd>261425C00101</oadd>
 		<func_type>meter_info</func_type>
 		<oper_type>read</oper_type>
 	</common>
@@ -80,7 +88,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>5001</sadd>
+		<sadd>261425C00101</sadd>
 		<oadd>0001</oadd>
 		<func_type>meter_info</func_type>
 		<oper_type>answer</oper_type>
@@ -96,7 +104,7 @@
 		<f_meter_address>11110021147872</f_meter_address>
 		<f_meter_proto_type>0</f_meter_proto_type>
 		<f_meter_channel>1</f_meter_channel>
-		<f_install_pos>3#地下室</f_install_pos>
+		<f_install_pos>3#basement</f_install_pos>
 	</row>
 	<row id="2">
 		<f_meter_type>20</f_meter_type>
@@ -104,7 +112,7 @@
 		<f_meter_address>11110021147872</f_meter_address>
 		<f_meter_proto_type>0</f_meter_proto_type>
 		<f_meter_channel>1</f_meter_channel>
-		<f_install_pos>3#地下室</f_install_pos>
+		<f_install_pos>3#basement</f_install_pos>
 	</row>
 	<row id="3">
 		<f_meter_type>20</f_meter_type>
@@ -112,7 +120,7 @@
 		<f_meter_address>11110021147872</f_meter_address>
 		<f_meter_proto_type>0</f_meter_proto_type>
 		<f_meter_channel>1</f_meter_channel>
-		<f_install_pos>3#地下室</f_install_pos>
+		<f_install_pos>3#basement</f_install_pos>
 	</row>
 	<row id="4">
 		<f_meter_type>20</f_meter_type>
@@ -120,6 +128,6 @@
 		<f_meter_address>11110021147872</f_meter_address>
 		<f_meter_proto_type>0</f_meter_proto_type>
 		<f_meter_channel>1</f_meter_channel>
-		<f_install_pos>3#地下室</f_install_pos>
+		<f_install_pos>3#basement</f_install_pos>
 	</row>
 </root>

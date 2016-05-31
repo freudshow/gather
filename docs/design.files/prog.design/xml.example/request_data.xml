@@ -3,11 +3,11 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>5001</oadd>
+		<oadd>261425C00101</oadd>
 		<func_type>3</func_type>
 		<oper_type>1</oper_type>
 	</common>
-	<row_num>23</row_num>	
+	<row_num>21</row_num>
 	<row id="1">
 		<f_meter_type>20</f_meter_type>
 		<f_item_index>01</f_item_index>
@@ -92,21 +92,13 @@
 		<f_meter_type>40</f_meter_type>
 		<f_item_index>06</f_item_index>
 	</row>
-	<row id="7">
-		<f_meter_type>40</f_meter_type>
-		<f_item_index>07</f_item_index>
-	</row>
-	<row id="8">
-		<f_meter_type>40</f_meter_type>
-		<f_item_index>08</f_item_index>
-	</row>
 </root>
 
 <!-- 下位机返回应答-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>5001</sadd>
+		<sadd>261425C00101</sadd>
 		<oadd>0001</oadd>
 		<func_type>3</func_type>
 		<oper_type>3</oper_type>
