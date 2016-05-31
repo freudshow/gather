@@ -330,7 +330,7 @@ uint8 read_request_data(mtype_idx type_idx);//按照仪表类型读取数据项
 void retrieve_request_data_list(int (*read_one_item)(pRequest_data, void*), mtype_idx type_idx, void* pVar);//顺序遍历数据项信息
 int  get_request_data_cnt(mtype_idx);//读取仪表数据项的个数
 uint8 insert_one_request_node(pRequest_data pRqData);
-uint8 set_request_data(char* pErr);
+uint8 set_request_data();
 int get_request_data_setted();
 
 /**********************

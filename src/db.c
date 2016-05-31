@@ -791,26 +791,29 @@ int  get_request_data_cnt(mtype_idx idx)
 	return request_data_idx[idx];
 }
 
-static uint8 del_request_data(char* pId, char* pErr)
+static uint8 del_request_data(char* pId)
 {
-	int err=0;
-	char sql_buf[LENGTH_SQLBUF];
+    int err=0;
+    char* pErr;
+    char sql_buf[LENGTH_SQLBUF];
+    char log[1024];
 	strcpy(sql_buf, SQL_DELETE);
 	strcat(sql_buf, " ");
 	strcat(sql_buf, SQL_FROM);
 	strcat(sql_buf, " ");
 	strcat(sql_buf, TABLE_REQUEST_DATA);
 
-	if(NULL != pId) {
-		strcat(sql_buf, " ");
-		strcat(sql_buf, SQL_WHERE);
-		strcat(sql_buf, " ");
-		strcat(sql_buf, FIELD_BASE_DEF_ID);
-		strcat(sql_buf, SQL_EQUAL);
-		strcat(sql_buf, pId);
-	}
-	err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
-	return err==SQLITE_OK ? NO_ERR : ERR_1;
+    if(NULL != pId) {
+        strcat(sql_buf, " ");
+        strcat(sql_buf, SQL_WHERE);
+        strcat(sql_buf, " ");
+        strcat(sql_buf, FIELD_BASE_DEF_ID);
+        strcat(sql_buf, SQL_EQUAL);
+        strcat(sql_buf, pId);
+    }
+    err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+    write_err(err,pErr,log)
+    return err==SQLITE_OK ? NO_ERR : ERR_1;
 }
 
 uint8 insert_one_request_node(pRequest_data pRqData)
@@ -826,12 +829,14 @@ int get_request_data_setted()
     return set_request_data_idx;
 }
 
-uint8 add_one_request_data(pRequest_data pNode, char* pErr)
+uint8 add_one_request_data(pRequest_data pNode)
 {
     if(NULL == pNode) {
     	    return ERR_1;
     }
     uint8 err=NO_ERR;
+    char* pErr;
+    char log[1024];
     char sql_buf[LENGTH_SQLBUF];
     char *table_name = TABLE_REQUEST_DATA;
     char *col_buf[LENGTH_F_COL_NAME] = {FIELD_REQUEST_MTYPE, FIELD_REQUEST_ITEMIDX, FIELD_REQUEST_COLNAME, FIELD_REQUEST_COLTYPE};
@@ -842,19 +847,20 @@ uint8 add_one_request_data(pRequest_data pNode, char* pErr)
     char *val_buf[LENGTH_SQLVALUE] = {meter_type, item_idx, pNode->f_col_name, pNode->f_col_type};
     get_insert_sql(table_name, col_buf, 4, val_buf, sql_buf, 1);
     err =  sqlite3_exec(g_pDB, sql_buf, NULL, NULL, &pErr);
+    write_err(err, pErr, log)
     printf("[%s][%s][%d]pErr: %s\n", FILE_LINE, pErr);
     return err==SQLITE_OK ? NO_ERR : ERR_1;
 }
 
-uint8 set_request_data(char* pErr)
+uint8 set_request_data()
 {
     uint8 err=NO_ERR;
-    del_request_data(NULL, pErr);
-    if(strlen(pErr)>0)
+    err = del_request_data(NULL);
+    if(err != NO_ERR)
         return ERR_1;
     pRequest_data pNode = list_set_request_data;
     	while(pNode) {
-		if(NO_ERR != add_one_request_data(pNode, pErr)) {
+		if(NO_ERR != add_one_request_data(pNode)) {
 			return ERR_1;
 		}
 		pNode = pNode->pNext;
@@ -862,9 +868,7 @@ uint8 set_request_data(char* pErr)
 
     empty_list(pRequest_data,list_set_request_data)
     set_request_data_idx = 0;
-    read_all_request_data();
-    if(strlen(pErr)>0)
-        return ERR_1;
+    err = read_all_request_data();
     return err;
 }
 

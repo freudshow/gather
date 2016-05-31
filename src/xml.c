@@ -166,28 +166,24 @@ uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 
 	lu32tmp = strlen(XMLHead);
 	while(Flag){		
-		for(i=0;i<lu32tmp;i++){
-			while(QueueRead(&DataTemp, (void*)pQueues[dev]) != QUEUE_OK){
-				OSSemPend(dev, OutTime, &err);
-				if(err != OS_ERR_NONE){
-					//printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);
-					return err;
-				}
-			}
-			   
-			if(DataTemp == XMLHead[i])
-			{;}
-			else{
-				i=0;
-				continue;
-			}
-		}
-		
-		Flag = 0;
+		for(i=0;i<lu32tmp;){
+            while(QueueRead(&DataTemp, (void*)pQueues[dev]) != QUEUE_OK){
+                OSSemPend(dev, OutTime, &err);
+                if(err != OS_ERR_NONE){
+                    //printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);
+                    return err;
+                }
+            }
+            if(DataTemp == XMLHead[i])
+                i++;
+            else
+                i = 0;
+        }
+        Flag = 0;
 	}
-	
+
 	printf("start fopen %s . \n", gXML_File[XmlIndex].pXMLFile);   
-    
+
     //char log[256];
     //sprintf(log, "[%s][%s][%d]start fopen %s . \n", FILE_LINE, gXML_File[XmlIndex].pXMLFile);
     //write_log_file(log, strlen(log));
@@ -222,15 +218,15 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 
 	lu32tmp = strlen(XMLEnd);
 	while(Flag){		
-		for(i=0;i<lu32tmp;i++){
+		for(i=0;i<lu32tmp;){
 			while(QueueRead(&DataTemp, (void*)pQueues[dev]) != QUEUE_OK){
 				OSSemPend(dev, OutTime, &err);
 				if(err != OS_ERR_NONE){
-					printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);    
-                    char log[256];
-                    sprintf(log, "[%s][%s][%d]OSSemPend err=%d\n", FILE_LINE, err);
-                    write_log_file(log, strlen(log));
-					return err;
+                        printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);    
+                        char log[256];
+                        sprintf(log, "[%s][%s][%d]OSSemPend err=%d\n", FILE_LINE, err);
+                        write_log_file(log, strlen(log));
+                        return err;
 				}
 			}
 			
@@ -244,22 +240,16 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 				sem_post(&gXML_File[XmlIndex].sem_write);
 				debug_err(gDebugModule[XML_MODULE], "[%s][%s][%d] fwrite Lens=%d\n",FILE_LINE,RECV_TEMPBUF_SIZE);
 				memset(pRecvTempBuf[dev],0,RECV_TEMPBUF_SIZE);
-				j=0;
 				fclose(fp);
+				j=0;
 			}
-             else{
+             else
                  j++;
-             }
-
                 
-			
 			if(DataTemp == XMLEnd[i])
-			{;}
-			else{
-				i=0;
-				continue;
-			}
-		   
+                i++;
+			else
+                i=0;		   
 		}
 		
 		Flag = 0;
@@ -273,14 +263,11 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 		sem_post(&gXML_File[XmlIndex].sem_write);
 		debug_err(gDebugModule[XML_MODULE], "[%s][%s][%d] fwrite Lens=%d\n",FILE_LINE,RECV_TEMPBUF_SIZE);
 		memset(pRecvTempBuf[dev],0,RECV_TEMPBUF_SIZE);
-		j=0;
 		fclose(fp);
+		j=0;
 	}
 
-	
 	return NO_ERR;
-
-	
 }
 
 
@@ -511,7 +498,7 @@ uint8 send_answer(uint8 dev, char* resNode, char* res, void* otherptr)
     switch (g_xml_info[dev].func_type) {
     case em_FUNC_MINFO:
         sprintf(str, "%d", g_xml_info[dev].cur_frame_indep);
-        xmlNewTextChild(root_node, NULL, BAD_CAST "frame_idx", BAD_CAST "res");
+        xmlNewTextChild(root_node, NULL, BAD_CAST "frame_idx", BAD_CAST str);
         break;
     default:
         break;
@@ -749,7 +736,6 @@ uint8 get_request_col_name(pRequest_data pRqData)
 uint8 write_request_data(uint8 dev)
 {
     uint8 err = NO_ERR;
-    char pErr[100] = {0};
     pRequest_data pRqData;
     xmlDocPtr pDoc = g_xml_info[dev].xmldoc_rd;
     printf("[%s][%s][%d] pDoc: %p\n", FILE_LINE, pDoc);
@@ -783,7 +769,7 @@ uint8 write_request_data(uint8 dev)
         }
         curNode = curNode->next;
     }
-    err = set_request_data(pErr);
+    err = set_request_data();
     if(err == NO_ERR) {
         err = send_answer(dev, "result", "success", NULL);
     }
@@ -1481,8 +1467,15 @@ uint8 update_bin(uint8 dev)
         return err;
     }
 
-    if(g_xml_info[dev].pDataList == NULL)//每次都要检测数据列表是否申请到了内存, 或者是否接收过第0帧, 因为第0帧时会申请内存
+    if(g_xml_info[dev].up_cur_frm_idx >  g_xml_info[dev].up_total_frm) {//如果当前帧索引值超过总帧数, 返回错误
+        send_answer(dev, "malloc", "fail", NULL);
         return ERR_1;
+    }
+
+    if(g_xml_info[dev].pDataList == NULL) {//每次都要检测数据列表是否申请到了内存, 或者是否接收过第0帧, 因为第0帧时会申请内存
+        send_answer(dev, "malloc", "fail", NULL);
+        return ERR_1;
+    }
     printf("[%s][%s][%d]pDataList is not NULL\n",FILE_LINE);
 
     //得到本帧的数据
@@ -1495,6 +1488,7 @@ uint8 update_bin(uint8 dev)
         curNode = curNode->next;
     }
     pValue = xmlNodeGetContent(binNode->xmlChildrenNode);
+    printf("[%s][%s][%d]binary data:\n%s\n", FILE_LINE, (char*)pValue);
     enLen = strlen((char*)pValue);
     for(i=0;i<enLen;i++) {
         if(idx_of_base64(pValue[i]) < 65) {//如果是base64编码以内的字符, 追加到binValue
@@ -1645,14 +1639,13 @@ uint8 merge_update_file(uint8 dev)
         return ERR_1;
     }
     //删除老程序
-    sprintf(cmd, "rm %s", APP_TMPNAME);
+    sprintf(cmd, "rm %s", APP_NAME);
     system(cmd);
     //将新升级的临时程序改名为原程序名
     sprintf(cmd, "mv %s %s", APP_TMPNAME, APP_NAME);
     system(cmd);
     //将新程序的MD5值存入数据库
     sys_config.f_id = CONFIG_APP_MD5;
-    get_sys_config(CONFIG_APP_MD5, &sys_config);
     strcpy(sys_config.f_config_value, g_xml_info[dev].up_md5);
     err = add_one_config(&sys_config);
     empty_update_list(dev);
