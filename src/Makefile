@@ -2,8 +2,10 @@ CROSS			=arm-none-linux-gnueabi-
 CC				=$(CROSS)gcc
 TARGET			=gather_V0
 BIN				=../bin/$(TARGET)
+DB				=../db/gatherdb.db
 SRC				=main.c sysinit.c uart_set.c commap.c queue.c sysfuctions.c xml.c rs485up.c readallmeters.c read_heatmeter.c \
 		 			meter_table.c bsp.c uart_mbus_down485.c uart_gprs.c db.c gprs.c
+RCS				=../sh/rcS
 SCRIPT			=../sh/runapp.sh
 INCLUDEPATH		=-I ../include -I ../include/libxml2
 OBJ				=-o $(BIN)
@@ -21,6 +23,11 @@ $(TARGET): $(SRC)
 	$(CP) $(BIN) ~/nfsmnt
 	$(CP) $(SCRIPT) $(NFSROOT)
 	$(CP) $(SCRIPT) ~/nfsmnt
+	$(CP) $(SCRIPT) /mcuzone/nfsroot/minigui/app
+	$(CP) $(BIN) /mcuzone/nfsroot/minigui/app
+	$(CP) $(DB) /mcuzone/nfsroot/minigui/app
+	$(CP) $(RCS) /mcuzone/nfsroot/minigui/etc/init.d
+
 
 clean:
 	@rm -vf $(BIN) *.o *~
