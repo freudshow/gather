@@ -1,1 +1,7 @@
-*
+db
+gather_V0
+sqlfile.sql
+test.db
+tmp_gather
+tmp_gather.tar.bz2
+xmlparse
