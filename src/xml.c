@@ -1573,6 +1573,7 @@ uint8 merge_update_file(uint8 dev)
     char cmd[100]={0};//调用shell命令
     char tarfile[50]={0};
     char result[100]={0};//shell命令的结果
+    char log[1024];
     char* sp;
     sys_config_str sys_config;
     int lack_idx=0;
@@ -1593,13 +1594,13 @@ uint8 merge_update_file(uint8 dev)
             printf("[%s][%s][%d]wLen: %d, acwLen: %d\n",FILE_LINE, wLen, acwLen);
             
             if(acwLen != wLen) {
-                //send_answer(dev, "merge", "fail", NULL);
-                //empty_update_list(dev);
+                sprintf(log, "[%s][%s][%d]%s\n", FILE_LINE, strerror(errno));
+                send_answer(dev, "merge", log, NULL);
+                write_log_file(log, strlen(log));
                 fclose(fp);
                 //删除压缩包
                 sprintf(cmd, "rm %s", tarfile);
                 system(cmd);
-                send_lack_frame(dev);//向上位机重新要数据
                 return ERR_1;
             }
         } else {//有缺帧的时候, 重新要数据
