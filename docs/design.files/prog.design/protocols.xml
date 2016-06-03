@@ -20,7 +20,7 @@
 			11.	执行本地系统命令或程序(local_sys_command)
 			12.	远程升级(code_updata)
 			13.	抄表任意透传(proto_trans)
-			14.	设置集中器时钟（clock_set）
+			14.	设置集中器时钟(clock_set)
 			15.	集中器抄表模式和抄表周期设置(collect_set)
 	  oper_type:操作类型：
 			1、读（read）

@@ -15,6 +15,56 @@
 	</trans>
 </root>
 
+<!--下位机的程序的MD5值如果与下发的MD5值一样, 返回"same"给上位机, 终止升级过程-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>261425C00101</sadd>
+		<oadd>0001</oadd>
+		<func_type>11</func_type>
+		<oper_type>3</oper_type><!--应答-->
+	</common>
+	<md5>same</md5>
+</root>
+
+<!--下位机的程序的MD5值如果与下发的MD5值不一样, 返回"md5diff"给上位机, 继续升级过程-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>261425C00101</sadd>
+		<oadd>0001</oadd>
+		<func_type>11</func_type>
+		<oper_type>3</oper_type><!--应答-->
+	</common>
+	<md5>diff</md5>
+</root>
+
+<!-------------------------------------------------------------------------------------->
+<!--上位机下发完所有的远程升级文件数据, 查询缺帧命令-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>261425C00101</oadd>
+		<func_type>11</func_type>
+		<oper_type>0</oper_type>
+	</common>
+</root>
+
+<!--下位机, 返回缺帧列表-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>261425C00101</oadd>
+		<func_type>11</func_type>
+		<oper_type>0</oper_type>
+	</common>
+	<lack>1,2,3,4,5,6,7,8,9,10,...,105,</lack>
+</root>
+
+
+<!-------------------------------------------------------------------------------------->
 <!--上位机下发远程升级数据命令-->
 <?xml version="1.0" encoding="utf-8"?>
 <root><common><sadd>0001</sadd><oadd>261425C00101</oadd><func_type>11</func_type><oper_type>1</oper_type></common><trans><frmid>100</frmid><bc>1024</bc><ck>2A 13</ck></trans><bin>cQwIBCEVlYINSW4tlhixd7CZAQugiBVnEzTiIYdgwUA3lU1KtZQ3MQcVINoyAgXtNIoUjBMo
@@ -2125,19 +2175,7 @@ S2puWW8KnDiPpFIJTxF2OO4xcs07cbpXY4XGWHUprL7V5e8t9bI7Tr+V27hHLbrkesztaSO3
 IOx1SFRHCkCdZYa5G+HVj3JEXOOiuQgAmCekVlXbonoDcsCVL6Hd3AcbaJMbSkPa8exf2w==</bin></root>
 
 
-
-
-<!--上位机下发完所有的远程升级文件数据, 查询缺帧命令-->
-<?xml version="1.0" encoding="utf-8" ?>
-<root>
-	<common>
-		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
-		<func_type>11</func_type>
-		<oper_type>0</oper_type>
-	</common>
-</root>
-
+<!-------------------------------------------------------------------------------------->
 <!--上位机下发远程升级合并命令-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
@@ -2147,4 +2185,27 @@ IOx1SFRHCkCdZYa5G+HVj3JEXOOiuQgAmCekVlXbonoDcsCVL6Hd3AcbaJMbSkPa8exf2w==</bin></
 		<func_type>11</func_type>
 		<oper_type>2</oper_type>
 	</common>
+</root>
+<!--下位机返回远程升级成功状态-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>261425C00101</sadd>
+		<oadd>0001</oadd>
+		<func_type>11</func_type>
+		<oper_type>3</oper_type><!--do, 即合并成文件-->
+	</common>
+	<merge>success</merge>
+</root>
+
+<!--下位机返回远程升级失败状态-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>261425C00101</sadd>
+		<oadd>0001</oadd>
+		<func_type>11</func_type>
+		<oper_type>3</oper_type><!--do, 即合并成文件-->
+	</common>
+	<merge>fail</merge>
 </root>
