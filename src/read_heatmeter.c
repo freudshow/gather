@@ -555,7 +555,7 @@ uint8 ElecMeter_DataSendAndRec(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
     write_log_file(log, strlen(log));
 
     switch(pmf->u8ProtocolType){
-    case ELEC_LC_MODBUS:
+    case ELEC_LCMODBUS:
         err = ElecLcMod_ReceiveFrame(pmf,lu8DownComDev,lu16OutTime,pDataTemp,plen);
         sprintf(log, "[%s][%s][%d]err: %d\n", FILE_LINE, err);
         write_log_file(log, strlen(log));
@@ -588,7 +588,7 @@ uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, lcModb
         return ERR_1;
 
     switch(pmf->u8ProtocolType){
-    case ELEC_LC_MODBUS:
+    case ELEC_LCMODBUS:
         if(*pLen<(LC_ELEC_WORK_LEN*2+4)) {
             sprintf(log, "[%s][%s][%d]pLen error: %d\n", FILE_LINE, *pLen);
             return ERR_1;
@@ -641,7 +641,7 @@ uint8 ElecMeterCommunicate(MeterFileType *pmf,lcModbusElec_str *pData)
 
     lu16len = sizeof(lu8DataTemp);
     switch (pmf->u8ProtocolType) {
-    case ELEC_LC_MODBUS:
+    case ELEC_LCMODBUS:
         CreateFrame_lcMod(pmf,lu8DataTemp,&lu16len);  //¥¥Ω®≥≠±Ì÷°°£
         break;
     default:

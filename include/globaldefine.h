@@ -57,9 +57,6 @@ typedef unsigned int uint32;
 #define LEN_HALF_BYTE	4//一半字节的比特数
 #define BYTE_BCD_CNT	2//一个字节由多少个BCD码表示
 
-#define LC_ELEC_REG_BYTES       2//力创DTSD106三相电表, 每个寄存器的字节数
-#define LC_ELEC_WORK_BYTES      4//力创DTSD106三相电表, 每个电能参数对应的字节数
-
 #define LENGTH_MD5              50//MD5值的最大长度, 一般为32, 这里定的大一些
 
 
