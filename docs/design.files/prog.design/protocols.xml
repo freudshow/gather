@@ -815,7 +815,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 		<func_type>13</func_type>
 		<oper_type>1</oper_type>
 	</common>
-	<time>2016-03-05 12:13:14</time>  <!--年月日时分秒-->
+	<time>2016-06-13 10:15:14</time>  <!--年月日时分秒-->
 </root>
 
 <!-- 校时指令集中器返回 -->
