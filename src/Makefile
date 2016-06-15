@@ -27,7 +27,8 @@ $(TARGET): $(SRC)
 	$(CP) $(BIN) /mcuzone/nfsroot/minigui/app
 	$(CP) $(DB) /mcuzone/nfsroot/minigui/app
 	$(CP) $(RCS) /mcuzone/nfsroot/minigui/etc/init.d
-
+	cd $(NFSROOT) && sudo mkfs.ubifs -r ./minigui/ -m 2048 -e 126976 -c 472 -o ubi.in &&\
+	sudo ubinize -o ubi60.img -m 2048 -p 128KiB -s 2048 ./ubinize60.cfg
 
 clean:
 	@rm -vf $(BIN) *.o *~
