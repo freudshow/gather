@@ -933,13 +933,11 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 			}
 		}
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//ÒÇ±íÀàÐÍ±àÂë(HEX String), ¹Ì¶¨ÎªÁ½¸ö×Ö·û
-			if(f_value[i])
-				printf("[%d][%d][%s] meter_type : %s\n", FILE_LINE, f_value[i]);
-			else
-				printf("[%d][%d][%s] meter_type : is null\n", FILE_LINE);
+			printf("[%d][%d][%s] meter_type length : %d\n", FILE_LINE, strlen(f_value[i]));
 			if (strlen(f_value[i]) == BYTE_BCD_CNT) {
 				tmp_info->f_meter_type = (Ascii2Hex(f_value[i][0]) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
-			} else {//Òì³£Çé¿ö
+			} else {//Òì³£Çé¿
+				printf("[%d][%d][%s] meter_type length error %d\n", FILE_LINE, strlen(f_value[i]));
 			}
 		}
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_CHANNEL))//ÒÇ±íÍ¨µÀ(Dec String)
