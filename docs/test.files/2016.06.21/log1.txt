@@ -1,94 +1,56 @@
-[sysfuctions.c][asc_to_datestr][281]src: Tue Jun 21 10:09:00 2016
-
-[sysfuctions.c][asc_to_datestr][300]dest: 2016-06-21 10:09:00
-[gprs.c][pthread_up_long_data][1733] have receive msg from sender
-[gprs.c][pthread_up_long_data][1734] Qmsg.dev: 3, Qmsg.functype: 6
-[xml.c][up_his_data][1083]g_xml_info[dev].timenode: 2016-06-21 10:09:00
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_heat_data where f_time='2016-06-21 10:09:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_water_data where f_time='2016-06-21 10:09:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_elect_data where f_time='2016-06-21 10:09:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_air_data where f_time='2016-06-21 10:09:00' &&&&
-[xml.c][up_his_data][1094]current meter type: 0
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[0]: 0.
-[xml.c][up_his_data][1100]mod[0]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 1
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[1]: 0.
-[xml.c][up_his_data][1100]mod[1]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 2
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[2]: 0.
-[xml.c][up_his_data][1100]mod[2]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 3
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[3]: 0.
-[xml.c][up_his_data][1100]mod[3]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1106]all rows is 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 1
-~~~~~~~~~[xml.c][wr_his_xml][1003] cur_frame_indep: 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 2
-[xml.c][wr_his_xml][1011] now enter state: stat_his_data
-[xml.c][wr_his_xml][1013]pHis : (nil)
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 3
-now in stat_his_end, and write to xmlfile: buff2.xml
-[xml.c][wr_his_xml][1055] make xml buff2.xml Index = 2.
-GPRS IPSend Success.
-start fopen buff1.xml . 
-pthread_GprsDataDeal UpGetXMLStart OK.
-pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
-[xml.c][parse_xml][2027]current file name : buff1.xml
-[xml.c][parse_common][1962]current file name : buff1.xml
-[xml.c][parse_common][1978] func_type: 6
-[xml.c][parse_common][1995]CONFIG_GATEWAY_ID : 37060002
-[xml.c][parse_common][1997] start  xml_exec().
-[xml.c][xml_exec][1951] g_xml_info[dev].func_type: 6
-[xml.c][func_rptup][1210] func_rptup g_xml_info[3].oper_type: 3.
-[xml.c][func_rptup][1223]have read history report answer from server.
-parse xml success
-[xml.c][parse_common][2011]current file name : buff1.xml
-[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 609
-[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 610
-[readallmeters.c][pthread_ReadAllMeters][252] now read all meters2016 6 21 - 10:10:0
+Creat QMSG_FILE OK.
+g_uiQmsgFd = 32769.
+XMLBuf_Init OK.
+QueuesInit OK!
+open_IOControl OK!
+[db.c][read_meter_info][909]read meter info: select f_meter_address, f_meter_type, f_meter_channel, f_id, f_install_pos, f_device_id, f_meter_proto_type from t_meter_info order by f_meter_channel, f_id desc;
+[db.c][each_meter_info][954]114120203301717
+[db.c][each_meter_info][954]9873223301717
+[db.c][each_meter_info][954]1000000
+Create RS485Up_Rec_pthreadID OK!
+Create UartGprs_Rec_pthreadID OK!
+Create UartMbus_Rec_pthreadID OK!
+Create UartDown485_Rec_pthreadID OK!
+Create pthread_GPRS_Mana OK!
+Create pthread_GPRS_IPD OK!
+Create pthread_GprsDataDeal OK!
+Create pthread_RS485UpDeal OK!
+Create pthread_ReadAllMeters OK!
+Create pthread_up_long_data OK!
+pthread_GprsDataDeal start.
+[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 620
+[readallmeters.c][pthread_ReadAllMeters][252] now read all meters2016 6 21 - 10:20:0
 [readallmeters.c][ReadAllMeters][180]
 now in  retrieve_meter_info_list():
-[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 3  .MeterAddr = 01000000000000  MeterType = 0  .Protocol = 0  .Channel = 7  .Position is 3#basement  .
+[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 3  .MeterAddr = 01000000000000  MeterType = 00  .Protocol = 00  .Channel = 07  .Position is 3#basement  .
 [readallmeters.c][CallBack_ReadAllMeters][59]
 [readallmeters.c][ReaOneMeter][93]lu8Channel: 7
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 2  .MeterAddr = 62491621001111  MeterType = 0  .Protocol = 0  .Channel = 1  .Position is 3#basement  .
+[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 2  .MeterAddr = 62491621001111  MeterType = 00  .Protocol = 00  .Channel = 01  .Position is 3#basement  .
 [readallmeters.c][CallBack_ReadAllMeters][59]
 [readallmeters.c][ReaOneMeter][93]lu8Channel: 1
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 1  .MeterAddr = 72781421001111  MeterType = 0  .Protocol = 0  .Channel = 1  .Position is 3#basement  .
+[gprs.c][pthread_up_long_data][1730]pthread_up_long_data start.
+MBUS com parameter set OK.
+GPRS com parameter set OK.
+RS485Up com parameter set OK.
+RS485Down com parameter set OK.
+[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 1  .MeterAddr = 72781421001111  MeterType = 00  .Protocol = 00  .Channel = 01  .Position is 3#basement  .
 [readallmeters.c][CallBack_ReadAllMeters][59]
 [readallmeters.c][ReaOneMeter][93]lu8Channel: 1
 [readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][ReadAllMeters][182]
-[sysfuctions.c][asc_to_datestr][281]src: Tue Jun 21 10:10:00 2016
+[sysfuctions.c][asc_to_datestr][281]src: Tue Jun 21 10:20:00 2016
 
-[sysfuctions.c][asc_to_datestr][300]dest: 2016-06-21 10:10:00
+[sysfuctions.c][asc_to_datestr][300]dest: 2016-06-21 10:20:00
 [gprs.c][pthread_up_long_data][1733] have receive msg from sender
 [gprs.c][pthread_up_long_data][1734] Qmsg.dev: 3, Qmsg.functype: 6
-[xml.c][up_his_data][1083]g_xml_info[dev].timenode: 2016-06-21 10:10:00
+[xml.c][up_his_data][1083]g_xml_info[dev].timenode: 2016-06-21 10:20:00
 &&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_heat_data where f_time='2016-06-21 10:10:00' &&&&
+&&&&[db.c][read_his_data][556] sql: select * from  t_heat_data where f_time='2016-06-21 10:20:00' &&&&
 &&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_water_data where f_time='2016-06-21 10:10:00' &&&&
+&&&&[db.c][read_his_data][556] sql: select * from  t_water_data where f_time='2016-06-21 10:20:00' &&&&
 &&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_elect_data where f_time='2016-06-21 10:10:00' &&&&
+&&&&[db.c][read_his_data][556] sql: select * from  t_elect_data where f_time='2016-06-21 10:20:00' &&&&
 &&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_air_data where f_time='2016-06-21 10:10:00' &&&&
+&&&&[db.c][read_his_data][556] sql: select * from  t_air_data where f_time='2016-06-21 10:20:00' &&&&
 [xml.c][up_his_data][1094]current meter type: 0
 [xml.c][up_his_data][1095]current meter get_his_cnt: 0
 [xml.c][up_his_data][1099]total_row[0]: 0.
@@ -123,290 +85,4 @@ current state: 2
 current state: 3
 now in stat_his_end, and write to xmlfile: buff2.xml
 [xml.c][wr_his_xml][1055] make xml buff2.xml Index = 2.
-GPRS IPSend Success.
-start fopen buff1.xml . 
-pthread_GprsDataDeal UpGetXMLStart OK.
-pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
-[xml.c][parse_xml][2027]current file name : buff1.xml
-[xml.c][parse_common][1962]current file name : buff1.xml
-[xml.c][parse_common][1978] func_type: 6
-[xml.c][parse_common][1995]CONFIG_GATEWAY_ID : 37060002
-[xml.c][parse_common][1997] start  xml_exec().
-[xml.c][xml_exec][1951] g_xml_info[dev].func_type: 6
-[xml.c][func_rptup][1210] func_rptup g_xml_info[3].oper_type: 3.
-[xml.c][func_rptup][1223]have read history report answer from server.
-parse xml success
-[xml.c][parse_common][2011]current file name : buff1.xml
-[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 610
-send_hb_and_fdog: now begin exec xml_exec(lu8Dev, lu8xmlIndex)
-[xml.c][xml_exec][1951] g_xml_info[dev].func_type: 1
-now in func_heart_beat().
-l_xmlInfo.func_type: 1, l_xmlInfo.oper_type: 0
-now make heart_beat xml.
-make xml success.xml Index = 2.
-GPRS IPSend Success.
-start fopen buff1.xml . 
-pthread_GprsDataDeal UpGetXMLStart OK.
-pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
-[xml.c][parse_xml][2027]current file name : buff1.xml
-[xml.c][parse_common][1962]current file name : buff1.xml
-[xml.c][parse_common][1978] func_type: 1
-[xml.c][parse_common][1995]CONFIG_GATEWAY_ID : 37060002
-[xml.c][parse_common][1997] start  xml_exec().
-[xml.c][xml_exec][1951] g_xml_info[dev].func_type: 1
-now in func_heart_beat().
-l_xmlInfo.func_type: 1, l_xmlInfo.oper_type: 3
-have read heart_beat answer from server.
-parse xml success
-[xml.c][parse_common][2011]current file name : buff1.xml
-[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 611
-[readallmeters.c][pthread_ReadAllMeters][252] now read all meters2016 6 21 - 10:11:0
-[readallmeters.c][ReadAllMeters][180]
-now in  retrieve_meter_info_list():
-[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 3  .MeterAddr = 01000000000000  MeterType = 0  .Protocol = 0  .Channel = 7  .Position is 3#basement  .
-[readallmeters.c][CallBack_ReadAllMeters][59]
-[readallmeters.c][ReaOneMeter][93]lu8Channel: 7
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 2  .MeterAddr = 62491621001111  MeterType = 0  .Protocol = 0  .Channel = 1  .Position is 3#basement  .
-[readallmeters.c][CallBack_ReadAllMeters][59]
-[readallmeters.c][ReaOneMeter][93]lu8Channel: 1
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 1  .MeterAddr = 72781421001111  MeterType = 0  .Protocol = 0  .Channel = 1  .Position is 3#basement  .
-[readallmeters.c][CallBack_ReadAllMeters][59]
-[readallmeters.c][ReaOneMeter][93]lu8Channel: 1
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][ReadAllMeters][182]
-[sysfuctions.c][asc_to_datestr][281]src: Tue Jun 21 10:11:00 2016
-
-[sysfuctions.c][asc_to_datestr][300]dest: 2016-06-21 10:11:00
-[gprs.c][pthread_up_long_data][1733] have receive msg from sender
-[gprs.c][pthread_up_long_data][1734] Qmsg.dev: 3, Qmsg.functype: 6
-[xml.c][up_his_data][1083]g_xml_info[dev].timenode: 2016-06-21 10:11:00
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_heat_data where f_time='2016-06-21 10:11:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_water_data where f_time='2016-06-21 10:11:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_elect_data where f_time='2016-06-21 10:11:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_air_data where f_time='2016-06-21 10:11:00' &&&&
-[xml.c][up_his_data][1094]current meter type: 0
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[0]: 0.
-[xml.c][up_his_data][1100]mod[0]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 1
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[1]: 0.
-[xml.c][up_his_data][1100]mod[1]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 2
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[2]: 0.
-[xml.c][up_his_data][1100]mod[2]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 3
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[3]: 0.
-[xml.c][up_his_data][1100]mod[3]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1106]all rows is 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 1
-~~~~~~~~~[xml.c][wr_his_xml][1003] cur_frame_indep: 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 2
-[xml.c][wr_his_xml][1011] now enter state: stat_his_data
-[xml.c][wr_his_xml][1013]pHis : (nil)
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 3
-now in stat_his_end, and write to xmlfile: buff2.xml
-[xml.c][wr_his_xml][1055] make xml buff2.xml Index = 2.
-GPRS IPSend Success.
-start fopen buff1.xml . 
-pthread_GprsDataDeal UpGetXMLStart OK.
-pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
-[xml.c][parse_xml][2027]current file name : buff1.xml
-[xml.c][parse_common][1962]current file name : buff1.xml
-[xml.c][parse_common][1978] func_type: 6
-[xml.c][parse_common][1995]CONFIG_GATEWAY_ID : 37060002
-[xml.c][parse_common][1997] start  xml_exec().
-[xml.c][xml_exec][1951] g_xml_info[dev].func_type: 6
-[xml.c][func_rptup][1210] func_rptup g_xml_info[3].oper_type: 3.
-[xml.c][func_rptup][1223]have read history report answer from server.
-parse xml success
-[xml.c][parse_common][2011]current file name : buff1.xml
-[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 611
-[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 612
-[readallmeters.c][pthread_ReadAllMeters][252] now read all meters2016 6 21 - 10:12:0
-[readallmeters.c][ReadAllMeters][180]
-now in  retrieve_meter_info_list():
-[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 3  .MeterAddr = 01000000000000  MeterType = 0  .Protocol = 0  .Channel = 7  .Position is 3#basement  .
-[readallmeters.c][CallBack_ReadAllMeters][59]
-[readallmeters.c][ReaOneMeter][93]lu8Channel: 7
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 2  .MeterAddr = 62491621001111  MeterType = 0  .Protocol = 0  .Channel = 1  .Position is 3#basement  .
-[readallmeters.c][CallBack_ReadAllMeters][59]
-[readallmeters.c][ReaOneMeter][93]lu8Channel: 1
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 1  .MeterAddr = 72781421001111  MeterType = 0  .Protocol = 0  .Channel = 1  .Position is 3#basement  .
-[readallmeters.c][CallBack_ReadAllMeters][59]
-[readallmeters.c][ReaOneMeter][93]lu8Channel: 1
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][ReadAllMeters][182]
-[sysfuctions.c][asc_to_datestr][281]src: Tue Jun 21 10:12:00 2016
-
-[sysfuctions.c][asc_to_datestr][300]dest: 2016-06-21 10:12:00
-[gprs.c][pthread_up_long_data][1733] have receive msg from sender
-[gprs.c][pthread_up_long_data][1734] Qmsg.dev: 3, Qmsg.functype: 6
-[xml.c][up_his_data][1083]g_xml_info[dev].timenode: 2016-06-21 10:12:00
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_heat_data where f_time='2016-06-21 10:12:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_water_data where f_time='2016-06-21 10:12:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_elect_data where f_time='2016-06-21 10:12:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_air_data where f_time='2016-06-21 10:12:00' &&&&
-[xml.c][up_his_data][1094]current meter type: 0
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[0]: 0.
-[xml.c][up_his_data][1100]mod[0]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 1
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[1]: 0.
-[xml.c][up_his_data][1100]mod[1]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 2
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[2]: 0.
-[xml.c][up_his_data][1100]mod[2]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 3
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[3]: 0.
-[xml.c][up_his_data][1100]mod[3]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1106]all rows is 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 1
-~~~~~~~~~[xml.c][wr_his_xml][1003] cur_frame_indep: 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 2
-[xml.c][wr_his_xml][1011] now enter state: stat_his_data
-[xml.c][wr_his_xml][1013]pHis : (nil)
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 3
-now in stat_his_end, and write to xmlfile: buff2.xml
-[xml.c][wr_his_xml][1055] make xml buff2.xml Index = 2.
-GPRS IPSend Success.
-start fopen buff1.xml . 
-pthread_GprsDataDeal UpGetXMLStart OK.
-pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
-[xml.c][parse_xml][2027]current file name : buff1.xml
-[xml.c][parse_common][1962]current file name : buff1.xml
-[xml.c][parse_common][1978] func_type: 6
-[xml.c][parse_common][1995]CONFIG_GATEWAY_ID : 37060002
-[xml.c][parse_common][1997] start  xml_exec().
-[xml.c][xml_exec][1951] g_xml_info[dev].func_type: 6
-[xml.c][func_rptup][1210] func_rptup g_xml_info[3].oper_type: 3.
-[xml.c][func_rptup][1223]have read history report answer from server.
-parse xml success
-[xml.c][parse_common][2011]current file name : buff1.xml
-[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 612
-send_hb_and_fdog: now begin exec xml_exec(lu8Dev, lu8xmlIndex)
-[xml.c][xml_exec][1951] g_xml_info[dev].func_type: 1
-now in func_heart_beat().
-l_xmlInfo.func_type: 1, l_xmlInfo.oper_type: 0
-now make heart_beat xml.
-make xml success.xml Index = 2.
-GPRS IPSend Success.
-start fopen buff1.xml . 
-pthread_GprsDataDeal UpGetXMLStart OK.
-pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
-[xml.c][parse_xml][2027]current file name : buff1.xml
-[xml.c][parse_common][1962]current file name : buff1.xml
-[xml.c][parse_common][1978] func_type: 1
-[xml.c][parse_common][1995]CONFIG_GATEWAY_ID : 37060002
-[xml.c][parse_common][1997] start  xml_exec().
-[xml.c][xml_exec][1951] g_xml_info[dev].func_type: 1
-now in func_heart_beat().
-l_xmlInfo.func_type: 1, l_xmlInfo.oper_type: 3
-have read heart_beat answer from server.
-parse xml success
-[xml.c][parse_common][2011]current file name : buff1.xml
-[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 613
-[readallmeters.c][pthread_ReadAllMeters][252] now read all meters2016 6 21 - 10:13:0
-[readallmeters.c][ReadAllMeters][180]
-now in  retrieve_meter_info_list():
-[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 3  .MeterAddr = 01000000000000  MeterType = 0  .Protocol = 0  .Channel = 7  .Position is 3#basement  .
-[readallmeters.c][CallBack_ReadAllMeters][59]
-[readallmeters.c][ReaOneMeter][93]lu8Channel: 7
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 2  .MeterAddr = 62491621001111  MeterType = 0  .Protocol = 0  .Channel = 1  .Position is 3#basement  .
-[readallmeters.c][CallBack_ReadAllMeters][59]
-[readallmeters.c][ReaOneMeter][93]lu8Channel: 1
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][CallBack_ReadAllMeters][40]MeterID = 1  .MeterAddr = 72781421001111  MeterType = 0  .Protocol = 0  .Channel = 1  .Position is 3#basement  .
-[readallmeters.c][CallBack_ReadAllMeters][59]
-[readallmeters.c][ReaOneMeter][93]lu8Channel: 1
-[readallmeters.c][ReaOneMeter][138]meter_type error: 0[readallmeters.c][ReadAllMeters][182]
-[sysfuctions.c][asc_to_datestr][281]src: Tue Jun 21 10:13:00 2016
-
-[sysfuctions.c][asc_to_datestr][300]dest: 2016-06-21 10:13:00
-[gprs.c][pthread_up_long_data][1733] have receive msg from sender
-[gprs.c][pthread_up_long_data][1734] Qmsg.dev: 3, Qmsg.functype: 6
-[xml.c][up_his_data][1083]g_xml_info[dev].timenode: 2016-06-21 10:13:00
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_heat_data where f_time='2016-06-21 10:13:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_water_data where f_time='2016-06-21 10:13:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_elect_data where f_time='2016-06-21 10:13:00' &&&&
-&&&&[db.c][read_his_data][553] retrieve_his_data() &&&&
-&&&&[db.c][read_his_data][556] sql: select * from  t_air_data where f_time='2016-06-21 10:13:00' &&&&
-[xml.c][up_his_data][1094]current meter type: 0
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[0]: 0.
-[xml.c][up_his_data][1100]mod[0]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 1
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[1]: 0.
-[xml.c][up_his_data][1100]mod[1]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 2
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[2]: 0.
-[xml.c][up_his_data][1100]mod[2]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1094]current meter type: 3
-[xml.c][up_his_data][1095]current meter get_his_cnt: 0
-[xml.c][up_his_data][1099]total_row[3]: 0.
-[xml.c][up_his_data][1100]mod[3]: 0.
-[xml.c][up_his_data][1103]total_frame is: >>>0<<<
-[xml.c][up_his_data][1106]all rows is 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 1
-~~~~~~~~~[xml.c][wr_his_xml][1003] cur_frame_indep: 0
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 2
-[xml.c][wr_his_xml][1011] now enter state: stat_his_data
-[xml.c][wr_his_xml][1013]pHis : (nil)
-[xml.c][wr_his_xml][969]pHis : (nil)
-current state: 3
-now in stat_his_end, and write to xmlfile: buff2.xml
-[xml.c][wr_his_xml][1055] make xml buff2.xml Index = 2.
-GPRS IPSend Success.
-start fopen buff1.xml . 
-pthread_GprsDataDeal UpGetXMLStart OK.
-pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
-[xml.c][parse_xml][2027]current file name : buff1.xml
-[xml.c][parse_common][1962]current file name : buff1.xml
-[xml.c][parse_common][1978] func_type: 6
-[xml.c][parse_common][1995]CONFIG_GATEWAY_ID : 37060002
-[xml.c][parse_common][1997] start  xml_exec().
-[xml.c][xml_exec][1951] g_xml_info[dev].func_type: 6
-[xml.c][func_rptup][1210] func_rptup g_xml_info[3].oper_type: 3.
-[xml.c][func_rptup][1223]have read history report answer from server.
-parse xml success
-[xml.c][parse_common][2011]current file name : buff1.xml
+[gprs.c][GprsRestart_xmz][436] 
