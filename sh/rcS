@@ -40,6 +40,6 @@ echo "                                "
 echo "   Linux For Energy Monitor     " 
 echo "                                " 
 echo "********************************"
-
+ifconfig eth0 192.168.1.250
 cd /app
-./runapp.sh
+./runapp.sh&
