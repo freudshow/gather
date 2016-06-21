@@ -37,7 +37,7 @@ static int CallBack_ReadAllMeters(pMeter_info pMeterInfo)
 	MeterFileType mf;  //防止篡改表基础信息链表，拷贝到局部变量使用。
 
 	//begin:打印测试pMeter_info内容
-	printf("MeterID = %d  .",pMeterInfo->f_device_id);
+	printf("[%s][%s][%d]MeterID = %d  .", FILE_LINE, pMeterInfo->f_device_id);
 	printf("MeterAddr = ");
 	for(i=0;i<7;i++)
 		printf("%02x",pMeterInfo->f_meter_address[i]);
@@ -56,7 +56,7 @@ static int CallBack_ReadAllMeters(pMeter_info pMeterInfo)
 	mf.u8Channel = pMeterInfo->f_meter_channel;
 	memcpy(mf.install_pos,pMeterInfo->f_install_pos,LENGTH_F_INSTALL_POS);
 
-
+	printf("[%s][%s][%d]\n", FILE_LINE);
 	ReaOneMeter(&mf);
 
 
@@ -90,6 +90,7 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 		sem_wait(&Opetate485Down_sem);
 	else
 		sem_wait(&OperateMBUS_sem);
+	printf("[%s][%s][%d]lu8Channel: %d\n", FILE_LINE, lu8Channel);
 	METER_ChangeChannel(lu8Channel);  //先确保在对应通道上。
 	
     //获取当前时间		
