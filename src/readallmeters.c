@@ -135,6 +135,7 @@ uint8 ReaOneMeter(MeterFileType *pmf)
         break;
     default:
         err = ERR_1;
+		printf("[%s][%s][%d]meter_type error: %d", FILE_LINE, pmf->u8MeterType);
         break;
 	}
 
