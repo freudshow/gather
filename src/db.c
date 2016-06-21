@@ -933,7 +933,7 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
 			}
 		}
 		else if(0 == strcmp(f_name[i], FIELD_MINFO_TYPE)) {//仪表类型编码(HEX String), 固定为两个字符
- 			printf("[%d][%d][%s] meter_type(\%s): %s", FILE_LINE, f_value[i]);
+   			printf("[%d][%d][%s] meter_type : %p", FILE_LINE, f_value[i]);
 			if (strlen(f_value[i]) == BYTE_BCD_CNT) {
 				tmp_info->f_meter_type = (Ascii2Hex(f_value[i][0]) << LEN_HALF_BYTE | Ascii2Hex(f_value[i][1]));
 			} else {//异常情况
