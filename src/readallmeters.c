@@ -42,9 +42,9 @@ static int CallBack_ReadAllMeters(pMeter_info pMeterInfo)
 	for(i=0;i<7;i++)
 		printf("%02x",pMeterInfo->f_meter_address[i]);
 	
-	printf("  MeterType = %x  .",pMeterInfo->f_meter_type);
-	printf("Protocol = %x  .",pMeterInfo->f_meter_proto_type);
-	printf("Channel = %x  .",pMeterInfo->f_meter_channel);
+	printf("  MeterType = %02x  .",pMeterInfo->f_meter_type);
+	printf("Protocol = %02x  .",pMeterInfo->f_meter_proto_type);
+	printf("Channel = %02x  .",pMeterInfo->f_meter_channel);
 	printf("Position is %s  .\n",pMeterInfo->f_install_pos);	
 
 	//end:´òÓ¡²âÊÔpMeter_infoÄÚÈİ
