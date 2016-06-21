@@ -177,8 +177,9 @@ void ReadAllMeters(void)
     printf("%d %d %d ",nowTime.tm_year, nowTime.tm_mon,nowTime.tm_mday);
     printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
 
-
+	printf("[%s][%s][%d]\n", FILE_LINE);
     retrieve_meter_info_list(CallBack_ReadAllMeters);  //卤茅脌煤鲁颅脠芦卤铆隆拢
+	printf("[%s][%s][%d]\n", FILE_LINE);
     get_sys_config(CONFIG_REPORT_MODE, &sysconfig);
     if(RPT_ACTIVE == atoi(sysconfig.f_config_value)) {//如果是主动上报, 则发送上报消息
     lnetMod = g_sysConfigHex.netType;
