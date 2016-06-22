@@ -3,14 +3,28 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>12</func_type>
 		<oper_type>2</oper_type>
 	</common>
-	<channel>7</channel><!--1~7-->
-	<com>9600,n,8,1</com><!-- 波特率,校验位,数据位,停止位 -->
-	<meterinfo>20,0</meterinfo><!--仪表类型, 协议版本, 以从MBus中截取有效的应答帧-->
-	<cmd>02 03 00 03 00 0C B5 FC</cmd>
+	<channel>7</channel>
+	<com>9600,n,8,1</com>
+	<meterinfo>20,0</meterinfo>
+	<cmd>01 03 00 03 00 0C B5 CF</cmd>
+</root>
+
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>37060001</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>1</channel>
+	<com>2400,e,8,1</com>
+	<meterinfo>20,0</meterinfo>
+	<cmd>FE FE FE FE FE FE FE FE 68 20 29 04 16 20 00 11 11 01 03 1F 90 00  C0 16</cmd>
 </root>
 
 <!--下位机直接返回抄表结果-->
