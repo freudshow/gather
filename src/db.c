@@ -1019,12 +1019,14 @@ int insert_one_meter_info_to_table(pMeter_info pMinfo)
     strcat(sql_buf, tmpstr);
     strcat(sql_buf, SQL_SINGLE_QUOTES);
     strcat(sql_buf, ",");
+    strcat(sql_buf, SQL_SINGLE_QUOTES);
 
-    
+    if(strlen(pMinfo->f_install_pos)>0) {
+        strcat(sql_buf, pMinfo->f_install_pos);
+    }else{
+        strcat(sql_buf, "NULL");
+    }
     strcat(sql_buf, SQL_SINGLE_QUOTES);
-    strcat(sql_buf, pMinfo->f_install_pos);
-    strcat(sql_buf, SQL_SINGLE_QUOTES);
-    
     strcat(sql_buf, SQL_RIGHT_PARENTHESIS);
     printf("now in  insert_one_meter_info_to_table(), insert sql_buf: %s\n", sql_buf);
     err = sqlite3_exec(g_pDB, sql_buf, NULL, NULL, NULL);
