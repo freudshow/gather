@@ -863,6 +863,7 @@ uint8 update_meter_info(uint8 dev)
             rowNode = curNode->children;
             printf("rowNode->name: %s\n", rowNode->name);
             pMInfo = malloc(sizeof(struct meter_info_str));
+            memset(pMInfo, 0, sizeof(struct meter_info_str));
             while(rowNode) {//获取仪表的详细信息
                 if(xmlStrEqual(rowNode->name, CONST_CAST "f_meter_type")) {
                     pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
@@ -889,7 +890,8 @@ uint8 update_meter_info(uint8 dev)
                     pMInfo->f_meter_channel = atoi((char*)pValue);
                 }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_install_pos")) {
                     pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
-                    strcpy(pMInfo->f_install_pos, (char*)pValue);
+                    if(pValue)
+                        strcpy(pMInfo->f_install_pos, (char*)pValue);
                 }
                 rowNode = rowNode->next;
             }
