@@ -1,0 +1,183 @@
+@charset "utf-8";
+/* CSS Document */
+/*****************************整体布局、样式******************************/
+#think_header {
+    background: #000 none repeat scroll 0 0;
+    height: 74px;
+}
+#think_header .think_head_con {
+    margin: 0 auto;
+    width: 1200px;
+}
+#think_header .think_logo {
+    float: left;
+    padding-top: 18px;
+    width: 226px;
+}
+#think_header .think_car {
+    float: right;
+    padding-top: 26px;
+    width: 22px;
+}
+#think_header .think_car a {
+    background-position: -5px -7px;
+    height: 20px;
+    position: relative;
+    text-indent: -9999px;
+    width: 22px;
+}
+#think_header .think_car i {
+    background-position: -39px -9px;
+    height: 8px;
+    left: 18px;
+    position: absolute;
+    top: 0;
+    width: 8px;
+}
+#think_header .think_user {
+    color: #fff;
+    float: right;
+    font-size: 15px;
+    height: 16px;
+    line-height: 16px;
+    padding: 28px 18px;
+}
+#think_header .think_user a {
+    color: #fff;
+    float: right;
+    margin: 1px 6px 0;
+}
+#think_header .think_user a:hover {
+    color: #e72e25;
+}
+#think_header .think_user span {
+    float: right;
+    width: 4px;
+}
+#think_header .think_login {
+    width: 88px;
+}
+#think_header .think_register {
+    text-align: right;
+}
+#think_header .think_register .ellipsis {
+    display: inline-block;
+    width: 140px;
+}
+#think_header .think_search {
+    border: 1px solid silver;
+    float: left;
+    height: 26px;
+    margin-left: 50px;
+    margin-top: 23px;
+    position: relative;
+    width: 223px;
+}
+#think_header .think_search input {
+    background: #000 none repeat scroll 0 0;
+    border: 0 none;
+    color: #fff;
+    float: left;
+    font-size: 15px;
+    height: 26px;
+    line-height: 26px;
+    padding-left: 10px;
+    width: 179px;
+}
+#think_header .think_search button {
+    background-color: #000;
+    background-position: -55px -5px;
+    border: 0 none;
+    cursor: pointer;
+    height: 26px;
+    text-indent: -9999px;
+    width: 26px;
+}
+#think_header .think_nav {
+    float: left;
+    position: relative;
+    z-index: 9;
+}
+#think_header .think_nav .think_nav_border {
+    background: #e72e25 none repeat scroll 0 0;
+    height: 2px;
+    left: 0;
+    position: absolute;
+    top: 72px;
+    width: 0;
+    z-index: 10;
+}
+#loading_box, #mask, #mask0, .alert_tip, .u_box {
+    position: fixed;
+}
+#think_header .think_nav .think_navul {
+    height: 72px;
+}
+#think_header .think_nav .think_li {
+    float: left;
+    height: 72px;
+    line-height: 72px;
+    padding-right: 71px;
+}
+#think_header .think_nav .think_li .th_nava {
+    color: #fff;
+    display: block;
+    font-size: 15px;
+    height: 72px;
+    letter-spacing: 2px;
+    line-height: 72px;
+}
+#think_header .think_search_header {
+ border: 1px solid silver;
+    float: left;
+    height: 26px;
+    margin-left: 50px;
+    margin-top: 23px;
+    position: relative;
+    width: 223px;
+}
+#think_header .think_search_header button {
+    background-color: #000;
+    background-position: -55px -5px;
+    border: 0 none;
+    cursor: pointer;
+    height: 26px;
+    text-indent: -9999px;
+    width: 26px;
+}
+
+ .search-q {
+   /* background: rgba(0, 0, 0, 0) url("../images/searchbar.png") no-repeat scroll 0 0;*/
+    height: 30px;
+   
+    width: 270px;
+}
+ .search-q .search-text-q {
+    background: #000 none repeat scroll 0 0;
+    border: medium none;
+    color: #fff;
+    height: 24px;
+    line-height: 24px;
+	margin: 2px 0 0;
+    padding: 0;
+    width: 188px;
+}
+ .search-q .search-btn-q {
+	background-image: url("../images/think_icon.png");
+	background-color: #000;
+    background-position: -55px -5px;
+	cursor: pointer;
+    border: medium none;
+    cursor: pointer;
+    height: 24px;
+    margin: 1px 50px 0 0;
+    padding: 0;
+    text-indent: -9999em;
+    width: 30px;
+}
+
+.usepng {
+    background-image: url("../images/think_icon.png");
+    background-repeat: no-repeat;
+    display: inline-block;
+}

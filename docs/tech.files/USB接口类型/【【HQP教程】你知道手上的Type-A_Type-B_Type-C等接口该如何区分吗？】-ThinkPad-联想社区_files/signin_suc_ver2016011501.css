@@ -1,0 +1,106 @@
+*{padding:0;margin:0}
+body{font-family: 'Microsoft yahei'}
+ul li{list-style: none}
+a{text-decoration: none}
+.reminder_box{
+	color:#fff;
+	margin-left:32px
+}
+.reminder_box a{
+	color:#fff;
+}
+.singin_mark{
+    height: 100%;
+    width: 100%;
+    background: rgba(0,0,0,0.3);
+    position:fixed;
+    top:0;
+    left:0;
+    filter: progid:DXImageTransform.Microsoft.Gradient(startColorstr=#55000000,endColorstr=#55000000);
+    background:rgba(0, 0, 0, 0.4) none repeat scroll 0 0 !important;
+    filter:Alpha(opacity=40);
+    background:#000000;
+	z-index:9997;
+}
+.singin_sucbox{
+    height: 310px;
+    width: 610px;
+    background: rgba(255,255,255,0.3)!important;
+    position: fixed;
+    top:50%;
+    left:50%;
+    margin-left: -305px;
+    margin-top: -155px;
+    border-radius: 6px;
+    filter:Alpha(opacity=30);
+    background:#fff;
+	z-index:9998;
+}
+.singin_suc{
+    position: fixed;
+    height: 300px;
+    width: 600px;
+    background: #fff;
+    top:50%;
+    left:50%;
+    margin-top: -150px;
+    margin-left: -300px;
+	z-index:9999;
+}
+.singin_succlose{
+    position: absolute;
+    right:0;
+    top:24px;
+    cursor: pointer;
+}
+.singin_sucleft{
+    width: 383px;
+    height: 100%;
+    float: left;
+}
+.singin_sucleft h2{
+    padding-top: 85px;
+    padding-left: 86px;
+    font-size: 40px;
+    color: #434343;
+    font-weight: normal;
+}
+.singin_sucleft h2 img{
+    vertical-align: middle;
+    margin-right: 18px;
+    margin-top: -2px;
+}
+.singin_sucleft p{
+    padding-left: 135px;
+    font-size: 14px;
+    color: #434343;
+    padding-top: 32px;
+}
+.singin_sucleft h3{
+    width: 273px;
+    height: 43px;
+    background: url("../images/singin_suc_text.png") no-repeat;
+    margin-left: 102px;
+    margin-top: 28px;
+    font-size: 16px;
+    color:#fff;
+    font-weight: normal;
+    padding-top: 8.5px;
+    padding-left: 20px;
+    letter-spacing: 0.5px;
+}
+.singin_sucright{
+    float: right;
+    height: 100%;
+    width: 200px;
+}
+.singin_sucright dl{
+    width: 150px;
+    margin-top: 80px;
+}
+.singin_sucright dl dd{
+    text-align: center;
+    font-size: 14px;
+    color: #434343;
+	padding-top:6px;
+}
