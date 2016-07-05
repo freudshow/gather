@@ -682,6 +682,8 @@ uint8 write_sysconfig(uint8 dev)
             OSTimeDly(10000);
             system("reboot");
         }
+    } else {
+        err = send_answer(dev, "result", "fail", NULL);
     }
     return err;
 }
