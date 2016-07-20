@@ -1184,7 +1184,7 @@ uint8 up_his_data(uint8 dev)
             g_xml_info[dev].cur_rows += g_xml_info[dev].cur_cnt;//当前已发送的行数
             printf("[%s][%s][%d] cur_frame %d cur_frame_indep %d, make xml over!!!!!!!!\n", FILE_LINE,\
             g_xml_info[dev].cur_frame[type_idx], g_xml_info[dev].cur_frame_indep);
-            printf("[%s][%s][%d] cur_meter_type: %d, cur_frame: ^^^^^>>%d^^^^^<<, total_frame: ^^^^^>>%d^^^^^<<\n", FILE_LINE, \
+            printf("[%s][%s][%d] cur_meter_type: %d, cur_frame: ^^^^^>>%d<<^^^^^, total_frame: ^^^^^>>%d<<^^^^^\n", FILE_LINE, \
                 type_idx, g_xml_info[dev].cur_frame[type_idx], g_xml_info[dev].total_frame[type_idx]);
             if(retSem != 0){  //如果连续发送不成功，则退出，不再上推。
                 printf("data report fail, send quit .\n");
