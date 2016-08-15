@@ -92,3 +92,18 @@
 	<meterinfo>20,0</meterinfo>
 	<cmd>FE FE FE FE 68 20 62 49 16 21 00 11 11 01 03 1F 90 01 40 16 16</cmd>
 </root>
+
+<!--气象站透传帧-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>37060002</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>7</channel>
+	<com>9600,n,8,1</com>
+	<meterinfo>10,0</meterinfo>
+	<cmd>4C 4F 4F 50 20 31 0D 0A</cmd>
+</root>
