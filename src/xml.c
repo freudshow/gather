@@ -1765,16 +1765,32 @@ uint8 parse_proto_trs(uint8 dev, pProto_trans pProtoTrs)
     while(curNode) {
         if(xmlStrEqual(curNode->name, CONST_CAST "channel")) {
             pValue = xmlNodeGetContent(curNode->xmlChildrenNode);
+            if(pValue == NULL) {
+                send_answer(dev, "result", "NULL channel", NULL);
+                return ERR_1;
+            }
             pProtoTrs->channel = atoi((char*)pValue);
         } else if(xmlStrEqual(curNode->name, CONST_CAST "com")) {
             pValue = xmlNodeGetContent(curNode->xmlChildrenNode);
+            if(pValue == NULL) {
+                send_answer(dev, "result", "NULL com info", NULL);
+                return ERR_1;
+            }
             retErr = split_com((char*)pValue, pProtoTrs);
             
         } else if(xmlStrEqual(curNode->name, CONST_CAST "cmd")) {
             pValue = xmlNodeGetContent(curNode->xmlChildrenNode);
+            if(pValue == NULL) {
+                send_answer(dev, "result", "NULL command", NULL);
+                return ERR_1;
+            }
             retErr = split_cmd((char*)pValue, pProtoTrs);
         } else if(xmlStrEqual(curNode->name, CONST_CAST "meterinfo")) {
             pValue = xmlNodeGetContent(curNode->xmlChildrenNode);
+            if(pValue == NULL) {
+                send_answer(dev, "result", "NULL meterinfo", NULL);
+                return ERR_1;
+            }
             retErr = split_minfo((char*)pValue, pProtoTrs);
         }
         curNode = curNode->next;
@@ -1840,6 +1856,10 @@ uint8 do_proto_trs(uint8 dev)
     int i;
 
     retErr = parse_proto_trs(dev, &proto_trs);
+    if(retErr == ERR_1)
+    {
+        return ERR_1;
+    }
     retErr = send_cmd_and_rcv(dev, &proto_trs);
     int readidx;
     printf("[%s][%s][%d]proto_trs.resLen: %d \n", FILE_LINE, proto_trs.resLen);
