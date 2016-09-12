@@ -7,33 +7,33 @@
 	  oadd：数据目的地址
       function_type:功能类型
 		功能类型列表:
-			1．	身份验证(id_validate)
-			2．	心跳(heart_beat)
-			3．	配置信息(sys_config)
-			4.	配置需要哪些物理量(request_data)
-			5.	配置抄表时间点(time_node)
-			6.	操作表地址信息(meter_info)
-			7.	抄表数据上传(report_update)
-			8.	查询集中器状态(read_stat)(集中器正常/异常，如异常具体是什么异常)
-			9.	ip切换通知(switch_ip)
-			10.	数据库操作相关(db_mani)
-			11.	执行本地系统命令或程序(local_sys_command)
-			12.	远程升级(code_updata)
-			13.	抄表任意透传(proto_trans)
-			14.	设置集中器时钟(clock_set)
-			15.	集中器抄表模式和抄表周期设置(collect_set)
+			-0-, 登录
+			-1-, 心跳
+			-2-, 系统参数配置
+			-3-, 仪表的数据项配置
+			-4-, 抄表与上报时间点配置
+			-5-, 表地址配置
+			-6-, 上传历史数据
+			-7-, 读取集中器状态
+			-8-, 切换ip
+			-9-, 数据库透传
+			-10-, 本地shell命令透传
+			-11-, 程序更新
+			-12-, 协议透传
+			-13-, 集中器校时
+			-14-, 集中器抄表模式和抄表周期设置
 	  oper_type:操作类型：
-			1、读（read）
-			2、写（write）
-			3、操作 (do), 用于透传(数据库命令, shell命令, 抄表与控制命令)
-			4、应答（answer）
+			-0-, 读取(Read)
+			-1-, 写入(Write)
+			-2-, 操作(eXecute)
+			-3-, 应答(Answer)
 			操作对：读-应答、写-应答、操作-应答、操作-应答
     -->
 	<common>
 			<sadd>xxxxxx</sadd>
 			<oadd>xxxxxx</oadd>
 			<func_type>功能类型</func_type>
-			<oper_type>read/write/do/answer</oper_type>
+			<oper_type>0/1/2/3</oper_type>
 	</common>
 	<!-- 以下各项的字段, 不同功能类型不同，须对应具体的功能类型添加, 详见下文。-->
 	
@@ -48,70 +48,47 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-			<sadd>xxxx</sadd>
-			<oadd>xxxx</oadd>
-			<func_type>id_validate</func_type>
-			<oper_type>read/write/answer</oper_type>
-	</common>
-	<!-- 身份验证
-		state: 当前操作所处的状态;
-		string：当前传输的字符串;
-     -->
-	<state>request_string->dispatch_string->hash_result->id_result</state>
-	<string>xxxxxxxx</string>
-</root>
-
-<!-- 下位机请求上位机的"当前系统时间字符串" -->
-<?xml version="1.0" encoding="utf-8" ?>
-<root>
-	<common>
-			<sadd>261425C00101</sadd>
+			<sadd>37060001</sadd>
 			<oadd>0001</oadd>
-			<func_type>id_validate</func_type>
-			<oper_type>read</oper_type>
+			<func_type>0</func_type>
+			<oper_type>0/1/2</oper_type>
 	</common>
-	<state>request_string</state>
 </root>
 
-<!-- 上位机下发"当前系统时间字符串" -->
+<!-- 下位机请求登录 -->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-			<sadd>0001</sadd>
-			<oadd>261425C00101</oadd>
-			<func_type>id_validate</func_type>
-			<oper_type>answer</oper_type>
-	</common>
-	<state>dispatch_string</state>
-	<string>0aeefd</string>
-</root>
-
-<!-- 下位机上传md5加密后的字符串 -->
-<?xml version="1.0" encoding="utf-8" ?>
-<root>
-	<common>
-			<sadd>261425C00101</sadd>
+			<sadd>37060001</sadd>
 			<oadd>0001</oadd>
-			<func_type>id_validate</func_type>
-			<oper_type>answer</oper_type>
+			<func_type>0</func_type>
+			<oper_type>0</oper_type>
 	</common>
-	<state>hash_result</state>
-	<string>23ac9e6847cc41622affb9623998735b</string>
 </root>
 
-<!-- 上位机下发认证结果 -->
+<!-- 上位机下发集中器校时指令 -->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-			<sadd>0001</sadd>
-			<oadd>261425C00101</oadd>
-			<func_type>id_validate</func_type>
-			<oper_type>answer</oper_type>
+		<sadd>0001</sadd>
+		<oadd>5001</oadd>
+		<func_type>13</func_type><!--注意, 操作类型直接使用13-->
+		<oper_type>1</oper_type>
 	</common>
-	<state>id_result</state>
-	<string>success/fail</string>
+	<time>2016-03-05 12:13:14</time>  <!--年月日时分秒-->
 </root>
 
+<!-- 下位机返回设置时间后的操作结果 -->
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+	<common>
+		<sadd>37060001</sadd>
+		<oadd>0001</oadd>
+		<func_type>13</func_type>
+		<oper_type>3</oper_type>
+	</common>
+	<result>success</result>
+</root>
 
 
 <!---------------- 2. 心跳(heart_beat) ---------------->
@@ -123,10 +100,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-			<sadd>261425C00101</sadd>
+			<sadd>37060001</sadd>
 			<oadd>0001</oadd>
-			<func_type>heart_beat</func_type>
-			<oper_type></oper_type>
+			<func_type>1</func_type>
+			<oper_type>0</oper_type>
 	</common>
 </root>
 
@@ -134,7 +111,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-			<sadd>261425C00101</sadd>
+			<sadd>37060001</sadd>
 			<oadd>0001</oadd>
 			<func_type>heart_beat</func_type>
 			<oper_type></oper_type>
@@ -146,7 +123,7 @@
 <root>
 	<common>
 			<sadd>0001</sadd>
-			<oadd>261425C00101</oadd>
+			<oadd>37060001</oadd>
 			<func_type>heart_beat</func_type>
 			<oper_type>answer</oper_type>
 	</common>
@@ -160,7 +137,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>2</func_type>
 		<oper_type>0</oper_type>
 	</common>
@@ -170,7 +147,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>2</func_type>
 		<oper_type>3</oper_type>
@@ -195,7 +172,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>2</func_type>
 		<oper_type>1</oper_type>
 	</common>
@@ -218,7 +195,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>2</func_type>
 		<oper_type>3</oper_type>
@@ -235,9 +212,9 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
-		<func_type>request_data</func_type>
-		<oper_type>write</oper_type>
+		<oadd>37060001</oadd>
+		<func_type>3</func_type>
+		<oper_type>1</oper_type>
 	</common>
 	<!--row_num说明下面共有几个row-->
 	<row_num>xxx</row_num>	
@@ -260,10 +237,10 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
-		<func_type>request_data</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>3</func_type>
+		<oper_type>3</oper_type>
 	</common>
 	<result>success/fail</result>
 </root>
@@ -274,9 +251,9 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
-		<func_type>request_data</func_type>
-		<oper_type>read</oper_type>
+		<oadd>37060001</oadd>
+		<func_type>3</func_type>
+		<oper_type>0</oper_type>
 	</common>
 </root>
 
@@ -284,7 +261,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>request_data</func_type>
 		<oper_type>answer</oper_type>
@@ -314,7 +291,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>time_node</func_type>
 		<oper_type>write</oper_type>
 	</common>
@@ -325,7 +302,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>time_node</func_type>
 		<oper_type>answer</oper_type>
@@ -341,7 +318,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>meter_info</func_type>
 		<oper_type>write</oper_type>
 	</common>
@@ -374,7 +351,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>meter_info</func_type>
 		<oper_type>answer</oper_type>
@@ -388,7 +365,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>meter_info</func_type>
 		<oper_type>read</oper_type>
 	</common>
@@ -402,7 +379,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>meter_info</func_type>
 		<oper_type>answer</oper_type>
@@ -439,7 +416,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>report_update</func_type>
 		<oper_type>write</oper_type>
@@ -477,7 +454,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>report_update</func_type>
 		<oper_type>answer</oper_type>
 	</common>
@@ -491,7 +468,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>report_update</func_type>
 		<oper_type>read</oper_type>
 	</common>
@@ -503,7 +480,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>report_update</func_type>
 		<oper_type>answer</oper_type>
@@ -542,7 +519,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>read_stat</func_type>
 		<oper_type>read</oper_type>
 	</common>
@@ -552,7 +529,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>read_stat</func_type>
 		<oper_type>answer</oper_type>
@@ -567,7 +544,7 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>switch_ip</func_type>
 		<oper_type>write</oper_type>
@@ -579,7 +556,7 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>switch_ip</func_type>
 		<oper_type>answer</oper_type>
 	</common>
@@ -591,9 +568,9 @@
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
-		<func_type>db_mani</func_type>
-		<oper_type>do</oper_type>
+		<oadd>37060001</oadd>
+		<func_type>9</func_type>
+		<oper_type>2</oper_type>
 	</common>
 	<sql_stmt>create table meter_info (id integer primary key, address integer)</sql_stmt><!--只用于上位机下发-->
 </root>
@@ -608,9 +585,9 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
-		<func_type>db_mani</func_type>
-		<oper_type>answer</oper_type>
+		<oadd>37060001</oadd>
+		<func_type>9</func_type>
+		<oper_type>3</oper_type>
 	</common>
 	<sql_result>no_error/具体返回结果</sql_result><!--只用于下位机返回结果-->
 </root>
@@ -623,7 +600,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>10</func_type>
 		<oper_type>2</oper_type>
 	</common>
@@ -634,7 +611,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>10</func_type>
 		<oper_type>3</oper_type>
@@ -643,13 +620,13 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 </root>
 
 
-<!---------------- 12.	远程升级(code_updata)  待定义 ---------------->
+<!---------------- 12.	远程升级(code_updata) ---------------->
 <!--上位机下发远程升级准备命令-->
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>11</func_type>
 		<oper_type>1</oper_type><!--写-->
 	</common>
@@ -665,7 +642,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>11</func_type>
 		<oper_type>3</oper_type><!--应答-->
@@ -677,7 +654,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>11</func_type>
 		<oper_type>3</oper_type><!--应答-->
@@ -689,7 +666,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>11</func_type>
 		<oper_type>3</oper_type><!--应答-->
@@ -703,7 +680,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>11</func_type>
 		<oper_type>1</oper_type><!--写-->
 	</common>
@@ -721,7 +698,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>11</func_type>
 		<oper_type>0</oper_type><!--读, 即查询-->
 	</common>
@@ -731,7 +708,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>11</func_type>
 		<oper_type>3</oper_type><!--应答-->
@@ -746,7 +723,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>11</func_type>
 		<oper_type>2</oper_type><!--执行, 即合并各帧成为文件-->
 	</common>
@@ -756,7 +733,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>11</func_type>
 		<oper_type>3</oper_type><!--do, 即合并成文件-->
@@ -768,7 +745,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>11</func_type>
 		<oper_type>3</oper_type><!--do, 即合并成文件-->
@@ -782,7 +759,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>12</func_type>
 		<oper_type>2</oper_type>
 	</common>
@@ -796,7 +773,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>12</func_type>
 		<oper_type>3</oper_type>
@@ -811,7 +788,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>13</func_type>
 		<oper_type>1</oper_type>
 	</common>
@@ -822,7 +799,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>13</func_type>
 		<oper_type>3</oper_type>
@@ -838,7 +815,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>14</func_type>
 		<oper_type>1</oper_type>
 	</common>
@@ -850,7 +827,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>2</func_type>
 		<oper_type>3</oper_type>
@@ -863,7 +840,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <root>
 	<common>
 		<sadd>0001</sadd>
-		<oadd>261425C00101</oadd>
+		<oadd>37060001</oadd>
 		<func_type>14</func_type>
 		<oper_type>1</oper_type>
 	</common>
@@ -875,7 +852,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 <?xml version="1.0" encoding="utf-8" ?>
 <root>
 	<common>
-		<sadd>261425C00101</sadd>
+		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
 		<func_type>2</func_type>
 		<oper_type>3</oper_type>
