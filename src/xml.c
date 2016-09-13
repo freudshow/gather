@@ -1503,19 +1503,14 @@ uint8 update_bin(uint8 dev)
     printf("[%s][%s][%d]binValueLen: %d", FILE_LINE, binValueLen);
     if((binValueLen%4)==0) {
         deLen = (3*binValueLen/4 - cnt_of_pad(binValue, binValueLen));
+		if(deLen != g_xml_info[dev].up_cur_bytes)//如果长度不一致, 清空数据缓存, 返回错误
+			goto frameErr;
     } else {
-        goto lenErr;
+        goto frameErr;
     }
-    
+
     printf("[%s][%s][%d]deLen: %d, up_cur_bytes: %d\n",FILE_LINE, deLen, \
         g_xml_info[dev].up_cur_bytes);
-    if(deLen != g_xml_info[dev].up_cur_bytes) {//如果长度不一致, 清空数据缓存, 返回错误
-lenErr:
-        free(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
-        g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = NULL;
-        g_xml_info[dev].pDataLen[g_xml_info[dev].up_cur_frm_idx] = 0;
-        return ERR_1;
-    }
     g_xml_info[dev].pDataLen[g_xml_info[dev].up_cur_frm_idx] = deLen;
     //当下发的字节长度与计算出的字节长度一致时, 申请暂存空间
     if(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]!=NULL)
@@ -1534,16 +1529,19 @@ lenErr:
     localcrc=crc16ModRtu(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx], deLen);
     printf("[%s][%s][%d]crc: %04X, localcrc: %04X\n", FILE_LINE, crc, localcrc);
     if(crc != localcrc) {
-        free(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);        
-        g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = NULL;
-        return ERR_1;
+        goto frameErr;
     }
-    for(crc=0;crc<deLen;crc++) {
-        printf("%02X ",g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx][crc]);
+    for(i=0;i<deLen;i++) {
+        printf("%02X ",g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx][i]);
     }
     printf("\n");
     printf("[%s][%s][%d]\n",FILE_LINE);
     return err;
+frameErr:
+    free(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
+    g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = NULL;
+    g_xml_info[dev].pDataLen[g_xml_info[dev].up_cur_frm_idx] = 0;
+    return ERR_1;
 }
 
 uint8 send_lack_frame(uint8 dev)

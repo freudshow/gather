@@ -263,8 +263,8 @@
 	<common>
 		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
-		<func_type>request_data</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>3</func_type>
+		<oper_type>3</oper_type>
 	</common>
 	<!--row_num说明下面共有几个row-->
 	<row_num>xxx</row_num>	
@@ -292,8 +292,8 @@
 	<common>
 		<sadd>0001</sadd>
 		<oadd>37060001</oadd>
-		<func_type>time_node</func_type>
-		<oper_type>write</oper_type>
+		<func_type>4</func_type>
+		<oper_type>1</oper_type>
 	</common>
 	<time_node>00:00;06:00...</time_node>
 </root>
@@ -304,8 +304,8 @@
 	<common>
 		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
-		<func_type>time_node</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>4</func_type>
+		<oper_type>3</oper_type>
 	</common>
 	<result>success/fail</result>
 </root>
@@ -319,8 +319,8 @@
 	<common>
 		<sadd>0001</sadd>
 		<oadd>37060001</oadd>
-		<func_type>meter_info</func_type>
-		<oper_type>write</oper_type>
+		<func_type>5</func_type>
+		<oper_type>1</oper_type>
 	</common>
 	<trans>
 		<total_meter_num>xxx</total_meter_num><!--总共要下发的表地址数量 -->
@@ -353,8 +353,8 @@
 	<common>
 		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
-		<func_type>meter_info</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>5</func_type>
+		<oper_type>3</oper_type>
 	</common>
 	<result>success/fail</result>
 	<frame_idx>1</frame_idx><!-- 向上位机返回执行的帧索引 -->
@@ -366,8 +366,8 @@
 	<common>
 		<sadd>0001</sadd>
 		<oadd>37060001</oadd>
-		<func_type>meter_info</func_type>
-		<oper_type>read</oper_type>
+		<func_type>5</func_type>
+		<oper_type>0</oper_type>
 	</common>
 	<!-- 可选参数trans, 用来进行错误重连时, 具体要第几帧的数据 -->
 	<trans>
@@ -381,8 +381,8 @@
 	<common>
 		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
-		<func_type>meter_info</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>5</func_type>
+		<oper_type>3</oper_type>
 	</common>
 	<trans>
 		<total_meter_num>xx</total_meter_num><!--总共表地址数量 -->
@@ -418,8 +418,8 @@
 	<common>
 		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
-		<func_type>report_update</func_type>
-		<oper_type>write</oper_type>
+		<func_type>6</func_type>
+		<oper_type>1</oper_type>
 	</common>
 	<trans>
 		<total_meter_num>xxx</total_meter_num><!--总共要上报的抄表数据条数 -->
@@ -443,10 +443,6 @@
 	.
 	.
 	.
-	
-	<!--如果抄表失败，则返回-->
-	<result>fail</result>
-	<stat>xxxx</stat>
 </root>
 
 <!-- 上位机的接收结果 -->
@@ -455,8 +451,8 @@
 	<common>
 		<sadd>0001</sadd>
 		<oadd>37060001</oadd>
-		<func_type>report_update</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>6</func_type>
+		<oper_type>3</oper_type>
 	</common>
 	<result>success/fail</result>
 </root>
@@ -469,8 +465,8 @@
 	<common>
 		<sadd>0001</sadd>
 		<oadd>37060001</oadd>
-		<func_type>report_update</func_type>
-		<oper_type>read</oper_type>
+		<func_type>6</func_type>
+		<oper_type>0</oper_type>
 	</common>
 	<time>xx:xx</time>  <!--请求读xx:xx时间的抄表数据-->
 </root>
@@ -482,8 +478,8 @@
 	<common>
 		<sadd>37060001</sadd>
 		<oadd>0001</oadd>
-		<func_type>report_update</func_type>
-		<oper_type>answer</oper_type>
+		<func_type>6</func_type>
+		<oper_type>3</oper_type>
 	</common>
 	<trans>
 		<total_meter_num>xxx</total_meter_num><!--总共要上报的抄表数据条数 -->
@@ -512,7 +508,7 @@
 </root>
 
 
-<!--8.查询集中器状态是否有异常-->
+<!--8.查询集中器状态是否有异常--><!-- 未开发 -->
 
 <!-- 上位机读取集中器状态 -->
 <?xml version="1.0" encoding="utf-8" ?>
@@ -538,7 +534,7 @@
 </root>
 
 
-<!--9.集中器上报通知ip切换,上位机收到这条信息后要标记当前集中器ip不在，不能进行任何操作，一直等到集中器再次上线-->
+<!--9.集中器上报通知ip切换,上位机收到这条信息后要标记当前集中器ip不在，不能进行任何操作，一直等到集中器再次上线--><!-- 未开发 -->
 
 <!-- 集中器上报切换ip -->
 <?xml version="1.0" encoding="utf-8" ?>
@@ -686,7 +682,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 	</common>
 	<trans>
 		<frmid>1</frmid><!--本帧的序号, 从1开始 -->
-		<bc>666</bc><!--本帧的字节数 bc = bytes_count-->
+		<bc>666</bc><!--本帧的字节数(编码之前的字节数) bc := bytes_count-->
 		<ck>4E 65</ck><!--本帧的字节串(不是编码后的字符串)的16位ModbusRTUCRC校验值, ck = crc _check, 低位在前高位在后, 以空格分隔-->
 	</trans>
 	<bin>AQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zwEDAAMADLXPAQMAAwAMtc8BAwADAAy1zw==</bin><!--文件数据-->
@@ -808,7 +804,7 @@ fread(result, sizeof(char), sizeof(result), fp), 即可
 </root>
 
 
-<!---------------- 15.	集中器抄表模式和抄表周期设置(collect_set) ---------------->
+<!---------------- 15.	集中器抄表模式和抄表周期设置(collect_set) ----------------><!-- 未开发完全 -->
 
 <!-- 上位机下发采集模式和采集周期(根据collect_cycle周期抄表) -->
 <?xml version="1.0" encoding="utf-8" ?>
