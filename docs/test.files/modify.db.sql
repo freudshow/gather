@@ -23,8 +23,8 @@ ip是218.56.36.175端口是5513，集中期37060002
 .mode column
 
 select * from t_base_define;
-update t_base_define set f_config_value='218.56.36.175' where f_id=1;
-update t_base_define set f_config_value='5513' where f_id=3;
+update t_base_define set f_config_value='218.56.36.175' where f_id=1;--航天小区服务器ip地址
+update t_base_define set f_config_value='5513' where f_id=3;--航天小区服务器端口号
 
 update t_base_define set f_config_value='122.5.18.174' where f_id=1;
 update t_base_define set f_config_value='9011' where f_id=3;
