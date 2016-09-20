@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>37060001</oadd>
+		<func_type>13</func_type>
+		<oper_type>1</oper_type>
+	</common>
+	<time>2016-09-20 16:50:14</time>
+</root>
+
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+			<sadd>0001</sadd>
+			<oadd>37060001</oadd>
+			<func_type>1</func_type>
+			<oper_type>3</oper_type>
+	</common>
+</root>
+
+<!-- 维微水表透传帧-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>37060001</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>1</channel>
+	<com>4800,n,8,1</com>
+	<meterinfo>10,0</meterinfo>
+	<cmd>FE FE FE FE FE FE FE FE 68 10 71 00 30 60 01 00 00 01 03 90 1F 01 2E 16</cmd>
+</root>
+
+<!-- 航天小区智能喷灌, 读电动蝶阀透传帧-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>37060001</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>7</channel>
+	<com>9600,e,8,1</com>
+	<meterinfo>10,0</meterinfo>
+	<cmd>05 03 00 02 00 02 64 4F</cmd>
+</root>
+
+<!-- 航天小区智能喷灌, 写电动蝶阀，全关透传帧-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>37060001</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>7</channel>
+	<com>9600,e,8,1</com>
+	<meterinfo>10,0</meterinfo>
+	<cmd>05 06 00 74 00 00 C8 54</cmd>
+</root>
+
+<!-- 航天小区智能喷灌, 写电动蝶阀，全关透传帧-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>37060001</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>7</channel>
+	<com>9600,e,8,1</com>
+	<meterinfo>10,0</meterinfo>
+	<cmd>05 06 00 74 00 00 C8 54</cmd>
+</root>
+
+<!-- 航天小区智能喷灌, 写电动蝶阀，全开透传帧-->
+<?xml version="1.0" encoding="utf-8" ?>
+<root>
+	<common>
+		<sadd>0001</sadd>
+		<oadd>37060001</oadd>
+		<func_type>12</func_type>
+		<oper_type>2</oper_type>
+	</common>
+	<channel>7</channel>
+	<com>9600,e,8,1</com>
+	<meterinfo>10,0</meterinfo>
+	<cmd>05 06 00 74 00 64 C9 BF</cmd>
+</root>
