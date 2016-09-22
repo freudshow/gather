@@ -1,0 +1,516 @@
+[rs485up.c][pthread_RS485UpDeal][212] UpGetXMLEnd OK.
+[xml.c][parse_xml][2031]current file name : buff0.xml
+[xml.c][parse_common][1966]current file name : buff0.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 9600,n,8,1
+[xml.c][split_com][1694] p[i]: 9600 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 9600, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 10,0
+[xml.c][split_minfo][1717] p[i]: 10 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 10, proto_type: 0
+[xml.c][split_cmd][1735]cmd: 4C 4F 4F 50 20 31 0D 0A
+[xml.c][split_cmd][1738] p[i]: 4C 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 50 
+[xml.c][split_cmd][1738] p[i]: 20 
+[xml.c][split_cmd][1738] p[i]: 31 
+[xml.c][split_cmd][1738] p[i]: 0D 
+[xml.c][split_cmd][1738] p[i]: 0A 
+[xml.c][split_cmd][1743]cmdlen: 8
+4c 
+4f 
+4f 
+50 
+20 
+31 
+0d 
+0a 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 8 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 1 
+0x00 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff0.xml
+[rs485up.c][pthread_RS485UpDeal][216] UpGetXMLEnd OK.
+start fopen buff0.xml . 
+[rs485up.c][pthread_RS485UpDeal][209] UpGetXMLStart OK.
+[rs485up.c][pthread_RS485UpDeal][212] UpGetXMLEnd OK.
+[xml.c][parse_xml][2031]current file name : buff0.xml
+[xml.c][parse_common][1966]current file name : buff0.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 9600,n,8,1
+[xml.c][split_com][1694] p[i]: 9600 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 9600, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 10,0
+[xml.c][split_minfo][1717] p[i]: 10 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 10, proto_type: 0
+[xml.c][split_cmd][1735]cmd: 4C 4F 4F 50 20 31 0D 0A
+[xml.c][split_cmd][1738] p[i]: 4C 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 50 
+[xml.c][split_cmd][1738] p[i]: 20 
+[xml.c][split_cmd][1738] p[i]: 31 
+[xml.c][split_cmd][1738] p[i]: 0D 
+[xml.c][split_cmd][1738] p[i]: 0A 
+[xml.c][split_cmd][1743]cmdlen: 8
+4c 
+4f 
+4f 
+50 
+20 
+31 
+0d 
+0a 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 8 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 1 
+0x00 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff0.xml
+[rs485up.c][pthread_RS485UpDeal][216] UpGetXMLEnd OK.
+start fopen buff0.xml . 
+[rs485up.c][pthread_RS485UpDeal][209] UpGetXMLStart OK.
+[rs485up.c][pthread_RS485UpDeal][212] UpGetXMLEnd OK.
+[xml.c][parse_xml][2031]current file name : buff0.xml
+[xml.c][parse_common][1966]current file name : buff0.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 9600,n,8,1
+[xml.c][split_com][1694] p[i]: 9600 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 9600, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 10,0
+[xml.c][split_minfo][1717] p[i]: 10 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 10, proto_type: 0
+[xml.c][split_cmd][1735]cmd: 4C 4F 4F 50 20 31 0D 0A
+[xml.c][split_cmd][1738] p[i]: 4C 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 50 
+[xml.c][split_cmd][1738] p[i]: 20 
+[xml.c][split_cmd][1738] p[i]: 31 
+[xml.c][split_cmd][1738] p[i]: 0D 
+[xml.c][split_cmd][1738] p[i]: 0A 
+[xml.c][split_cmd][1743]cmdlen: 8
+4c 
+4f 
+4f 
+50 
+20 
+31 
+0d 
+0a 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 8 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 1 
+0x00 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff0.xml
+[rs485up.c][pthread_RS485UpDeal][216] UpGetXMLEnd OK.
+[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 598
+[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 599
+[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 599
+send_hb_and_fdog: now begin exec xml_exec(lu8Dev, lu8xmlIndex)
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 1
+now in func_heart_beat().
+l_xmlInfo.func_type: 1, l_xmlInfo.oper_type: 0
+now make heart_beat xml.
+make xml success.xml Index = 2.
+GPRS IPSend Success.
+start fopen buff1.xml . 
+pthread_GprsDataDeal UpGetXMLStart OK.
+pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
+[xml.c][parse_xml][2031]current file name : buff1.xml
+[xml.c][parse_common][1966]current file name : buff1.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 9600,n,8,1
+[xml.c][split_com][1694] p[i]: 9600 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 9600, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 53,0
+[xml.c][split_minfo][1717] p[i]: 53 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 53, proto_type: 0
+[xml.c][split_cmd][1735]cmd: 4C 4F 4F 50 20 31 0D 0A
+[xml.c][split_cmd][1738] p[i]: 4C 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 50 
+[xml.c][split_cmd][1738] p[i]: 20 
+[xml.c][split_cmd][1738] p[i]: 31 
+[xml.c][split_cmd][1738] p[i]: 0D 
+[xml.c][split_cmd][1738] p[i]: 0A 
+[xml.c][split_cmd][1743]cmdlen: 8
+4c 
+4f 
+4f 
+50 
+20 
+31 
+0d 
+0a 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 8 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 1 
+0x00 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+GPRS IPSend Success.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff1.xml
+start fopen buff1.xml . 
+pthread_GprsDataDeal UpGetXMLStart OK.
+pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
+[xml.c][parse_xml][2031]current file name : buff1.xml
+[xml.c][parse_common][1966]current file name : buff1.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 9600,n,8,1
+[xml.c][split_com][1694] p[i]: 9600 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 9600, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 53,0
+[xml.c][split_minfo][1717] p[i]: 53 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 53, proto_type: 0
+[xml.c][split_cmd][1735]cmd: 4C 4F 4F 50 20 31 0D 0A
+[xml.c][split_cmd][1738] p[i]: 4C 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 50 
+[xml.c][split_cmd][1738] p[i]: 20 
+[xml.c][split_cmd][1738] p[i]: 31 
+[xml.c][split_cmd][1738] p[i]: 0D 
+[xml.c][split_cmd][1738] p[i]: 0A 
+[xml.c][split_cmd][1743]cmdlen: 8
+4c 
+4f 
+4f 
+50 
+20 
+31 
+0d 
+0a 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 8 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 1 
+0x00 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+GPRS IPSend Success.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff1.xml
+start fopen buff1.xml . 
+pthread_GprsDataDeal UpGetXMLStart OK.
+pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
+[xml.c][parse_xml][2031]current file name : buff1.xml
+[xml.c][parse_common][1966]current file name : buff1.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 9600,n,8,1
+[xml.c][split_com][1694] p[i]: 9600 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 9600, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 53,0
+[xml.c][split_minfo][1717] p[i]: 53 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 53, proto_type: 0
+[xml.c][split_cmd][1735]cmd: 4C 4F 4F 50 20 31 0D 0A
+[xml.c][split_cmd][1738] p[i]: 4C 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 50 
+[xml.c][split_cmd][1738] p[i]: 20 
+[xml.c][split_cmd][1738] p[i]: 31 
+[xml.c][split_cmd][1738] p[i]: 0D 
+[xml.c][split_cmd][1738] p[i]: 0A 
+[xml.c][split_cmd][1743]cmdlen: 8
+4c 
+4f 
+4f 
+50 
+20 
+31 
+0d 
+0a 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 8 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 1 
+0x00 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+GPRS IPSend Success.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff1.xml
+start fopen buff1.xml . 
+pthread_GprsDataDeal UpGetXMLStart OK.
+pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
+[xml.c][parse_xml][2031]current file name : buff1.xml
+[xml.c][parse_common][1966]current file name : buff1.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 9600,n,8,1
+[xml.c][split_com][1694] p[i]: 9600 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 9600, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 53,0
+[xml.c][split_minfo][1717] p[i]: 53 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 53, proto_type: 0
+[xml.c][split_cmd][1735]cmd: 4C 4F 4F 50 20 31 0D 0A
+[xml.c][split_cmd][1738] p[i]: 4C 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 50 
+[xml.c][split_cmd][1738] p[i]: 20 
+[xml.c][split_cmd][1738] p[i]: 31 
+[xml.c][split_cmd][1738] p[i]: 0D 
+[xml.c][split_cmd][1738] p[i]: 0A 
+[xml.c][split_cmd][1743]cmdlen: 8
+4c 
+4f 
+4f 
+50 
+20 
+31 
+0d 
+0a 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 8 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 1 
+0x00 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+GPRS IPSend Success.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff1.xml
+start fopen buff1.xml . 
+pthread_GprsDataDeal UpGetXMLStart OK.
+pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
+[xml.c][parse_xml][2031]current file name : buff1.xml
+[xml.c][parse_common][1966]current file name : buff1.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 9600,n,8,1
+[xml.c][split_com][1694] p[i]: 9600 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 9600, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 53,0
+[xml.c][split_minfo][1717] p[i]: 53 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 53, proto_type: 0
+[xml.c][split_cmd][1735]cmd: 4C 4F 4F 50 20 31 0D 0A
+[xml.c][split_cmd][1738] p[i]: 4C 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 4F 
+[xml.c][split_cmd][1738] p[i]: 50 
+[xml.c][split_cmd][1738] p[i]: 20 
+[xml.c][split_cmd][1738] p[i]: 31 
+[xml.c][split_cmd][1738] p[i]: 0D 
+[xml.c][split_cmd][1738] p[i]: 0A 
+[xml.c][split_cmd][1743]cmdlen: 8
+4c 
+4f 
+4f 
+50 
+20 
+31 
+0d 
+0a 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 8 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 1 
+0x00 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+GPRS IPSend Success.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff1.xml
+start fopen buff1.xml . 
+pthread_GprsDataDeal UpGetXMLStart OK.
+pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
+[xml.c][parse_xml][2031]current file name : buff1.xml
+[xml.c][parse_common][1966]current file name : buff1.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 9600,n,8,1
+[xml.c][split_com][1694] p[i]: 9600 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 9600, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 50,0
+[xml.c][split_minfo][1717] p[i]: 50 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 50, proto_type: 0
+[xml.c][split_cmd][1735]cmd: 03 03 00 03 00 0C b4 2d
+[xml.c][split_cmd][1738] p[i]: 03 
+[xml.c][split_cmd][1738] p[i]: 03 
+[xml.c][split_cmd][1738] p[i]: 00 
+[xml.c][split_cmd][1738] p[i]: 03 
+[xml.c][split_cmd][1738] p[i]: 00 
+[xml.c][split_cmd][1738] p[i]: 0C 
+[xml.c][split_cmd][1738] p[i]: b4 
+[xml.c][split_cmd][1738] p[i]: 2d 
+[xml.c][split_cmd][1743]cmdlen: 8
+03 
+03 
+00 
+03 
+00 
+0c 
+b4 
+2d 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 8 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 7 
+0x00 0x03 0x83 0x82 0x60 0x91 0x00 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+GPRS IPSend Success.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff1.xml
+start fopen buff1.xml . 
+pthread_GprsDataDeal UpGetXMLStart OK.
+pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = 1.
+[xml.c][parse_xml][2031]current file name : buff1.xml
+[xml.c][parse_common][1966]current file name : buff1.xml
+[xml.c][parse_common][1982] func_type: 12
+[xml.c][parse_common][1999]CONFIG_GATEWAY_ID : 37060002
+[xml.c][parse_common][2001] start  xml_exec().
+[xml.c][xml_exec][1955] g_xml_info[dev].func_type: 12
+[xml.c][split_com][1691]comstr: 4800,n,8,1
+[xml.c][split_com][1694] p[i]: 4800 
+[xml.c][split_com][1694] p[i]: n 
+[xml.c][split_com][1694] p[i]: 8 
+[xml.c][split_com][1694] p[i]: 1 
+[xml.c][split_com][1703]baud: 4800, parity: n, databits: 8, stop: 1, 
+[xml.c][split_minfo][1714]info: 30,0
+[xml.c][split_minfo][1717] p[i]: 30 
+[xml.c][split_minfo][1717] p[i]: 0 
+[xml.c][split_minfo][1724]meter_type: 30, proto_type: 0
+[xml.c][split_cmd][1735]cmd: FE FE FE FE FE FE FE FE 68 10 71 00 30 60 01 00 00 01 03 90 1F 01 2E 16
+[xml.c][split_cmd][1738] p[i]: FE 
+[xml.c][split_cmd][1738] p[i]: FE 
+[xml.c][split_cmd][1738] p[i]: FE 
+[xml.c][split_cmd][1738] p[i]: FE 
+[xml.c][split_cmd][1738] p[i]: FE 
+[xml.c][split_cmd][1738] p[i]: FE 
+[xml.c][split_cmd][1738] p[i]: FE 
+[xml.c][split_cmd][1738] p[i]: FE 
+[xml.c][split_cmd][1738] p[i]: 68 
+[xml.c][split_cmd][1738] p[i]: 10 
+[xml.c][split_cmd][1738] p[i]: 71 
+[xml.c][split_cmd][1738] p[i]: 00 
+[xml.c][split_cmd][1738] p[i]: 30 
+[xml.c][split_cmd][1738] p[i]: 60 
+[xml.c][split_cmd][1738] p[i]: 01 
+[xml.c][split_cmd][1738] p[i]: 00 
+[xml.c][split_cmd][1738] p[i]: 00 
+[xml.c][split_cmd][1738] p[i]: 01 
+[xml.c][split_cmd][1738] p[i]: 03 
+[xml.c][split_cmd][1738] p[i]: 90 
+[xml.c][split_cmd][1738] p[i]: 1F 
+[xml.c][split_cmd][1738] p[i]: 01 
+[xml.c][split_cmd][1738] p[i]: 2E 
+[xml.c][split_cmd][1738] p[i]: 16 
+[xml.c][split_cmd][1743]cmdlen: 24
+fe 
+fe 
+fe 
+fe 
+fe 
+fe 
+fe 
+fe 
+68 
+10 
+71 
+00 
+30 
+60 
+01 
+00 
+00 
+01 
+03 
+90 
+1f 
+01 
+2e 
+16 
+
+[xml.c][send_cmd_and_rcv][1808] g_uiRS4852Fd: 8, g_uiMbusFd: 7, fd: 7 
+[xml.c][do_proto_trs][1845]proto_trs.resLen: 38 
+0xFE 0xFE 0xFE 0x68 0x10 0x71 0x00 0x30 0x60 0x01 0x00 0x00 0x81 0x16 0x90 0x1F 0x01 0x10 0x07 0x00 0x00 0x2C 0x10 0x07 0x00 0x00 0x2C 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x47 0x16 [xml.c][do_proto_trs][1848][xml.c][send_answer][491] func_type: 12
+[xml.c][send_answer][494] oper_type: 3
+make xml buff2.xml Index = 2.
+GPRS IPSend Success.
+[xml.c][send_answer][524]xml file have been sent
+parse xml success
+[xml.c][parse_common][2015]current file name : buff1.xml
+[readallmeters.c][pthread_ReadAllMeters][247]current minutes: 600
+[readallmeters.c][pthread_ReadAllMeters][252] now read all meters2016 9 22 - 10:0:0
+[readallmeters.c][ReadAllMeters][180]
+now in  retrieve_meter_info_list():
+[readallmeters.c][ReadAllMeters][182]
+[readallmeters.c][pthre
