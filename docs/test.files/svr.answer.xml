@@ -126,54 +126,13 @@
 	<cmd>03 03 00 03 00 0C b4 2d</cmd>
 </root>
 
-<!--力创模块响应帧-->
-<?xml version="1.0" encoding="utf-8"?>
-<root>
-	<common>
-		<sadd>37060002</sadd>
-		<oadd>0001</oadd>
-		<func_type>12</func_type>
-		<oper_type>3</oper_type>
-	</common>
-	<result>00 03 83 82 60 91 00 </result>
-</root>
-
-
-<?xml version="1.0" encoding="utf-8" ?>
-<root>
-	<common>
-		<sadd>0001</sadd>
-		<oadd>37060002</oadd>
-		<func_type>12</func_type>
-		<oper_type>2</oper_type>
-	</common>
-	<channel>7</channel>
-	<com>9600,n,8,1</com>
-	<meterinfo>10,0</meterinfo>
-	<cmd>01 03 00 03 00 0C B5 CF</cmd>
-</root>
-
-<?x
-ml version="1.0" encoding="utf-
-8"?>
-<root><common><sadd>37060002</sadd><oadd>0001</oadd><func
-_type>12</func_type><oper_type>3</oper_type></common><result>
-00 </result></root>
 
 <!--单独透力创9015模块透传-->
 <!--9600,n,8,1-->
-TX : 03 03 00 03 00 0c B4 2d
+TX : 03 03 00 03 00 0C B4 2D
 RX : 03 03 18 09 C8 0A 65 00 00 00 00 00 00 00 00 00 00 00 00 19 79 25 F8 18 8E 1A 22 66 03
 
 <!--单独透戴维斯气象站-->
 <!--9600,n,8,1-->
-
-TX : 4C 4F 4F 50 20 31 0D 0A
-RX : 06 4C 4F 4F 3C 00 
-4B 03 A2 75 44 03 33 11 03 02 01 F4 00 FF FF FF 
-FF FF FF FF FF FF FF FF FF FF FF FF 33 FF FF 
-FF FF FF FF FF 00 00 FF FF 7F 00 00 FF FF 00 
-00 14 00 14 00 00 00 00 00 00 00 FF FF FF FF FF 
-FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 
-00 00 00 00 00 2D 03 08 01 F2 03 2B 09 0A 0D 
-8A 87 
+TX : 4C 4F 4F 50 20 31 0D 0A( LOOP 1 CR LF)
+RX : 06 4C 4F 4F 3C 00 4B 03 A2 75 44 03 33 11 03 02 01 F4 00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF 33 FF FF FF FF FF FF FF 00 00 FF FF 7F 00 00 FF FF 00 00 14 00 14 00 00 00 00 00 00 00 FF FF FF FF FF FF FF 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 2D 03 08 01 F2 03 2B 09 0A 0D 8A 87
