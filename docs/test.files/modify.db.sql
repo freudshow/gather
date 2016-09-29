@@ -28,5 +28,8 @@ update t_base_define set f_config_value='5513' where f_id=3;--航天小区服务
 
 update t_base_define set f_config_value='122.5.18.174' where f_id=1;
 update t_base_define set f_config_value='9011' where f_id=3;
+update t_base_define set f_config_value='9019' where f_id=3;
 update t_base_define set f_config_value='9026' where f_id=3;
 update t_base_define set f_config_value='37060001' where f_id=7;
+update t_base_define set f_config_value='261425E00101' where f_id=7;
+mount -t nfs -o nolock 192.168.1.21:/home/floyd/nfsmnt /app

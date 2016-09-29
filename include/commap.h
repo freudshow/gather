@@ -23,11 +23,11 @@
 #define GPRS_REC_QUEUES_LENGTH		1000000
 #define USART3_REC_QUEUE_AT_LENGTH   	1000000
 #define USART3_REC_QUEUE_ATIPD_LENGTH   1000000
-#define MBUS_REC_QUEUES_LENGTH		1024
+#define MBUS_REC_QUEUES_LENGTH		4096
 
 
-#define RECV_TEMPBUF_SIZE	1024  //定义GPRS\上行485等接收上位机信息的暂时缓冲数组大小。
-#define SEND_TEMPBUF_SIZE	1024  //定义GPRS\上行485等向上位机发送信息的暂时缓冲数组大小。
+#define RECV_TEMPBUF_SIZE	4096  //定义GPRS\上行485等接收上位机信息的暂时缓冲数组大小。
+#define SEND_TEMPBUF_SIZE	4096  //定义GPRS\上行485等向上位机发送信息的暂时缓冲数组大小。
 
 
 //上行通信设备ID ，这些常量的值直接作为全局数组的下标使用，因此不能随便修改

@@ -163,16 +163,18 @@ uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 	uint32 i;
 	uint32 lu32tmp = 0;
 	FILE *fp;
+	char log[256];
 
 	lu32tmp = strlen(XMLHead);
-	while(Flag){		
+	while(Flag){
 		for(i=0;i<lu32tmp;){
             while(QueueRead(&DataTemp, (void*)pQueues[dev]) != QUEUE_OK){
                 OSSemPend(dev, OutTime, &err);
                 if(err != OS_ERR_NONE){
-                    //printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);
+                    printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);
                     return err;
                 }
+				OSSemPost(dev);
             }
             if(DataTemp == XMLHead[i])
                 i++;
@@ -184,19 +186,16 @@ uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 
 	printf("start fopen %s . \n", gXML_File[XmlIndex].pXMLFile);   
 
-    //char log[256];
-    //sprintf(log, "[%s][%s][%d]start fopen %s . \n", FILE_LINE, gXML_File[XmlIndex].pXMLFile);
-    //write_log_file(log, strlen(log));
-    
+    sprintf(log, "[%s][%s][%d]start fopen %s . \n", FILE_LINE, gXML_File[XmlIndex].pXMLFile);
+    write_log_file(log, strlen(log));
+
 	fp=fopen(gXML_File[XmlIndex].pXMLFile,"w+");
-	
 	sem_wait(&gXML_File[XmlIndex].sem_write);
 	fwrite(XMLHead,1,strlen(XMLHead),fp);
 	sem_post(&gXML_File[XmlIndex].sem_write);
 	fclose(fp);
-	
+
 	return NO_ERR;
-	
 }
 
 /*
@@ -207,7 +206,7 @@ uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 */
 uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 {
-	uint8 err = 0x00;
+	uint8 err = OS_ERR_NONE;
 	int8  XMLEnd[] ="</root>";	// </test>
 	uint8 DataTemp = 0x00;
 	uint8 Flag = 0x01;
@@ -219,20 +218,21 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 	lu32tmp = strlen(XMLEnd);
 	while(Flag){		
 		for(i=0;i<lu32tmp;){
-			while(QueueRead(&DataTemp, (void*)pQueues[dev]) != QUEUE_OK){
+			while(QueueRead(&DataTemp, (void*)pQueues[dev]) != QUEUE_OK) {//wait until read a char successfully
 				OSSemPend(dev, OutTime, &err);
-				if(err != OS_ERR_NONE){
-                        printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);    
+				if(err != OS_ERR_NONE) {
+                        printf("[%s][%s][%d]dev= %d, OSSemPend err=%d\n",FILE_LINE, dev, err);    
                         char log[256];
-                        sprintf(log, "[%s][%s][%d]OSSemPend err=%d\n", FILE_LINE, err);
+                        sprintf(log, "[%s][%s][%d]dev= %d, OSSemPend err=%d\n",FILE_LINE, dev, err);
                         write_log_file(log, strlen(log));
                         return err;
 				}
+				OSSemPost(dev);
 			}
-			
+
 			*(pRecvTempBuf[dev] + j) = DataTemp;
-			
-			if(j == (RECV_TEMPBUF_SIZE - 1)){
+
+			if(j == (RECV_TEMPBUF_SIZE - 1)) {
 				fp = fopen(gXML_File[XmlIndex].pXMLFile,"a+");
 				debug_info(gDebugModule[XML_MODULE], "xml name is %s\n", gXML_File[XmlIndex].pXMLFile);
 				sem_wait(&gXML_File[XmlIndex].sem_write);
@@ -245,16 +245,16 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 			}
              else
                  j++;
-                
+
 			if(DataTemp == XMLEnd[i])
                 i++;
 			else
-                i=0;		   
+                i=0;	   
 		}
 		
 		Flag = 0;
 	}
-	
+
 	if(j != 0){
 		fp=fopen(gXML_File[XmlIndex].pXMLFile,"a+");
 		debug_info(gDebugModule[XML_MODULE], "xml name is %s\n", gXML_File[XmlIndex].pXMLFile);
@@ -1408,6 +1408,8 @@ uint8 update_bin(uint8 dev)
     int i=0;
     uint32 enLen=0;//当前帧编码后的字符串长度
     uint32 deLen=0;//当前帧解码后的字节串长度
+    uint8 logstring[4096] = {0};
+
     rootNode = xmlDocGetRootElement(g_xml_info[dev].xmldoc_rd);
     if(NULL == rootNode)
         return ERR_1;
@@ -1422,7 +1424,7 @@ uint8 update_bin(uint8 dev)
     printf("[%s][%s][%d]transInfoNode: %p\n",FILE_LINE, transInfoNode);
     if(transInfoNode == NULL)
         return ERR_1;
-    
+
     printf("[%s][%s][%d]transInfoNode->name: %s\n",FILE_LINE, transInfoNode->name);
     transInfoNode = transInfoNode->children;
     while(transInfoNode) {
@@ -1450,6 +1452,7 @@ uint8 update_bin(uint8 dev)
         } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "bc")) {//本帧的字节数
             pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
             g_xml_info[dev].up_cur_bytes = atoi((char*)pValue);
+			printf("[%s][%s][%d]up_cur_frm_idx: %d\n",FILE_LINE, g_xml_info[dev].up_cur_bytes);
         } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "ck")) {//本帧的字节串的CRC校验值
             pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
             crc = (Ascii2Hex(pValue[3])<<3*LEN_HALF_BYTE|\
@@ -1526,6 +1529,8 @@ uint8 update_bin(uint8 dev)
         g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
     printf("[%s][%s][%d]\n",FILE_LINE);
     //如果crc校验不通过则释放内存; 通过则等待下一帧传输
+    printBuf(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx],\
+    deLen, FILE_LINE);
     localcrc=crc16ModRtu(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx], deLen);
     printf("[%s][%s][%d]crc: %04X, localcrc: %04X\n", FILE_LINE, crc, localcrc);
     if(crc != localcrc) {

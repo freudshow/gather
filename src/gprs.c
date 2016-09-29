@@ -1608,7 +1608,6 @@ void Fun_GprsIpd_xmz(void)
 						debug_err(gDebugModule[GPRS_MODULE],"%s %d err=%d\n",__FUNCTION__,__LINE__,err);
 					}
 	  			}
-	  		
 				debug_debug(gDebugModule[GPRS_MODULE],"[%s][%s][%d] GprsIPREC len=%d ok \n",FILE_LINE,len);	
 				if(len > 400){gUpdateBegin = 1;}/*进入主动读取数据模式*/
 				if(len == 0)
@@ -1616,8 +1615,7 @@ void Fun_GprsIpd_xmz(void)
 				else
 					{Count = 0;}
 				if(Count > 10){gUpdateBegin = 0;}/*连续10次无数据进入查询接受数据模式*/
-			
-            		OSTimeDly(OS_TICKS_PER_SEC/8);
+            	OSTimeDly(OS_TICKS_PER_SEC/8);
 	  			UpdGprsRunSta_FeedRecDog();	
 	  			UpdGprsRunSta_AddFrmRecTimes(len);	
 	  			UpRecQueueWrite(UP_COMMU_DEV_GPRS,(uint8*)gRecBuf_xmz,len);
@@ -1705,14 +1703,11 @@ void pthread_GprsDataDeal(void)
 				printf("pthread_GprsDataDeal UpGetXMLEnd OK.lu8xmlIndex = %d.\n",lu8xmlIndex);
 				//err = XmlInfo_Analyze(UP_COMMU_DEV_GPRS, lu8xmlIndex);
 				err = parse_xml(UP_COMMU_DEV_GPRS, lu8xmlIndex);
-				
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
-
 			}
 			else{
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 			}
-
 		}
 		else{
 			Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。

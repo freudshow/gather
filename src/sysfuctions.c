@@ -101,14 +101,15 @@ void  OSSemPend (uint8 dev,uint32  timeout,uint8 *perr)
     outtime.tv_sec += outtime.tv_nsec/(1000*1000*1000);
     outtime.tv_nsec %= (1000*1000*1000);
     
-    if(timeout == (uint32)NULL){
+    if(timeout == (uint32)NULL) {
       	sem_wait(&QueueSems[dev]);
     }
     else{
-    		ret = sem_timedwait(&QueueSems[dev],&outtime);
-		if(ret != 0){
+    	ret = sem_timedwait(&QueueSems[dev], &outtime);
+		if(ret != 0) {
+			printf("[%s][%s][%d]dev= %d, OSSemPend err=%d\n",FILE_LINE, dev, err);
           	debug_err(gDebugModule[MSIC_MODULE],"[%s][%s][%d]sem_timedwait %s\n",FILE_LINE,strerror(errno));
-        	}
+        }
     }
     
   	*perr = (uint8)ret;
@@ -589,5 +590,14 @@ void write_log_file(char* buffer, unsigned buf_size)
         fclose(fp);
         fp = NULL;
     }
+}
+
+void printBuf(U8* buf, U16 bufSize, const char* file, const char* func, U32 line)
+{
+	U16 i = 0;
+	Lib_printf("[%s][%s][%d]buf: ", file, func, line);
+	for (i = 0; i < bufSize; i++)
+		Lib_printf("%02X ", buf[i]);
+	Lib_printf("\n");
 }
 
