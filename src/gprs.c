@@ -1069,8 +1069,10 @@ uint8 GprsInit_xmz(void)
 		debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_CPIN CMD OK!\n");
 		
 		ReadCsq();
+        printf("[%s][%s][%d]\n", FILE_LINE);
 		OSTimeDly(2*OS_TICKS_PER_SEC);
 		ReadCsq();
+        printf("[%s][%s][%d]\n", FILE_LINE);
 		OSTimeDly(2*OS_TICKS_PER_SEC);
 		
 		err = CMD_AT_RP(Ats_CREG,Ata_CREG,Ata_CREG_Or,OS_TICKS_PER_SEC*2,30,FALSE);
@@ -1082,8 +1084,9 @@ uint8 GprsInit_xmz(void)
 		debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_CREG CMD OK!\n");
 		
 		ReadCsq();
+        printf("[%s][%s][%d]\n", FILE_LINE);
 		OSTimeDly(OS_TICKS_PER_SEC);
-
+        printf("[%s][%s][%d]\n", FILE_LINE);
 		err = CMD_AT_RP(Ats_CGDCONT,Ata_OK,NULL,2*OS_TICKS_PER_SEC,15,FALSE);
 		OSTimeDly(OS_TICKS_PER_SEC);
 		if(err){
@@ -1091,14 +1094,16 @@ uint8 GprsInit_xmz(void)
 			continue;
 		}
 		debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_CGDCONT CMD OK!\n"); 
-		
+		printf("[%s][%s][%d]\n", FILE_LINE);
 		err = CMD_AT_RP(Ats_CGATT,Ata_OK,NULL,10*OS_TICKS_PER_SEC,3,FALSE);
+        printf("[%s][%s][%d]CMD_AT_RP: err - %d\n", FILE_LINE, err);
         	if(err){
 			debug_err(gDebugModule[GPRS_MODULE], "[%s][%s][%d] \n",FILE_LINE);
 		}
         	debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_CGATT CMD OK!\n"); 
-        
+        printf("[%s][%s][%d]\n", FILE_LINE);
 		err = CMD_AT_RP(Ats_CGREG,Ata_CGREG,Ata_CGREG_Or,OS_TICKS_PER_SEC*2,5,FALSE);
+        printf("[%s][%s][%d]CMD_AT_RP: err - %d\n", FILE_LINE, err);
 		OSTimeDly(OS_TICKS_PER_SEC);
 		if(err){
 			debug_info(gDebugModule[GPRS_MODULE], "WARNING: <GprsInit_xmz> Ats_CGREG CMD Err!\n");
@@ -1110,8 +1115,9 @@ uint8 GprsInit_xmz(void)
 		OSTimeDly(OS_TICKS_PER_SEC);
          	/*end:yangfei added 2013-02-26*/
 		ReadCsq();
+         printf("[%s][%s][%d]\n", FILE_LINE);
 		OSTimeDly(OS_TICKS_PER_SEC);
-		
+         printf("[%s][%s][%d]\n", FILE_LINE);
 		GetSocketType();
 		//ProSocketType();
 		err = CMD_AT_RP(Ats_SICS_conType,Ata_OK123,NULL,OS_TICKS_PER_SEC,3,FALSE);
@@ -1121,7 +1127,7 @@ uint8 GprsInit_xmz(void)
 			continue;
 		}
 		debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_SICS_conType CMD OK!\n");
-		
+         printf("[%s][%s][%d]\n", FILE_LINE);
 		err = CMD_AT_RP(Ats_SICS_apn,Ata_OK123,NULL,OS_TICKS_PER_SEC,3,FALSE);
 		OSTimeDly(OS_TICKS_PER_SEC);
 		if(err){
@@ -1129,7 +1135,7 @@ uint8 GprsInit_xmz(void)
 			continue;
 		}
 		debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_SICS_apn CMD OK!\n");
-		
+		printf("[%s][%s][%d]\n", FILE_LINE);
 		err = CMD_AT_RP(Ats_SISS_srvType,Ata_OK123,NULL,OS_TICKS_PER_SEC,3,FALSE);
 		OSTimeDly(OS_TICKS_PER_SEC);
 		if(err){
@@ -1137,7 +1143,7 @@ uint8 GprsInit_xmz(void)
 			continue;
 		}
 		debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_SISS_srvType CMD OK!\n");
-		
+         printf("[%s][%s][%d]\n", FILE_LINE);
 		err = CMD_AT_RP(Ats_SISS_conId,Ata_OK123,NULL,OS_TICKS_PER_SEC,3,FALSE);
 		OSTimeDly(OS_TICKS_PER_SEC);
 		if(err){
@@ -1146,7 +1152,7 @@ uint8 GprsInit_xmz(void)
 		}
 		debug_info(gDebugModule[GPRS_MODULE], "INFO: <GprsInit_xmz> Ats_SISS_conId CMD OK!\n");
 
-
+         printf("[%s][%s][%d]\n", FILE_LINE);
 		get_sys_config(CONFIG_PRIMARY_SERVER, &sysconfig);
 	 	strcpy(Ats_SISS_address,Ats_SISS_address_h);
 		printf("PRIMARY_SERVER: %s\n", sysconfig.f_config_value);
@@ -1273,6 +1279,7 @@ void  GPRS_Mana_Proc(void *pdata)
 		tmpmid = GetGprsRunSta_ModuId();
 		
 		if(tmpmid == MODU_ID_XMZ){
+            
     			GprsInit_xmz(); //使用设备 UP_COMMU_DEV_AT初始化西门子模块。
     			debug_info(gDebugModule[GPRS_MODULE],"GPRS  XMZ  init OK!! \n");
     		}  

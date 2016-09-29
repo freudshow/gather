@@ -178,6 +178,7 @@ void ReadAllMeters(void)
     printf("- %d:%d:%d\n", nowTime.tm_hour, nowTime.tm_min, nowTime.tm_sec);
 
 	printf("[%s][%s][%d]\n", FILE_LINE);
+    
     retrieve_meter_info_list(CallBack_ReadAllMeters);  //±éÀú³­È«±í¡£
 	printf("[%s][%s][%d]\n", FILE_LINE);
     get_sys_config(CONFIG_REPORT_MODE, &sysconfig);
