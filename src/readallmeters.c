@@ -184,6 +184,7 @@ void ReadAllMeters(void)
     get_sys_config(CONFIG_REPORT_MODE, &sysconfig);
     if(RPT_ACTIVE == atoi(sysconfig.f_config_value)) {//如果是主动上报, 则发送上报消息
     lnetMod = g_sysConfigHex.netType;
+
 	if(lnetMod != em_net_rs485){  //使用485组网，是不允许信息主动上推的，必须等待上位要数, 如果多个集中器都往485总线上推数据, 会引发冲突
 	  	Qmsg.dev = UP_COMMU_DEV_GPRS;
 		Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
@@ -193,7 +194,6 @@ void ReadAllMeters(void)
 		asc_to_datestr(tmpstr, Qmsg.timenode);
   		msgsnd(g_uiQmsgFd,&Qmsg,sizeof(QmsgType),0);
 	}
-
 
     /*
   	Qmsg.mtype = 1;  //不要写0，其他都可以。  抄完表之后自动上推
@@ -245,7 +245,7 @@ void pthread_ReadAllMeters(void)
             time (&rawtime);
             localtime_r(&rawtime, &timeinfo);
             lu32CurMin = timeinfo.tm_hour*60 + timeinfo.tm_min;
-            printf("[%s][%s][%d]current minutes: %d\n" , FILE_LINE, lu32CurMin);
+            //printf("[%s][%s][%d]current minutes: %d\n" , FILE_LINE, lu32CurMin);
             if((lu32CurMin%lu16ReadmeterCycle) == 0){
                 if(timeinfo.tm_min != gu32lastChkMin) {
                     //如果本次检测的分钟点不是上次检测的分钟点, 则抄表

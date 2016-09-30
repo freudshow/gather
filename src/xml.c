@@ -156,7 +156,7 @@ uint8 Put_XMLBuf(uint8 lu8BufIndex)
 */
 uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 {
-	uint8 err = 0x00;
+	uint8 err = OS_ERR_NONE;
 	int8  XMLHead[] ="<?xml version";//=\"1.0\" encoding=\"utf-8\" ?>";
 	uint8 DataTemp = 0x00;
 	uint8 Flag = 0x01;
@@ -167,14 +167,13 @@ uint8 UpGetXMLStart(uint8 XmlIndex,uint8 dev, uint32 OutTime)
 
 	lu32tmp = strlen(XMLHead);
 	while(Flag){
-		for(i=0;i<lu32tmp;){
-            while(QueueRead(&DataTemp, (void*)pQueues[dev]) != QUEUE_OK){
+		for(i=0;i<lu32tmp;) {
+            while(QueueRead(&DataTemp, (void*)pQueues[dev]) != QUEUE_OK) {
                 OSSemPend(dev, OutTime, &err);
                 if(err != OS_ERR_NONE){
-                    printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);
+                    //printf("[%s][%s][%d]OSSemPend err=%d\n",FILE_LINE,err);
                     return err;
                 }
-				OSSemPost(dev);
             }
             if(DataTemp == XMLHead[i])
                 i++;
@@ -227,7 +226,6 @@ uint8 UpGetXMLEnd(uint8 XmlIndex,uint8 dev, uint32 OutTime)
                         write_log_file(log, strlen(log));
                         return err;
 				}
-				OSSemPost(dev);
 			}
 
 			*(pRecvTempBuf[dev] + j) = DataTemp;
@@ -869,12 +867,24 @@ uint8 update_meter_info(uint8 dev)
             while(rowNode) {//获取仪表的详细信息
                 if(xmlStrEqual(rowNode->name, CONST_CAST "f_meter_type")) {
                     pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+					if(NULL == pValue) {
+						send_answer(dev, "result", "f_meter_type NULL", NULL);
+						return ERR_1;
+					}
                     pMInfo->f_meter_type = (Ascii2Hex(pValue[0])<<LEN_HALF_BYTE|Ascii2Hex(pValue[1]));
                 }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_device_id")) {
                     pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+					if(NULL == pValue) {
+						send_answer(dev, "result", "f_device_id NULL", NULL);
+						return ERR_1;
+					}
                     pMInfo->f_device_id = atoi((char*)pValue);
                 }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_meter_address")) {
                     pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+					if(NULL == pValue) {
+						send_answer(dev, "result", "f_meter_address NULL", NULL);
+						return ERR_1;
+					}
                     length = strlen((char*)pValue);
                     for (j=0; j<(length+1)/BYTE_BCD_CNT;j++) {
                     	low_idx = length-BYTE_BCD_CNT*j-2;
@@ -886,12 +896,24 @@ uint8 update_meter_info(uint8 dev)
         pMInfo->f_meter_address[2], pMInfo->f_meter_address[1], pMInfo->f_meter_address[0]);
                 }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_meter_proto_type")) {
                     pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+					if(NULL == pValue) {
+						send_answer(dev, "result", "f_meter_proto_type NULL", NULL);
+						return ERR_1;
+					}
                     pMInfo->f_meter_proto_type = atoi((char*)pValue);
                 }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_meter_channel")) {
                     pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+					if(NULL == pValue) {
+						send_answer(dev, "result", "f_meter_channel NULL", NULL);
+						return ERR_1;
+					}
                     pMInfo->f_meter_channel = atoi((char*)pValue);
                 }else if(xmlStrEqual(rowNode->name, CONST_CAST "f_install_pos")) {
                     pValue = xmlNodeGetContent(rowNode->xmlChildrenNode);
+					if(NULL == pValue) {
+						send_answer(dev, "result", "f_install_pos NULL", NULL);
+						return ERR_1;
+					}
                     if(pValue)
                         strcpy(pMInfo->f_install_pos, (char*)pValue);
                 }
@@ -1374,7 +1396,7 @@ void empty_update_list(uint8 dev)
         g_xml_info[dev].pDataList = NULL;
     }
 }
-
+static uint8 gu8HasMallocSpace[UP_COMMU_DEV_ARRAY] = {0};
 uint8 malloc_space(uint8 dev)
 {
     int listLen = g_xml_info[dev].up_total_frm*sizeof(uint8*);
@@ -1388,6 +1410,7 @@ uint8 malloc_space(uint8 dev)
     if(g_xml_info[dev].pDataLen == NULL)
         return ERR_1;
     memset(g_xml_info[dev].pDataLen, 0, listLen);
+	gu8HasMallocSpace[dev] = 1;
     return NO_ERR;
 }
 
@@ -1408,7 +1431,6 @@ uint8 update_bin(uint8 dev)
     int i=0;
     uint32 enLen=0;//当前帧编码后的字符串长度
     uint32 deLen=0;//当前帧解码后的字节串长度
-    uint8 logstring[4096] = {0};
 
     rootNode = xmlDocGetRootElement(g_xml_info[dev].xmldoc_rd);
     if(NULL == rootNode)
@@ -1431,41 +1453,79 @@ uint8 update_bin(uint8 dev)
         printf("[%s][%s][%d]transNode->name: %s\n",FILE_LINE, transInfoNode->name);
         if(xmlStrEqual(transInfoNode->name, CONST_CAST "fb")) {//总共要下发的文件字节数量
             pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
+			if(NULL == pValue) {
+				send_answer(dev, "filebytes", "NULL", NULL);
+				return ERR_1;
+			}
             g_xml_info[dev].up_total_bytes = atoi((char*)pValue);
+			printf("[%s][%s][%d]file bytes: %d", FILE_LINE, g_xml_info[dev].up_total_bytes);
         } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "frmc")) {//一共下发多少帧数
             pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
+			if(NULL == pValue) {
+				send_answer(dev, "framecount", "NULL", NULL);
+				return ERR_1;
+			}
             g_xml_info[dev].up_total_frm = atoi((char*)pValue);
+			printf("[%s][%s][%d]frame counts: %d", FILE_LINE, g_xml_info[dev].up_total_frm);
         } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "md5")) {//本次更新的程序的md5值
             pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
-            printf("[%s][%s][%d]server's md5: %s\n",FILE_LINE, (char*)pValue);
-            get_sys_config(CONFIG_APP_MD5, &sysconfig);
-            printf("[%s][%s][%d]local's md5: %s\n",FILE_LINE, sysconfig.f_config_value);
-            if(strcmp(sysconfig.f_config_value, (char*)pValue) == 0) {//如果md5值一样, 那么返回"md5same"应答, 终止升级过程
-                send_answer(dev, "md5", "same", NULL);
-                return NO_ERR;
-            }
-            strcpy(g_xml_info[dev].up_md5, (char*)pValue);
+			if(NULL == pValue) {
+				send_answer(dev, "md5", "NULL", NULL);
+				return ERR_1;
+			}
+			else {
+	            printf("[%s][%s][%d]server's md5: %s\n",FILE_LINE, (char*)pValue);
+	            get_sys_config(CONFIG_APP_MD5, &sysconfig);
+	            printf("[%s][%s][%d]local's md5: %s\n",FILE_LINE, sysconfig.f_config_value);
+	            if(strcmp(sysconfig.f_config_value, (char*)pValue) == 0) {//如果md5值一样, 那么返回"md5same"应答, 终止升级过程
+	                send_answer(dev, "md5", "same", NULL);
+	                return ERR_1;
+	            }
+            	strcpy(g_xml_info[dev].up_md5, (char*)pValue);
+			}
         } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "frmid")) {//本帧的索引号
             pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
-            g_xml_info[dev].up_cur_frm_idx = (atoi((char*)pValue)-1);
-            printf("[%s][%s][%d]up_cur_frm_idx: %d\n",FILE_LINE, g_xml_info[dev].up_cur_frm_idx);
+			if(NULL == pValue) {
+				g_xml_info[dev].up_cur_frm_idx = -2;
+				send_answer(dev, "frameid", "NULL", NULL);
+				return ERR_1;
+			}
+			else {
+				g_xml_info[dev].up_cur_frm_idx = (atoi((char*)pValue)-1);
+            	printf("[%s][%s][%d]current frame_id: %d\n",FILE_LINE, g_xml_info[dev].up_cur_frm_idx);
+			}
         } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "bc")) {//本帧的字节数
             pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
-            g_xml_info[dev].up_cur_bytes = atoi((char*)pValue);
-			printf("[%s][%s][%d]up_cur_frm_idx: %d\n",FILE_LINE, g_xml_info[dev].up_cur_bytes);
+			if(NULL == pValue) {
+				g_xml_info[dev].up_cur_bytes = 0;
+				send_answer(dev, "bytecount", "NULL", NULL);
+				return ERR_1;
+			}
+			else {
+	            g_xml_info[dev].up_cur_bytes = atoi((char*)pValue);
+				printf("[%s][%s][%d]current frame bytes: %d\n",FILE_LINE, g_xml_info[dev].up_cur_bytes);
+			}
         } else if(xmlStrEqual(transInfoNode->name, CONST_CAST "ck")) {//本帧的字节串的CRC校验值
             pValue = xmlNodeGetContent(transInfoNode->xmlChildrenNode);
-            crc = (Ascii2Hex(pValue[3])<<3*LEN_HALF_BYTE|\
-                    Ascii2Hex(pValue[4])<<2*LEN_HALF_BYTE|\
-                    Ascii2Hex(pValue[0])<<LEN_HALF_BYTE|\
-                    Ascii2Hex(pValue[1]));
-            printf("[%s][%s][%d]server's crc is: %04X\n",FILE_LINE, crc);
+			if(NULL == pValue) {
+				crc=0;
+				send_answer(dev, "crc", "NULL", NULL);
+				return ERR_1;
+			}
+			else {
+	            crc = ( Ascii2Hex(pValue[3])<<3*LEN_HALF_BYTE|\
+	                    Ascii2Hex(pValue[4])<<2*LEN_HALF_BYTE|\
+	                    Ascii2Hex(pValue[0])<<LEN_HALF_BYTE|\
+	                    Ascii2Hex(pValue[1]));
+	            printf("[%s][%s][%d]server's crc is: %04X\n",FILE_LINE, crc);
+			}
         }
         transInfoNode = transInfoNode->next;
     }
 
     if(g_xml_info[dev].up_cur_frm_idx == -1) {//如果是第0帧, 则初始化暂存空间, 完成后就退出
         empty_update_list(dev);
+		gu8HasMallocSpace[dev] = 0;
         if((err = malloc_space(dev)) ==ERR_1) {//任意时刻, 如果集中器申请不到内存, 向上位机发送"malloc fail"消息
             send_answer(dev, "malloc", "fail", NULL);
         } else {
@@ -1478,6 +1538,11 @@ uint8 update_bin(uint8 dev)
         send_answer(dev, "malloc", "fail", NULL);
         return ERR_1;
     }
+
+	if(gu8HasMallocSpace[dev] == 0) {//if current frame is not 0, and server send other frameIdx, return error
+		send_answer(dev, "malloc", "has not malloc space yet, please send 0th frame", NULL);
+		return ERR_1;
+	}
 
     if(g_xml_info[dev].pDataList == NULL) {//每次都要检测数据列表是否申请到了内存, 或者是否接收过第0帧, 因为第0帧时会申请内存
         send_answer(dev, "malloc", "fail", NULL);
@@ -1520,7 +1585,7 @@ uint8 update_bin(uint8 dev)
         free(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx]);
     g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] = malloc(deLen);
     printf("[%s][%s][%d]\n",FILE_LINE);
-    //任意时刻, 如果集中器申请不到内存, 向上位机发送终止升级的消息
+    //任意时刻, 如果集中器申请不到内存, 向上位机发送"malloc fail"
     if(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx] == NULL) {
         send_answer(dev, "malloc", "fail", NULL);
         return ERR_1;
@@ -1532,7 +1597,7 @@ uint8 update_bin(uint8 dev)
     printBuf(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx],\
     deLen, FILE_LINE);
     localcrc=crc16ModRtu(g_xml_info[dev].pDataList[g_xml_info[dev].up_cur_frm_idx], deLen);
-    printf("[%s][%s][%d]crc: %04X, localcrc: %04X\n", FILE_LINE, crc, localcrc);
+    printf("[%s][%s][%d]crc: %04X, localcrc[0]: %04X\n", FILE_LINE, crc, localcrc);
     if(crc != localcrc) {
         goto frameErr;
     }
@@ -1646,40 +1711,46 @@ uint8 merge_update_file(uint8 dev)
         send_answer(dev, "merge", "fail", NULL);
         return ERR_1;
     }
-    //删除老程序
+    //delete old app
     sprintf(cmd, "rm %s", APP_NAME);
     system(cmd);
-    //将新升级的临时程序改名为原程序名
+    //mv temp file name to app's name
     sprintf(cmd, "mv %s %s", APP_TMPNAME, APP_NAME);
     system(cmd);
-    //将新程序的MD5值存入数据库
+    //store new app's md5sum to database
     sys_config.f_id = CONFIG_APP_MD5;
     strcpy(sys_config.f_config_value, g_xml_info[dev].up_md5);
     err = add_one_config(&sys_config);
     empty_update_list(dev);
     send_answer(dev, "merge", "success", NULL);
-    //重启Linux
-    system("reboot");
+	OSTimeDly(5000);//sleep 5sec to make sure "merge success" frame can be sent
+    system("reboot");//reboot system to run new app
     return err;
 }
 
 //12. 远程升级
 uint8 func_codeup(uint8 dev, uint8 xml_idx)
 {
-	uint8 retErr = NO_ERR;    
+	uint8 retErr = NO_ERR;
+	printf("[%s][%s][%d]oper type: %d\n", FILE_LINE, g_xml_info[dev].oper_type);
     switch(g_xml_info[dev].oper_type) {
     case em_OPER_RD:
+		printf("[%s][%s][%d]func_codeup em_OPER_RD\n", FILE_LINE);
         send_lack_frame(dev);
-        break;    
+        break;
     case em_OPER_WR:
+		printf("[%s][%s][%d]func_codeup em_OPER_WR\n", FILE_LINE);
         update_bin(dev);
         break;
     case em_OPER_DO:
+		printf("[%s][%s][%d]func_codeup em_OPER_DO\n", FILE_LINE);
         merge_update_file(dev);
-        break;    
+        break;
     case em_OPER_ASW:
+		printf("[%s][%s][%d]func_codeup em_OPER_ASW\n", FILE_LINE);
         break;
     default:
+		printf("[%s][%s][%d]func_codeup not known\n", FILE_LINE);
         break;
     }
 	return retErr;
@@ -1692,8 +1763,7 @@ uint8 split_com(char* comstr, pProto_trans pProtoTrs)//comstr = "9600,n,8,1"
     char *buf=comstr;
     char *sp=NULL;
     printf("[%s][%s][%d]comstr: %s\n", FILE_LINE, comstr);
-    while((p[i] = strtok_r(buf, ",", &sp)))
-    {   
+    while((p[i] = strtok_r(buf, ",", &sp))) {   
         printf("[%s][%s][%d] p[i]: %s \n", FILE_LINE, p[i]);
         i++;
         buf=NULL;
@@ -1715,8 +1785,7 @@ uint8 split_minfo(char* info, pProto_trans pProtoTrs)
     char *buf=info;
     char *sp=NULL;
     printf("[%s][%s][%d]info: %s\n", FILE_LINE, info);
-    while((p[i] = strtok_r(buf, ",", &sp)))
-    {   
+    while((p[i] = strtok_r(buf, ",", &sp))) {   
         printf("[%s][%s][%d] p[i]: %s \n", FILE_LINE, p[i]);
         i++;
         buf=NULL;
@@ -1736,8 +1805,7 @@ uint8 split_cmd(char* cmd, pProto_trans pProtoTrs)
     char *buf=cmd;
     char *sp=NULL;
     printf("[%s][%s][%d]cmd: %s\n", FILE_LINE, cmd);
-    while((p[i] = strtok_r(buf, " ", &sp)))
-    {
+    while((p[i] = strtok_r(buf, " ", &sp))) {
         printf("[%s][%s][%d] p[i]: %s \n", FILE_LINE, p[i]);
         i++;
         buf=NULL;

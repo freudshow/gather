@@ -1626,10 +1626,10 @@ void Fun_GprsIpd_xmz(void)
 	  			UpdGprsRunSta_FeedRecDog();	
 	  			UpdGprsRunSta_AddFrmRecTimes(len);	
 	  			UpRecQueueWrite(UP_COMMU_DEV_GPRS,(uint8*)gRecBuf_xmz,len);
-        			if(len){
-        				debug_debug(gDebugModule[GPRS_MODULE],"[%s][%s][%d] %s\n",FILE_LINE,gRecBuf_xmz);
+				if(len){
+					debug_debug(gDebugModule[GPRS_MODULE],"[%s][%s][%d] %s\n",FILE_LINE,gRecBuf_xmz);
           			memset(gRecBuf_xmz,0,sizeof(gRecBuf_xmz));
-        			}
+        		}
 	  		}while(err==0 && len>0);	
 			debug_debug(gDebugModule[GPRS_MODULE],"leave GPRS jh \n");
 		}
@@ -1690,7 +1690,7 @@ void pthread_GprsDataDeal(void)
 {
 	uint8 err = 0;
 	//uint8 lu8data = 0;
-	uint16 lu16outtime = 1000;  //等待 毫秒数。
+	uint16 lu16outtime = 2000;  //等待 毫秒数。
 	uint8 lu8xmlIndex = 0;
 	//FILE *fp;
 	printf("pthread_GprsDataDeal start.\n");
@@ -1701,7 +1701,6 @@ void pthread_GprsDataDeal(void)
 		}while(lu8xmlIndex == ERR_FF);
 
 		//printf("Get_XMLBuf %d.\n",lu8xmlIndex);
-		
 		err = UpGetXMLStart(lu8xmlIndex,UP_COMMU_DEV_GPRS,lu16outtime);
 		if(err == NO_ERR){
 			printf("pthread_GprsDataDeal UpGetXMLStart OK.\n");
@@ -1713,6 +1712,7 @@ void pthread_GprsDataDeal(void)
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 			}
 			else{
+				printf("pthread_GprsDataDeal UpGetXMLStart FAIL, Put_XMLBuf.\n");
 				Put_XMLBuf(lu8xmlIndex);  //释放被占用的xml暂存。
 			}
 		}

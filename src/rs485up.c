@@ -84,15 +84,10 @@ INT32 RS485up_Rec(void)
 					if(ret != QUEUE_OK){
 						//printf("[%s][%s][%d] ret=%d queue full\n",FILE_LINE,ret);
 					}
-		   
 					OSSemPost(UP_COMMU_DEV_485);
-		   
 				}
 		    }
-
         }
-	   
-
     }
     
   	return(CONTROL_RET_FAIL);

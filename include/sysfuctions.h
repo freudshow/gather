@@ -135,7 +135,7 @@ extern uint8 decode_base64(char* enStr, int enSize,  uint8* deStr);
 extern int cnt_of_pad(char* enStr, int enSize);
 extern uint8 encode_base64(char* s, int len, char* enStr);
 extern void write_log_file(char* buffer, unsigned buf_size);
-extern void printBuf(U8* buf, U16 bufSize, const char* file, const char* func, U32 line);
+extern void printBuf(uint8* buf, uint16 bufSize, const char* file, const char* func, uint32 line);
 
 
 #endif //_SYSFUCTIONS_H_
