@@ -41,20 +41,13 @@ int main(int argc, char **argv)
 {
 	sysinit();
 	create_pthread();
-
-    
+  
 	while(1){
-
 		usleep(1000000);
 	}
 
-
-
 	close_db();
 	exit(0);
-	return 0;
-	
-	
 }
 
 
