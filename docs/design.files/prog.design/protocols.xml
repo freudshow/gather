@@ -152,17 +152,17 @@
 		<func_type>2</func_type>
 		<oper_type>3</oper_type>
 	</common>
-	<primary_server>122.5.18.174</primary_server>
-	<primary_dns>219.146.0.130</primary_dns>
-	<primary_port>9026</primary_port>
-	<second_server>219.146.0.130</second_server>
-	<second_dns>219.146.0.130</second_dns>
-	<second_port>9027</second_port>
-	<gateway_id>5001</gateway_id>
-	<net_type>36527</net_type>
-	<md5_key>863CA654</md5_key>
+	<primary_server>122.5.18.174</primary_server><!-- 主服务器的IP地址 -->
+	<primary_dns>219.146.0.130</primary_dns><!-- 主DNS -->
+	<primary_port>9026</primary_port><!-- 主服务器的端口号 -->
+	<second_server>219.146.0.130</second_server><!-- 副服务器的IP地址 -->
+	<second_dns>219.146.0.130</second_dns><!-- 副DNS -->
+	<second_port>9027</second_port><!-- 副服务器的端口号 -->
+	<gateway_id>5001</gateway_id><!-- 集中器号 -->
+	<net_type>36527</net_type><!-- 组网类型 -->
+	<md5_key>863CA654</md5_key><!--  -->
 	<aes_key>d41d8cd98f00b204e9800998ecf8427e</aes_key>
-	<report_mode>1</report_mode>
+	<report_mode>1</report_mode><!-- 副服务器的IP地址 -->
 	<beat_cycle>2</beat_cycle>
 	<svr_num>0001</svr_num>
 </root>
