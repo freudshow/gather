@@ -1,11 +1,11 @@
-60MB partition:
+#60MB partition:
 sudo mkfs.ubifs -r ./minigui -m 2048 -e 126976 -c 472 -o ubi.in
 sudo ubinize -o ubi.img -m 2048 -p 128KiB -s 2048 ./ubinize60.cfg 
 
-120M:
+#120M partition:
 sudo mkfs.ubifs -r ./minigui -m 2048 -e 126976 -c 882 -o ubi.in
 sudo ubinize -o ubi.img -m 2048 -p 128KiB -s 2048 ./ubinize108.cfg 
 
-200M:
+#200M partition:
 sudo mkfs.ubifs -r ./minigui -m 2048 -e 126976 -c 2047 -o ubi.in
 sudo ubinize -o ubi.img -m 2048 -p 128KiB -s 2048 ./ubinize200.cfg

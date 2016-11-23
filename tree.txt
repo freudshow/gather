@@ -1,0 +1,469 @@
+ARM9源代码目录结构
+bin目录下是, 具体说明见树形结构. 
+而且文本形式的文档, 要用NotePad++或在Linux下查看, 否则直接用windows下的
+记事本看, 会格式混乱.
+
+├── bin //给生产用的第一版烧写程序
+│   ├── ARM9485.zip //孙若榆写的第一版485单机版调试程序
+│   ├── ARM9_V1.0.zip //第一版烧写镜像
+│   ├── J-link.driver.zip //Jlink驱动
+│   ├── sam-ba_2.14.zip //atmel生产的sam-ba程序, 用于烧写程序的调用
+│   └── 单机版AM9通讯服务器.zip //孙若榆写的第一版单机版GPRS服务器
+├── db
+│   └── gatherdb.db //发布程序时, 默认的数据库
+├── docs //各类文档
+│   ├── archive.files //归档文件, 具体功能见文件名字
+│   │   ├── 00-JZQ-ARM9-集中器嵌入式软件-需求单.xlsx
+│   │   ├── 01-JZQ-ARM9-集中器嵌入式软件-立项报告.doc
+│   │   ├── 02-JZQ-ARM9-集中器嵌入式软件-详细设计方案.docx
+│   │   ├── 03-JZQ-ARM9-集中器嵌入式软件-数据库设计方案.doc
+│   │   ├── 04-JZQ-ARM9-集中器嵌入式软件-通讯协议设计方案.doc
+│   │   ├── 05-JZQ-ARM9-集中器嵌入式软件-测试报告.docx
+│   │   ├── 06-JZQ-ARM9-集中器嵌入式软件-测试大纲.doc
+│   │   ├── 06-JZQ-ARM9-集中器嵌入式软件-测试需求.doc
+│   │   ├── 07-JZQ-ARM9-集中器嵌入式软件-程序烧写说明书.doc
+│   │   ├── 08_JZQ-ARM9-集中器使用说明书.doc
+│   │   ├── 09_JZQ-ARM9-集中器小批测试报告.docx
+│   │   └── temp //集中器使用说明书的素材
+│   │       ├── ARM9集中器端子说明&组网方式&参数.docx
+│   │       └── Linux集中器.jpg
+│   ├── design.files //设计文档
+│   │   ├── prog.design //程序设计文档
+│   │   │   ├── ARM9集中器软件-数据库设计方案.doc //SQLite数据库设计方案
+│   │   │   ├── ARM9集中器软件-通讯协议设计方案.doc //通讯协议设计方案
+│   │   │   ├── linuxAdmin //
+│   │   │   │   ├── mkubi.txt //制作烧写镜像的命令行
+│   │   │   │   ├── ubinize108.cfg //制作108M文件系统的配置文件
+│   │   │   │   ├── ubinize200.cfg //制作200M文件系统的配置文件
+│   │   │   │   └── ubinize60.cfg //制作60M文件系统的配置文件
+│   │   │   ├── protocols.xml //协议样例及说明
+│   │   │   ├── remote.update.progress.server.vsdx //远程升级服务器端过程说明
+│   │   │   ├── remote.update.progress.simple.vsdx //远程升级简化版说明
+│   │   │   ├── remote.update.progress.vsdx //远程升级过程说明
+│   │   │   ├── sqlfile.sql //数据库建表语句, 默认数据插入语句
+│   │   │   ├── wr_his_xml.state.vsdx //历史数据组帧过程说明
+│   │   │   ├── xml.example //测试过程中用到的xml文件样例
+│   │   │   │   ├── answer.xml //应答文件样例
+│   │   │   │   ├── base_define.xml //基本配置文件样例
+│   │   │   │   ├── bin_up.xml //远程升级文件样例
+│   │   │   │   ├── clock_set.xml //设置时间文件样例
+│   │   │   │   ├── his_data_electric.xml //电表历史数据文件样例
+│   │   │   │   ├── his_data_heat.xml //热量表历史数据文件样例
+│   │   │   │   ├── his_data.xml //历史数据文件样例
+│   │   │   │   ├── id.xml //登录文件样例
+│   │   │   │   ├── meter_info.xml //表地址信息文件样例
+│   │   │   │   ├── proto_trans.xml //远程透传文件样例
+│   │   │   │   ├── readhis.xml //读取历史数据文件样例
+│   │   │   │   ├── request_data.xml //配置抄表项文件样例
+│   │   │   │   └── sysconfig.xml //主要系统配置项文件样例
+│   │   │   ├── 集中器软硬件需求_刘总_20160308.docx //刘磊提出的集中器需求
+│   │   │   ├── 数据库定义.xls //数据库定义初版
+│   │   │   └── 通讯协议过程初步方案.2016.03.17.jpg //通讯过程及协议制定初版
+│   │   └── schedule //开发计划及周期
+│   │       ├── ARM9集中器开发思路及计划安排_草稿_20160123.docx
+│   │       ├── Linux集中器计划.docx
+│   │       ├── Linux集中器计划_Jin&song.merged.docx
+│   │       └── 要求&嵌入式开发思路及安排_20160122.txt
+│   ├── nation.stand //国家标准
+│   │   ├── CJ-T_188-2004.pdf //CJ-188标准
+│   │   └── DLT_645-2007_多功能电能表通信协议2010.pdf //645标准
+│   ├── old.files //勾江涛等开发程序时留下的文档
+│   │   ├── linux 自动起动.txt //开机自动启动抄表程序
+│   │   ├── readme.txt
+│   │   └── 勾江涛协议修改
+│   │       ├── ARM9集中器协议
+│   │       │   ├── 集中器计量表信息V2.0.xlsx
+│   │       │   └── 新增通信协议V2.0.docx
+│   │       ├── 集中器计量表信息.xlsx
+│   │       └── 相关技术导则 //大型公建能耗监测技术导则, pdf与word文件内容一致
+│   │           ├── 1 国家机关办公建筑和大型公共建筑能耗监测系统分项能耗数据采集技术导则.doc
+│   │           ├── 1 国家机关办公建筑和大型公共建筑能耗监测系统分项能耗数据采集技术导则.pdf
+│   │           ├── 2 国家机关办公建筑和大型公共建筑能耗监测系统分项能耗数据传输技术导则.doc
+│   │           ├── 2 国家机关办公建筑和大型公共建筑能耗监测系统分项能耗数据传输技术导则.pdf
+│   │           ├── 3 国家机关办公建筑和大型公共建筑能耗监测系统楼宇分项计量设计安装技术导则.doc
+│   │           ├── 3 国家机关办公建筑和大型公共建筑能耗监测系统楼宇分项计量设计安装技术导则.pdf
+│   │           ├── 4 国家机关办公建筑和大型公共建筑能耗监测系统数据中心建设与维护技术导则.doc
+│   │           ├── 4 国家机关办公建筑和大型公共建筑能耗监测系统数据中心建设与维护技术导则.pdf
+│   │           ├── 5 国家机关办公建筑和大型公共建筑能耗监测系统建设、验收与运行管理规范.doc
+│   │           └── 5 国家机关办公建筑和大型公共建筑能耗监测系统建设、验收与运行管理规范.pdf
+│   ├── tech.files //厂家协议, 芯片资料等
+│   │   ├── Max3080-3089 //Max308x芯片资料
+│   │   │   └── MAX3080-MAX3089.pdf
+│   │   ├── MC52i //西门子2G模块资料
+│   │   │   ├── MC52i AT Command Set.pdf
+│   │   │   ├── MC52i Hardware Interface Description.pdf
+│   │   │   ├── MC52i Release Notes.pdf
+│   │   │   └── MC55sch.pdf
+│   │   ├── MODBUS通讯协议.pdf //标准MODBUS通讯协议
+│   │   ├── PMS372三相电表协议 
+│   │   │   └── PMS372多功能网络表说明书.pdf
+│   │   ├── TI.VP.3082
+│   │   │   └── sn65hvd3082e.pdf
+│   │   ├── USB接口类型
+│   │   │   ├── 【【HQP教程】你知道手上的Type-A_Type-B_Type-C等接口该如何区分吗？】-ThinkPad-联想社区_files
+│   │   │   │   ├── 001.gif
+│   │   │   │   ├── 100(1).png
+│   │   │   │   ├── 100.png
+│   │   │   │   ├── 10(1).png
+│   │   │   │   ├── 10.png
+│   │   │   │   ├── 153833g4mwvlz03m3sa98z.png.thumb.jpg
+│   │   │   │   ├── 154157ekjnm97m5kioqb7a.jpeg.thumb.jpg
+│   │   │   │   ├── 200.png
+│   │   │   │   ├── 204632ycp3ccxpxp66cbep.jpg.thumb.jpg
+│   │   │   │   ├── 20_avatar_middle_ver1457701488.jpg
+│   │   │   │   ├── 20.png
+│   │   │   │   ├── 36_avatar_middle_ver1440565358.jpg
+│   │   │   │   ├── 40_avatar_middle_ver1451641468.jpg
+│   │   │   │   ├── 46_avatar_middle_ver1464747073.jpg
+│   │   │   │   ├── 46_avatar_small.jpg
+│   │   │   │   ├── 48_avatar_middle_ver1441182379.jpg
+│   │   │   │   ├── 50(1).png
+│   │   │   │   ├── 50_avatar_middle_ver1446135760.jpg
+│   │   │   │   ├── 50.png
+│   │   │   │   ├── 54_avatar_middle_ver1457155875.jpg
+│   │   │   │   ├── 55_avatar_middle_ver1464689856.jpg
+│   │   │   │   ├── 61_avatar_middle_ver1465117384.jpg
+│   │   │   │   ├── 68_avatar_middle_ver1456190477.jpg
+│   │   │   │   ├── 68_avatar_middle_ver1459006945.jpg
+│   │   │   │   ├── 90_avatar_middle_ver1464760806.jpg
+│   │   │   │   ├── 91_avatar_middle_ver1454249828.jpg
+│   │   │   │   ├── 91_avatar_middle_ver1456103698.jpg
+│   │   │   │   ├── addicn.gif
+│   │   │   │   ├── arw_r.gif
+│   │   │   │   ├── baidu_think.js
+│   │   │   │   ├── bs-engine.js
+│   │   │   │   ├── bshareC0.js
+│   │   │   │   ├── bshareS887.js
+│   │   │   │   ├── bshare_share_count
+│   │   │   │   ├── bshare_view
+│   │   │   │   ├── bsMore.js
+│   │   │   │   ├── bsStatic.js
+│   │   │   │   ├── buttonLite.js
+│   │   │   │   ├── club_right_banner_closed.png
+│   │   │   │   ├── cm(1).gif
+│   │   │   │   ├── cm.gif
+│   │   │   │   ├── cm.html
+│   │   │   │   ├── common(1).js
+│   │   │   │   ├── common.css
+│   │   │   │   ├── common.js
+│   │   │   │   ├── discuz_tips.js
+│   │   │   │   ├── dizzy.gif
+│   │   │   │   ├── erweima.png
+│   │   │   │   ├── fingerprint2.min.js
+│   │   │   │   ├── fixed_home.png
+│   │   │   │   ├── fj_btn.png
+│   │   │   │   ├── forum.js
+│   │   │   │   ├── forum_viewthread.js
+│   │   │   │   ├── getcookie.js.php
+│   │   │   │   ├── hm.js
+│   │   │   │   ├── home.php
+│   │   │   │   ├── huffy.gif
+│   │   │   │   ├── ico_lz.png
+│   │   │   │   ├── issue_news_p(1).png
+│   │   │   │   ├── issue_news_p.png
+│   │   │   │   ├── jquery-1.8.3.min.js
+│   │   │   │   ├── jquery.cookie.js
+│   │   │   │   ├── jquery.fancybox.css
+│   │   │   │   ├── la_v2016062215.min.js
+│   │   │   │   ├── LenovoId.js
+│   │   │   │   ├── lol.gif
+│   │   │   │   ├── newstylethink_ver2016031701.css
+│   │   │   │   ├── none.gif
+│   │   │   │   ├── online_member.gif
+│   │   │   │   ├── online_moderator.gif
+│   │   │   │   ├── online_supermod.gif
+│   │   │   │   ├── pixel
+│   │   │   │   ├── pixel(1)
+│   │   │   │   ├── pixel(2)
+│   │   │   │   ├── print.png
+│   │   │   │   ├── qq.gif
+│   │   │   │   ├── reg_banner_11.png
+│   │   │   │   ├── rleft.gif
+│   │   │   │   ├── rm.gif
+│   │   │   │   ├── rright.gif
+│   │   │   │   ├── saved_resource
+│   │   │   │   ├── saved_resource(1)
+│   │   │   │   ├── saved_resource.html
+│   │   │   │   ├── seditor.js
+│   │   │   │   ├── signin_suc_ver2016011501.css
+│   │   │   │   ├── singin_suc_error.png
+│   │   │   │   ├── singin_suc_smail.png
+│   │   │   │   ├── style(1).css
+│   │   │   │   ├── style_2_forum_viewthread.css
+│   │   │   │   ├── style_5_common.css
+│   │   │   │   ├── style_5_forum_viewthread.css
+│   │   │   │   ├── style.css
+│   │   │   │   ├── stylethink.css
+│   │   │   │   ├── synCookie.jhtml
+│   │   │   │   ├── t.gif
+│   │   │   │   ├── think_logogif.gif
+│   │   │   │   ├── think_logo.png
+│   │   │   │   ├── thread-next.png
+│   │   │   │   └── thread-prev.png
+│   │   │   └── 【【HQP教程】你知道手上的Type-A_Type-B_Type-C等接口该如何区分吗？】-ThinkPad-联想社区.html
+│   │   ├── 安科瑞智能电表 //深圳安科瑞智能电表说明书, 柳州工程用
+│   │   │   ├── 050 DDSD1352单相电子式多功能电能表安装使用说明书 V1.3.pdf
+│   │   │   ├── 068 DTSD1352(DTSF1352)三相电子式多功能电能表V1.0.pdf
+│   │   │   └── 112 PZ系列可编程智能电测表（三相功率、三相电能部分）安装使用说明书V1.4.pdf
+│   │   ├── 北京五洲电动蝶阀协议 //航天小区智慧灌溉系统用的, 电动蝶阀
+│   │   │   └── 阀-MODBUS_RTU通信协议.pdf
+│   │   ├── 柏斯顿传感器 //柏斯顿发来的传感器
+│   │   │   └── 柏斯顿二氧化碳传感器.pdf
+│   │   ├── 柏斯顿空调DDC说明 //柏斯顿空调
+│   │   │   ├── BS4360直接式数字控制器简要说明.pdf
+│   │   │   └── BS4380直接式数字控制器用户手册V5.0.pdf
+│   │   ├── 德鲁公司热能表m-bus数据传输协议.pdf //德鲁公司热量表协议
+│   │   ├── 德阳旭捷4-20mA输入输出模块
+│   │   │   └── ZM24-4AI4AO RS485接口模拟量输入输出组合模块V1.1.pdf
+│   │   ├── 空调数据采集需求（讨论稿）.docx
+│   │   ├── 力创EDA9017模块说明 //力创EDA9017模拟量采集模块说明书
+│   │   │   ├── EDA9017模拟量测量模块.pdf
+│   │   │   └── 力创9017模块各通道接传感器情况.txt
+│   │   ├── 力创三相电表协议 //力创三相电表协议
+│   │   │   ├── GBT 17215.321-2008 交流电测量设备 特殊要求 第21部分：静止式有功电能表（1级和2级）.pdf
+│   │   │   ├── LCDG-DTSD106三相交流表说明书.pdf
+│   │   │   ├── send.cmd.and.receive.txt
+│   │   │   ├── 发送命令log.txt
+│   │   │   ├── 力创三相电表DTSD106_M100寄存器地址说明.xls
+│   │   │   ├── 力创三相电表.截图.基本参量.png
+│   │   │   └── 力创响应帧.txt
+│   │   ├── 潍微水表-MBUS总线188协议 //航天小区智慧灌溉系统用的, 总水表
+│   │   │   ├── MBUS总线188模块通讯协议.pdf
+│   │   │   └── 水表采集12-15.exe
+│   │   ├── 兴源智能水表 //柳州项目用的水表
+│   │   │   └── 兴源智能仪表CJT-188-2004.docx
+│   │   ├── 雨量传感器
+│   │   │   └── 485雨量通讯协议.doc
+│   │   ├── 住建部大型公建能耗监测系统技术导则.zip
+│   │   ├── 卓岚RS485中继器
+│   │   │   ├── ZLAN9440.pdf
+│   │   │   └── ZLAN9480A.pdf
+│   │   ├── 自动气象站.Davis //戴维斯气象站说明书
+│   │   │   └── vantage pro2 and vue.pdf
+│   │   └── 自动气象站.RAINWISE //航天小区智慧灌溉系统用的, 自动气象站说明书
+│   │       ├── cole.pdf
+│   │       ├── RainWise weather station Data Format Sheet.pdf
+│   │       └── 数据格式.docx
+│   └── test.files //测试记录
+│       ├── 2016.05.03
+│       │   ├── elect.address.sql
+│       │   ├── meter.number.elect.xlsx
+│       │   ├── meter.number.sql
+│       │   ├── meter.number.xlsx
+│       │   ├── notation.txt
+│       │   └── table.data.sql
+│       ├── 2016.06.07
+│       │   └── 力创三相导轨电表测试帧.txt
+│       ├── 2016.06.21
+│       │   ├── heat.meter.frame.txt
+│       │   └── log1.txt
+│       ├── 2016.06.22
+│       │   └── 2016.06.20-2016.06.22小批测试报告.docx
+│       ├── 2016.07.13
+│       │   └── 客户培训内容.txt
+│       ├── 2016.09.22.log
+│       ├── 2016.11.07
+│       │   └── FRAME.txt
+│       ├── IMG //航天小区智慧灌溉系统, 现场施工图
+│       │   ├── IMG_20160922_101005.jpg
+│       │   ├── IMG_20160922_104838.jpg
+│       │   ├── IMG_20160922_104902.jpg
+│       │   ├── IMG_20160922_104912.jpg
+│       │   ├── IMG_20160922_104915.jpg
+│       │   ├── IMG_20160922_104922.jpg
+│       │   ├── IMG_20160922_104930.jpg
+│       │   ├── IMG_20160922_104934.jpg
+│       │   ├── IMG_20160922_104938.jpg
+│       │   ├── IMG_20160922_104942.jpg
+│       │   ├── IMG_20160922_104948.jpg
+│       │   └── IMG_20160922_104953.jpg
+│       ├── modify.db.sql
+│       └── svr.answer.xml
+├── include //源代码的头文件
+│   ├── bsp.h //串口参数相关
+│   ├── commap.h //定义队列, 信号量; 各队列进队、出队操作
+│   ├── db.h //操作数据库相关
+│   ├── globaldefine.h //公共定义文件. 定义数据类型, 仪表类型, \
+│	│					常用字长, 串口名称, 数据库名称, gpio操作, \
+│	│					串口速率, 错误代码, xml协议的索引号, \
+│	│					上行设备对应的xml协议参数数据结构等等.
+│   ├── gprs.h //GPRS模块相关
+│   ├── includes.h //所有头文件都包含在此
+│   ├── libxml2 //xml库的头文件
+│   │   └── libxml
+│   │       ├── c14n.h
+│   │       ├── catalog.h
+│   │       ├── chvalid.h
+│   │       ├── debugXML.h
+│   │       ├── dict.h
+│   │       ├── DOCBparser.h
+│   │       ├── encoding.h
+│   │       ├── entities.h
+│   │       ├── globals.h
+│   │       ├── hash.h
+│   │       ├── HTMLparser.h
+│   │       ├── HTMLtree.h
+│   │       ├── list.h
+│   │       ├── nanoftp.h
+│   │       ├── nanohttp.h
+│   │       ├── parser.h
+│   │       ├── parserInternals.h
+│   │       ├── pattern.h
+│   │       ├── relaxng.h
+│   │       ├── SAX2.h
+│   │       ├── SAX.h
+│   │       ├── schemasInternals.h
+│   │       ├── schematron.h
+│   │       ├── threads.h
+│   │       ├── tree.h
+│   │       ├── uri.h
+│   │       ├── valid.h
+│   │       ├── xinclude.h
+│   │       ├── xlink.h
+│   │       ├── xmlautomata.h
+│   │       ├── xmlerror.h
+│   │       ├── xmlexports.h
+│   │       ├── xmlIO.h
+│   │       ├── xmlmemory.h
+│   │       ├── xmlmodule.h
+│   │       ├── xmlreader.h
+│   │       ├── xmlregexp.h
+│   │       ├── xmlsave.h
+│   │       ├── xmlschemas.h
+│   │       ├── xmlschemastypes.h
+│   │       ├── xmlstring.h
+│   │       ├── xmlunicode.h
+│   │       ├── xmlversion.h
+│   │       ├── xmlwriter.h
+│   │       ├── xpath.h
+│   │       ├── xpathInternals.h
+│   │       └── xpointer.h
+│   ├── meter_table.h //仪表协议索引表
+│   ├── openssl //加密库的头文件
+│   │   ├── aes.h
+│   │   ├── asn1.h
+│   │   ├── asn1_mac.h
+│   │   ├── asn1t.h
+│   │   ├── bio.h
+│   │   ├── blowfish.h
+│   │   ├── bn.h
+│   │   ├── buffer.h
+│   │   ├── camellia.h
+│   │   ├── cast.h
+│   │   ├── cmac.h
+│   │   ├── cms.h
+│   │   ├── comp.h
+│   │   ├── conf_api.h
+│   │   ├── conf.h
+│   │   ├── crypto.h
+│   │   ├── des.h
+│   │   ├── des_old.h
+│   │   ├── dh.h
+│   │   ├── dsa.h
+│   │   ├── dso.h
+│   │   ├── dtls1.h
+│   │   ├── ebcdic.h
+│   │   ├── ecdh.h
+│   │   ├── ecdsa.h
+│   │   ├── ec.h
+│   │   ├── engine.h
+│   │   ├── e_os2.h
+│   │   ├── err.h
+│   │   ├── evp.h
+│   │   ├── hmac.h
+│   │   ├── idea.h
+│   │   ├── krb5_asn.h
+│   │   ├── kssl.h
+│   │   ├── lhash.h
+│   │   ├── md4.h
+│   │   ├── md5.h
+│   │   ├── mdc2.h
+│   │   ├── modes.h
+│   │   ├── objects.h
+│   │   ├── obj_mac.h
+│   │   ├── ocsp.h
+│   │   ├── opensslconf.h
+│   │   ├── opensslv.h
+│   │   ├── ossl_typ.h
+│   │   ├── pem2.h
+│   │   ├── pem.h
+│   │   ├── pkcs12.h
+│   │   ├── pkcs7.h
+│   │   ├── pqueue.h
+│   │   ├── rand.h
+│   │   ├── rc2.h
+│   │   ├── rc4.h
+│   │   ├── ripemd.h
+│   │   ├── rsa.h
+│   │   ├── safestack.h
+│   │   ├── seed.h
+│   │   ├── sha.h
+│   │   ├── srp.h
+│   │   ├── srtp.h
+│   │   ├── ssl23.h
+│   │   ├── ssl2.h
+│   │   ├── ssl3.h
+│   │   ├── ssl.h
+│   │   ├── stack.h
+│   │   ├── symhacks.h
+│   │   ├── tls1.h
+│   │   ├── ts.h
+│   │   ├── txt_db.h
+│   │   ├── ui_compat.h
+│   │   ├── ui.h
+│   │   ├── whrlpool.h
+│   │   ├── x509.h
+│   │   ├── x509v3.h
+│   │   └── x509_vfy.h
+│   ├── queue.h //队列操作相关
+│   ├── readallmeters.h //定点抄表相关
+│   ├── read_heatmeter.h //热量表相关
+│   ├── rs485up.h //485相关
+│   ├── sqlite3 //SQLite3数据库头文件
+│   │   ├── sqlite3ext.h
+│   │   └── sqlite3.h
+│   ├── sysconfig.h //程序控制相关
+│   ├── sysfuctions.h //常用函数
+│   ├── sysinit.h //系统初始化相关
+│   ├── uart_gprs.h //GPRS接收线程
+│   ├── uart_mbus_down485.h //MBUS和RS485接收线程
+│   ├── uart_set.h //串口操作相关
+│   └── xml.h //xml协议及文件操作相关
+├── lib //程序运行库
+│   ├── libcrypto.so -> libcrypto.so.1.0.0
+│   ├── libcrypto.so.1.0.0
+│   ├── libsqlite3.la
+│   ├── libsqlite3.so -> libsqlite3.so.0.8.6
+│   ├── libsqlite3.so.0 -> libsqlite3.so.0.8.6
+│   ├── libsqlite3.so.0.8.6
+│   ├── libssl.so -> libssl.so.1.0.0
+│   ├── libssl.so.1.0.0
+│   ├── libxml2.la
+│   ├── libxml2.so -> libxml2.so.2.8.0
+│   ├── libxml2.so.2 -> libxml2.so.2.8.0
+│   └── libxml2.so.2.8.0
+├── sh //脚本
+│   ├── rcS //Linux系统初始化时的脚本
+│   └── runapp.sh //抄表程序的看门狗程序
+├── src //各模块的具体实现
+│   ├── bsp.c
+│   ├── commap.c
+│   ├── db.c
+│   ├── dbtest.c
+│   ├── gprs.c
+│   ├── main.c
+│   ├── Makefile //Makefile文件, 用于生成目标程序
+│   ├── meter_table.c
+│   ├── queue.c
+│   ├── readallmeters.c
+│   ├── read_heatmeter.c
+│   ├── rs485up.c
+│   ├── sysfuctions.c
+│   ├── sysinit.c
+│   ├── testdb.make
+│   ├── testdb.sh
+│   ├── uart_gprs.c
+│   ├── uart_mbus_down485.c
+│   ├── uart_set.c
+│   └── xml.c
+└── tree.txt //本文
