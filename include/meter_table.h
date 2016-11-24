@@ -4,7 +4,7 @@
   * @author  zjjin
   * @version V0.0.0
   * @date    03-08-2016
-  * @brief   
+  * @brief
   ******************************************************************************
   * @attention
   *
@@ -16,15 +16,15 @@
 
 
 #define	HEATMETER_PROTO_SUM		39	//热量表协议总数。
-#define	ELECMETER_PROTO_SUM		1	//电表协议总数。
+#define	ELECMETER_PROTO_SUM		4	//电表协议总数。
 
 
 #define     COMSET_1		0
 #define	  COMSET_2		1
-#define	  COMSET_3		2    
-#define     COMSET_4        	3    
+#define	  COMSET_3		2
+#define     COMSET_4        	3
 #define     COMSET_5        	4
-#define     COMSET_6        	5			
+#define     COMSET_6        	5
 #define     COMSET_7        	6
 
 #define     ELEC_COMSET_1        	0
@@ -33,7 +33,7 @@
 #define DE_LU			COMSET_1
 #define TIAN_GANG		COMSET_1
 #define LI_CHUANG		COMSET_1
-#define DAN_FUSEN		COMSET_1	
+#define DAN_FUSEN		COMSET_1
 #define WAN_HUA		COMSET_2
 
 #define WANHUA_VER		    1	//天津万华。
@@ -66,28 +66,8 @@
 #define LANDISGYR_T230_VER		37	     //兰吉尔T230热量表。
 #define BEITE_BEFORE2014			38		//贝特2014年及以前的大口径热表协议(日照公安局办公楼)
 
-#define ELEC_LCMODBUS      0//力创Modbus电表
-#define ELEC_LCMOD_RANGEV_REG  0x0001//力创Modbus电表, 电压量程的寄存器地址. 1～1000V 对应 1～1000
-#define ELEC_LCMOD_RANGEI_REG  0x0002//力创Modbus电表, 电流量程的寄存器地址. 0.1～1000 数值 1～10000 默认5A值为50
-#define ELEC_LCMOD_REG_BYTES       2//力创DTSD106三相电表, 每个寄存器的字节数
-#define ELEC_LCMOD_WORK_BYTES      4//力创DTSD106三相电表, 每个电能参数对应的字节数
-#define ELEC_LCMOD_ALL_PARAM_REGS  0x0017//力创Modbus电表, 从电压量程寄存器到无功总电能寄存器的寄存器个数
-
-#define ELEC_LCMOD_DEF_V    250//力创Modbus电表, 默认电压量程
-#define ELEC_LCMOD_DEF_I    5//力创Modbus电表, 默认电流量程
-
 extern uint8 (*METER_ComParaSetArray[])(void);
 extern uint16 gMETER_Table[HEATMETER_PROTO_SUM][4];
-
-extern uint8 (*ELEC_METER_ComParaSetArray[])(void);
-extern uint16 gELEC_METER_Table[ELECMETER_PROTO_SUM][5];
-
-
-
-
-
-
-
 
 #endif  //_METER_TABLE_H_
 

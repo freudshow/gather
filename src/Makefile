@@ -4,7 +4,7 @@ TARGET			=gather_V0
 BIN				=../bin/$(TARGET)
 DB				=../db/gatherdb.db
 SRC				=main.c sysinit.c uart_set.c commap.c queue.c sysfuctions.c xml.c rs485up.c readallmeters.c read_heatmeter.c \
-		 			meter_table.c bsp.c uart_mbus_down485.c uart_gprs.c db.c gprs.c
+		 			elect.c meter_table.c bsp.c uart_mbus_down485.c uart_gprs.c db.c gprs.c
 RCS				=../sh/rcS
 SCRIPT			=../sh/runapp.sh
 INCLUDEPATH		=-I ../include -I ../include/libxml2
