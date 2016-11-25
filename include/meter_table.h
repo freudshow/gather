@@ -20,14 +20,22 @@
 
 
 #define     COMSET_1		0
-#define	  COMSET_2		1
-#define	  COMSET_3		2
-#define     COMSET_4        	3
-#define     COMSET_5        	4
-#define     COMSET_6        	5
-#define     COMSET_7        	6
+#define	  	COMSET_2		1
+#define	  	COMSET_3		2    
+#define     COMSET_4        3    
+#define     COMSET_5        4
+#define     COMSET_6        5			
+#define     COMSET_7        6
 
 #define     ELEC_COMSET_1        	0
+#define		ELEC_COMSET_2			1
+#define		ELEC_COMSET_3			2
+#define		ELEC_COMSET_4			3
+
+#define		WATER_COMSET_1			0
+#define		WATER_COMSET_2			0
+
+
 
 
 #define DE_LU			COMSET_1

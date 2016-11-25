@@ -268,10 +268,10 @@ uint8 METER_ComSet7(void)
 uint8 METER_ComSet8(void)
 {
 	/* 配置下行485串口参数
-		- BaudRate = 9600 baud
-		- Word Length = 8 Bits
-		- One Stop Bit
-		- NONE_CHECK
+	    - BaudRate = 9600 baud
+	    - Word Length = 8 Bits
+	    - One Stop Bit
+	    - NONE_CHECK
 	*/
 
 	uint8 err = TRUE;
