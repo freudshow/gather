@@ -21,6 +21,7 @@
 
 #include "readallmeters.h"
 #include "read_heatmeter.h"
+#include "elect.h"
 
 #include <sqlite3/sqlite3.h>
 

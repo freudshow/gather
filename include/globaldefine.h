@@ -15,6 +15,8 @@
 #ifndef _GLOBALDEFINE_H_
 #define _GLOBALDEFINE_H_
 
+#include <libxml/parser.h>
+
 
 //变量类型别名
 #define INT8     char

@@ -16,8 +16,6 @@
 
 
 #define	HEATMETER_PROTO_SUM		39	//热量表协议总数。
-#define	ELECMETER_PROTO_SUM		4	//电表协议总数。
-
 
 #define     COMSET_1		0
 #define	  	COMSET_2		1
@@ -27,10 +25,6 @@
 #define     COMSET_6        5			
 #define     COMSET_7        6
 
-#define     ELEC_COMSET_1        	0
-#define		ELEC_COMSET_2			1
-#define		ELEC_COMSET_3			2
-#define		ELEC_COMSET_4			3
 
 #define		WATER_COMSET_1			0
 #define		WATER_COMSET_2			0
