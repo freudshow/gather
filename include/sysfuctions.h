@@ -4,13 +4,13 @@
   * @author  zjjin
   * @version V0.0.0
   * @date    02-24-2016
-  * @brief   
+  * @brief
   ******************************************************************************
   * @attention
   *
   *
   ******************************************************************************
-  */ 
+  */
 
 
 #ifndef _SYSFUCTIONS_H_
@@ -95,16 +95,16 @@ extern sem_t  His_asw_sem;
 #define debug_debug(dev, fmt, args...)		\
    if(dev>=KERN_DEBUG) debug(fmt,##args);
 #else
-#define debug(fmt,args...)   
-#define debugX(level,fmt,args...)  
+#define debug(fmt,args...)
+#define debugX(level,fmt,args...)
 #define debug_emerg(dev, fmt, args...)
 #define debug_alert(dev, fmt, args...)
 #define debug_crit(dev, fmt, args...)
-#define debug_err(dev, fmt, args...)	
+#define debug_err(dev, fmt, args...)
 #define debug_warn(dev, fmt, args...)
-#define debug_notice(dev, fmt, args...)	
-#define debug_info(dev, fmt, args...)	
-#define debug_debug(dev, fmt, args...)	
+#define debug_notice(dev, fmt, args...)
+#define debug_info(dev, fmt, args...)
+#define debug_debug(dev, fmt, args...)
 #endif
 
 
@@ -136,7 +136,8 @@ extern int cnt_of_pad(char* enStr, int enSize);
 extern uint8 encode_base64(char* s, int len, char* enStr);
 extern void write_log_file(char* buffer, unsigned buf_size);
 extern void printBuf(uint8* buf, uint16 bufSize, const char* file, const char* func, uint32 line);
-
+extern uint8 inverseInt16(uint16 little, uint16* big);
+extern uint8 inverseInt32(uint32 little, uint32* big);
 
 #endif //_SYSFUCTIONS_H_
 

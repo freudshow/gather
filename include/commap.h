@@ -4,13 +4,13 @@
   * @author  zjjin
   * @version V0.0.0
   * @date    02-24-2016
-  * @brief   
+  * @brief
   ******************************************************************************
   * @attention
   *
   *
   ******************************************************************************
-  */  
+  */
 
 #ifndef	_COM_MAP_H_
 #define	_COM_MAP_H_
@@ -51,7 +51,7 @@ extern  sem_t  USART3RecQueSem_AtIPD;
 extern  sem_t  UpRecQueSem_RS485UP;
 extern  sem_t  Sequence_XML_sem;
 extern  sem_t  Result_XML_sem;
-extern  sem_t  MBUSRec_sem;		
+extern  sem_t  MBUSRec_sem;
 extern  sem_t  Down485Rec_sem;
 
 
@@ -84,9 +84,10 @@ extern void UpDevSend(uint8 dev,uint8 *Data, uint32 n);
 
 extern void GprsSend(int32 fd,uint8 *Data,uint32 n);
 
-extern void DownDevSend(uint8 dev,uint8* buf,uint32 n);
+extern void  DownDevSend(uint8 dev,uint8* buf,uint32 n);
 extern uint8 DownDevGetch(uint8 dev,uint8* data,uint16 OutTime);
 extern uint8 RS485Down_DataSend(uint8 *Data,uint32 n);
+extern uint8 MBUS_DataSend(uint8 *Data,uint32 n);
 
 #endif  //_COM_MAP_H_
 /*********************************************************************************************************

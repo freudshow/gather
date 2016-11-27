@@ -1,16 +1,16 @@
 /*
   *******************************************************************************
-  * @file    sysfuctions.c 
+  * @file    sysfuctions.c
   * @author  zjjin
   * @version V0.0.0
   * @date    02-24-2016
-  * @brief   
+  * @brief
   ******************************************************************************
   * @attention
   *
   *
   ******************************************************************************
-  */  
+  */
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -52,74 +52,74 @@ sem_t His_asw_sem;//历史数据应答信号量
 
 //base64映射表
 static const char base64_code[] = \
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
 
 void OSTimeDly(uint32 ms)
 {
-    usleep(ms*1000);
+	usleep(ms*1000);
 }
 
 
 void OS_ENTER_CRITICAL(void)
 {
-    int ret,value=0;
-    ret = sem_getvalue(&CRITICAL_sem,&value);
-    if(ret)  {
-      	debug_err(gDebugModule[MSIC_MODULE],"[%s][%s][%d]value=%d \n",FILE_LINE,ret);  
-    }
-    debug_debug(gDebugModule[MSIC_MODULE],"[%s][%s][%d]value=%d \n",FILE_LINE,value);    
-    
-    sem_wait(&CRITICAL_sem);	/*减一*/
+	int ret,value=0;
+	ret = sem_getvalue(&CRITICAL_sem,&value);
+	if(ret)  {
+		debug_err(gDebugModule[MSIC_MODULE],"[%s][%s][%d]value=%d \n",FILE_LINE,ret);
+	}
+	debug_debug(gDebugModule[MSIC_MODULE],"[%s][%s][%d]value=%d \n",FILE_LINE,value);
+
+	sem_wait(&CRITICAL_sem);	/*减一*/
 }
 
 
 void OS_EXIT_CRITICAL(void)
 {
-    int ret=0,value=0;
-    ret = sem_getvalue(&CRITICAL_sem,&value);
-    if(ret){
-      	printf("[%s][%s][%d]value=%d \n",FILE_LINE,ret);  
-    }
-    debug_debug(gDebugModule[MSIC_MODULE],"[%s][%s][%d]value=%d \n",FILE_LINE,value); 
-    
-    sem_post(&CRITICAL_sem);  /*加一*/
+	int ret=0,value=0;
+	ret = sem_getvalue(&CRITICAL_sem,&value);
+	if(ret){
+		printf("[%s][%s][%d]value=%d \n",FILE_LINE,ret);
+	}
+	debug_debug(gDebugModule[MSIC_MODULE],"[%s][%s][%d]value=%d \n",FILE_LINE,value);
+
+	sem_post(&CRITICAL_sem);  /*加一*/
 }
 
 
 
 void  OSSemPend (uint8 dev,uint32  timeout,uint8 *perr)
 {
-    int ret=0;
-    struct timespec outtime;
-    struct timeval now;
+	int ret=0;
+	struct timespec outtime;
+	struct timeval now;
 
-    gettimeofday(&now,NULL);
-    
-    outtime.tv_sec = now.tv_sec + timeout/1000;
-    outtime.tv_nsec = now.tv_usec + (timeout%1000)*1000*1000;
-    
-    outtime.tv_sec += outtime.tv_nsec/(1000*1000*1000);
-    outtime.tv_nsec %= (1000*1000*1000);
-    //printf("[%s][%s][%d]dev= %d\n",FILE_LINE, dev);
-    if(timeout == (uint32)NULL) {
-      	sem_wait(&QueueSems[dev]);
-    }
-    else{
-    	ret = sem_timedwait(&QueueSems[dev], &outtime);
+	gettimeofday(&now,NULL);
+
+	outtime.tv_sec = now.tv_sec + timeout/1000;
+	outtime.tv_nsec = now.tv_usec + (timeout%1000)*1000*1000;
+
+	outtime.tv_sec += outtime.tv_nsec/(1000*1000*1000);
+	outtime.tv_nsec %= (1000*1000*1000);
+	//printf("[%s][%s][%d]dev= %d\n",FILE_LINE, dev);
+	if(timeout == (uint32)NULL) {
+		sem_wait(&QueueSems[dev]);
+	}
+	else{
+		ret = sem_timedwait(&QueueSems[dev], &outtime);
 		if(ret != 0) {
 			//printf("[%s][%s][%d]dev= %d, OSSemPend err=%d\n",FILE_LINE, dev, ret);
-          	debug_err(gDebugModule[MSIC_MODULE],"[%s][%s][%d]sem_timedwait %s\n",FILE_LINE,strerror(errno));
-        }
-    }
-    
-  	*perr = (uint8)ret;
-	
+			debug_err(gDebugModule[MSIC_MODULE],"[%s][%s][%d]sem_timedwait %s\n",FILE_LINE,strerror(errno));
+		}
+	}
+
+	*perr = (uint8)ret;
+
 }
 
 
 void OSSemPost(uint8 dev)
 {
-    sem_post(&QueueSems[dev]);  /*加一*/
+	sem_post(&QueueSems[dev]);  /*加一*/
 }
 
 
@@ -128,38 +128,38 @@ void OSSemPost(uint8 dev)
   * 函数名称： int OSSem_timedwait (sem_t Sem,uint32  timeout)
   * 说    明： 可定时等待一个信号量的到来。
   * 参    数： 成功等待到信号量，返回0，非0说明超时。
-  			sem_t Sem 要等待的信号量。
-  			uint32  timeout 超时时间，单位毫秒。
+			sem_t Sem 要等待的信号量。
+			uint32  timeout 超时时间，单位毫秒。
   ******************************************************************************
 */
 
 int OSSem_timedwait(sem_t *pSem,uint32  timeout)
 {
-    int ret=0;
-    struct timespec outtime;
-    struct timeval now;
+	int ret=0;
+	struct timespec outtime;
+	struct timeval now;
 
-    gettimeofday(&now,NULL);
-    
-    outtime.tv_sec = now.tv_sec + timeout/1000;
-    outtime.tv_nsec = now.tv_usec + (timeout%1000)*1000*1000;
-    
-    outtime.tv_sec += outtime.tv_nsec/(1000*1000*1000);
-    outtime.tv_nsec %= (1000*1000*1000);
-    
-    if(timeout == (uint32)NULL){
-      	sem_wait(pSem);
-    }
-    else{
-    		ret = sem_timedwait(pSem,&outtime);
+	gettimeofday(&now,NULL);
+
+	outtime.tv_sec = now.tv_sec + timeout/1000;
+	outtime.tv_nsec = now.tv_usec + (timeout%1000)*1000*1000;
+
+	outtime.tv_sec += outtime.tv_nsec/(1000*1000*1000);
+	outtime.tv_nsec %= (1000*1000*1000);
+
+	if(timeout == (uint32)NULL){
+		sem_wait(pSem);
+	}
+	else{
+			ret = sem_timedwait(pSem,&outtime);
 		if(ret != 0){
-          	debug_err(gDebugModule[MSIC_MODULE],"[%s][%s][%d]sem_timedwait %s\n",FILE_LINE,strerror(errno));
-        	}
-    }
+			debug_err(gDebugModule[MSIC_MODULE],"[%s][%s][%d]sem_timedwait %s\n",FILE_LINE,strerror(errno));
+			}
+	}
 
-    return ret;
-    
-	
+	return ret;
+
+
 }
 
 
@@ -183,9 +183,9 @@ uint8 Str2Bin(char *str, uint8 *array,uint16 lens)
 	char tempLow, tempHigh;
 
 	number = strlen(str);
-	//printf("[%s][%s][%d] number = %d\n",FILE_LINE,number);	
+	//printf("[%s][%s][%d] number = %d\n",FILE_LINE,number);
 	if(number%2)
-	{	
+	{
 		number++;
 		data = *str++;
 		tempHigh = 0x00;
@@ -195,7 +195,7 @@ uint8 Str2Bin(char *str, uint8 *array,uint16 lens)
 		//printf("creat array data is %x\n", (tempHigh << 4) + tempLow);
 		lu16counter += 1;
 	}
-	
+
 	//printf("The string 2 Hex data is: ");
 	while(*str != '\0')
 	{
@@ -207,13 +207,13 @@ uint8 Str2Bin(char *str, uint8 *array,uint16 lens)
 
 			*array++ = temp;
 			//printf(" %x ,", temp);
-		
+
 			lu16counter += 1;
 		}
 		else{
 			break;
 		}
-		
+
 	}
 	//printf("\n");
 	return 0;
@@ -225,21 +225,21 @@ uint8 Str2Bin(char *str, uint8 *array,uint16 lens)
   ******************************************************************************
   * 函数名称： uint8 PUBLIC_CountCS(uint8* _data, uint16 _len)
   * 说    明： 计算一串数字的累加和校验，溢出部分舍弃。
-  * 参    数： 
+  * 参    数：
   ******************************************************************************
 */
 
 uint8 PUBLIC_CountCS(uint8* _data, uint16 _len)
 {
-    uint8 cs = 0;
-    uint16 i;
-    
-    for(i=0;i<_len;i++)
-    {
-       cs += *_data++;
-    }
-    
-    return cs;    
+	uint8 cs = 0;
+	uint16 i;
+
+	for(i=0;i<_len;i++)
+	{
+	   cs += *_data++;
+	}
+
+	return cs;
 }
 
 /*
@@ -250,7 +250,7 @@ uint8 PUBLIC_CountCS(uint8* _data, uint16 _len)
 ******************************************************************************
 */
 void FileSend(uint8 Dev, FILE *fp)
-{	
+{
 	switch(Dev){
 		case UP_COMMU_DEV_AT:
 		case UP_COMMU_DEV_GPRS:
@@ -272,34 +272,34 @@ void FileSend(uint8 Dev, FILE *fp)
 //把asctime()函数返回的时间格式, 转换为"YYYY-MM-DD hh:mm:ss"
 uint8 asc_to_datestr(char* src, char* dest)
 {
-    int i=0;
-    char *pTimeStr[6]={NULL};
-    char *buf=src;  
-    char *saveptr=NULL;
-    char *monEng[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
-    char *monDec[12]={"01","02","03","04","05","06","07","08","09","10","11","12"};
-    char tmpstr[5];
-    printf("[%s][%s][%d]src: %s\n", FILE_LINE, src);
-    i=0;
-    while((pTimeStr[i] = strtok_r(buf, " ", &saveptr)))
-    {   
-        i++;
-        buf=NULL;
-    }
+	int i=0;
+	char *pTimeStr[6]={NULL};
+	char *buf=src;
+	char *saveptr=NULL;
+	char *monEng[12]={"Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"};
+	char *monDec[12]={"01","02","03","04","05","06","07","08","09","10","11","12"};
+	char tmpstr[5];
+	printf("[%s][%s][%d]src: %s\n", FILE_LINE, src);
+	i=0;
+	while((pTimeStr[i] = strtok_r(buf, " ", &saveptr)))
+	{
+		i++;
+		buf=NULL;
+	}
 
-    strncpy(dest, pTimeStr[4], 4);//year
-    strcat(dest, "-");
-    for(i=0;i<12;i++)
-        if(strcmp(pTimeStr[1], monEng[i])==0)
-            strcat(dest, monDec[i]);//mon
-    
-    strcat(dest, "-");
-    sprintf(tmpstr, "%02d", atoi(pTimeStr[2]));//10以下的日期, src是不补0的
-    strcat(dest, tmpstr);//day
-    strcat(dest, " ");
-    strcat(dest, pTimeStr[3]);//time
-    printf("[%s][%s][%d]dest: %s\n", FILE_LINE,  dest);
-    return NO_ERR;
+	strncpy(dest, pTimeStr[4], 4);//year
+	strcat(dest, "-");
+	for(i=0;i<12;i++)
+		if(strcmp(pTimeStr[1], monEng[i])==0)
+			strcat(dest, monDec[i]);//mon
+
+	strcat(dest, "-");
+	sprintf(tmpstr, "%02d", atoi(pTimeStr[2]));//10以下的日期, src是不补0的
+	strcat(dest, tmpstr);//day
+	strcat(dest, " ");
+	strcat(dest, pTimeStr[3]);//time
+	printf("[%s][%s][%d]dest: %s\n", FILE_LINE,  dest);
+	return NO_ERR;
 }
 
 /* 计算ModBus-RTU传输协议的CRC校验值
@@ -340,35 +340,35 @@ uint16 crc16ModRtu(const uint8 *nData, uint16 wLength)
 		0x8801, 0x48C0, 0x4980, 0x8941, 0x4B00, 0x8BC1, 0x8A81, 0x4A40,
 		0x4E00, 0x8EC1, 0x8F81, 0x4F40, 0x8D01, 0x4DC0, 0x4C80, 0x8C41,
 		0x4400, 0x84C1, 0x8581, 0x4540, 0x8701, 0x47C0, 0x4680, 0x8641,
-		0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040 
+		0x8201, 0x42C0, 0x4380, 0x8341, 0x4100, 0x81C1, 0x8081, 0x4040
 	};
 
-    uint8 nTemp;
-    uint16 wCRCWord = 0xFFFF;
+	uint8 nTemp;
+	uint16 wCRCWord = 0xFFFF;
 
-    while (wLength--) {
-        nTemp = *nData++ ^ wCRCWord;
-        wCRCWord >>= LEN_BYTE;
-        wCRCWord  ^= wCRCTable[nTemp];
-    }
-    return wCRCWord;
+	while (wLength--) {
+		nTemp = *nData++ ^ wCRCWord;
+		wCRCWord >>= LEN_BYTE;
+		wCRCWord  ^= wCRCTable[nTemp];
+	}
+	return wCRCWord;
 }
 
 int idx_of_base64(char b)
 {
-    if(b<='Z' && b>='A')
-        return (b-'A');
-    if(b<='z' && b>='a')
-        return (b-'a'+26);//a偏移了26个字母
-    if(b<='9' && b>='0')
-        return (b-'0'+52);//0偏移了52个字母
-    if(b == '+')
-        return 62;
-    if(b == '/')
-        return 63;
-    if(b == '=')
-        return 64;
-    return 65;//其他字符均返回65, 以与编码表内的字符区别
+	if(b<='Z' && b>='A')
+		return (b-'A');
+	if(b<='z' && b>='a')
+		return (b-'a'+26);//a偏移了26个字母
+	if(b<='9' && b>='0')
+		return (b-'0'+52);//0偏移了52个字母
+	if(b == '+')
+		return 62;
+	if(b == '/')
+		return 63;
+	if(b == '=')
+		return 64;
+	return 65;//其他字符均返回65, 以与编码表内的字符区别
 }
 
 /*
@@ -379,152 +379,152 @@ int idx_of_base64(char b)
  */
 uint8 decode_base64(char* enStr, int enSize, uint8* deStr)
 {
-    if( (enSize%4) != 0)//base64编码过的字串必须为4的整数倍
-        return ERR_1;
-    uint8 b[4];
-    int i;
-    for(i=0; i<enSize; i+=4) {
-        b[0] = idx_of_base64(enStr[i]);
-        b[1] = idx_of_base64(enStr[i+1]);
-        b[2] = idx_of_base64(enStr[i+2]);
-        b[3] = idx_of_base64(enStr[i+3]);
-        *deStr++ = (b[0]<<2|b[1]>>4);
-        if (b[2] < 64) {
-            *deStr++ = ((b[1] << 4) | (b[2] >> 2));
-            if (b[3] < 64) {
-                *deStr++ = ((b[2] << 6) | b[3]);            
-            }
-        }
-    }
-    return NO_ERR;
+	if( (enSize%4) != 0)//base64编码过的字串必须为4的整数倍
+		return ERR_1;
+	uint8 b[4];
+	int i;
+	for(i=0; i<enSize; i+=4) {
+		b[0] = idx_of_base64(enStr[i]);
+		b[1] = idx_of_base64(enStr[i+1]);
+		b[2] = idx_of_base64(enStr[i+2]);
+		b[3] = idx_of_base64(enStr[i+3]);
+		*deStr++ = (b[0]<<2|b[1]>>4);
+		if (b[2] < 64) {
+			*deStr++ = ((b[1] << 4) | (b[2] >> 2));
+			if (b[3] < 64) {
+				*deStr++ = ((b[2] << 6) | b[3]);
+			}
+		}
+	}
+	return NO_ERR;
 }
 
 //计数base64编码当中符号'='出现的次数
 int cnt_of_pad(char* enStr, int enSize)
 {
-    int cnt=0;
-    int i;
-    for(i=0;i<2;i++) {
-        if(enStr[enSize-1-i] == '=')
-            cnt++;
-    }
-    return cnt;
+	int cnt=0;
+	int i;
+	for(i=0;i<2;i++) {
+		if(enStr[enSize-1-i] == '=')
+			cnt++;
+	}
+	return cnt;
 }
 
 //将s指向的, 长度为len的字节数组, 编码为base64字符串
 uint8 encode_base64(char* s, int len, char* enStr)
 {
-    if(len == 0)
-        return ERR_1;
+	if(len == 0)
+		return ERR_1;
 
-    int idx;
-    int i=0;
-    for(i=0;i<len;i += 3) {
-        idx = (s[i] & 0xFC) >> 2;
-        *enStr++ = base64_code[idx];
+	int idx;
+	int i=0;
+	for(i=0;i<len;i += 3) {
+		idx = (s[i] & 0xFC) >> 2;
+		*enStr++ = base64_code[idx];
 
-        idx = ((s[i] & 0x03) << 4);
-        if (i+1 < len) {
-            idx |= ((s[i+1] & 0xF0) >> 4);
-            *enStr++ = base64_code[idx];
-            idx = ((s[i+1] & 0x0F) << 2);
-            if (i+2 < len) {
-                idx |= ((s[i+2] & 0xC0) >> 6);
-                *enStr++ = base64_code[idx];
-                idx = (s[i+2] & 0x3F);
-                *enStr++ = base64_code[idx];
-            } else {
-                *enStr++ = base64_code[idx];
-                *enStr++ = '=';
-            }
-        } else {
-            *enStr++ = base64_code[idx];
-            *enStr++ = '=';
-            *enStr++ = '=';
-        }
-    }
-    return NO_ERR;
+		idx = ((s[i] & 0x03) << 4);
+		if (i+1 < len) {
+			idx |= ((s[i+1] & 0xF0) >> 4);
+			*enStr++ = base64_code[idx];
+			idx = ((s[i+1] & 0x0F) << 2);
+			if (i+2 < len) {
+				idx |= ((s[i+2] & 0xC0) >> 6);
+				*enStr++ = base64_code[idx];
+				idx = (s[i+2] & 0x3F);
+				*enStr++ = base64_code[idx];
+			} else {
+				*enStr++ = base64_code[idx];
+				*enStr++ = '=';
+			}
+		} else {
+			*enStr++ = base64_code[idx];
+			*enStr++ = '=';
+			*enStr++ = '=';
+		}
+	}
+	return NO_ERR;
 }
 
 //生成用于测试的升级文件帧
 void gen_file_frame(char* filename, char* gateway_id, char* server_id)
 {
-    xmlTextWriterPtr writer;
-    xmlDocPtr doc;
-    char file[20];
-    char log[1024];
-    FILE *fp;
-    char file_buf[1024]={0};
-    int j, len;
-    char tmpstr[50];
-    uint16 crc;
-    
-    if ((fp = fopen(filename, "rb")) == NULL) {
-        sprintf(log, "[%s][%s][%d]open file err\n", FILE_LINE);
-        write_log_file(log,strlen(log));
-        return;
-    }
-    j=1;
-    while((len=fread(file_buf, 1, 1024, fp ))) {        
-        writer = xmlNewTextWriterDoc(&doc, 0);
-        xmlTextWriterStartDocument(writer, NULL, DEFAULT_ENCODING, NULL);
-        xmlTextWriterStartElement(writer, BAD_CAST "root");
-        //start common
-        xmlTextWriterStartElement(writer, BAD_CAST "common");
-        
-        //gateway_id
-        xmlTextWriterStartElement(writer, BAD_CAST "sadd");
-        xmlTextWriterWriteString(writer, BAD_CAST server_id);
-        xmlTextWriterEndElement(writer);
-        //sever_id
-        xmlTextWriterStartElement(writer, BAD_CAST "oadd");
-        xmlTextWriterWriteString(writer, BAD_CAST gateway_id);
-        xmlTextWriterEndElement(writer);
-        //func_id
-        xmlTextWriterStartElement(writer, BAD_CAST "func_type");
-        xmlTextWriterWriteString(writer, BAD_CAST "11");
-        xmlTextWriterEndElement(writer);
-        //operation_id
-        xmlTextWriterStartElement(writer, BAD_CAST "oper_type");
-        xmlTextWriterWriteString(writer, BAD_CAST "1");
-        xmlTextWriterEndElement(writer);
-        xmlTextWriterEndElement(writer);
-        //end common
+	xmlTextWriterPtr writer;
+	xmlDocPtr doc;
+	char file[20];
+	char log[1024];
+	FILE *fp;
+	char file_buf[1024]={0};
+	int j, len;
+	char tmpstr[50];
+	uint16 crc;
 
-        //start trans
-        xmlTextWriterStartElement(writer, BAD_CAST "trans");
-        
-        xmlTextWriterStartElement(writer, BAD_CAST "frmid");
-        sprintf(tmpstr, "%d", j);
-        xmlTextWriterWriteString(writer, BAD_CAST tmpstr);
-        xmlTextWriterEndElement(writer);
-        
-        xmlTextWriterStartElement(writer, BAD_CAST "bc");
-        sprintf(tmpstr, "%d", len);
-        xmlTextWriterWriteString(writer, BAD_CAST tmpstr);
-        xmlTextWriterEndElement(writer);
-        
-        xmlTextWriterStartElement(writer, BAD_CAST "ck");
-        crc = crc16ModRtu((uint8*)file_buf, len);
-        sprintf(tmpstr, "%02X %02X", (uint8)crc, crc>>8);
-        xmlTextWriterWriteString(writer, BAD_CAST tmpstr);
-        xmlTextWriterEndElement(writer);
+	if ((fp = fopen(filename, "rb")) == NULL) {
+		sprintf(log, "[%s][%s][%d]open file err\n", FILE_LINE);
+		write_log_file(log,strlen(log));
+		return;
+	}
+	j=1;
+	while((len=fread(file_buf, 1, 1024, fp ))) {
+		writer = xmlNewTextWriterDoc(&doc, 0);
+		xmlTextWriterStartDocument(writer, NULL, DEFAULT_ENCODING, NULL);
+		xmlTextWriterStartElement(writer, BAD_CAST "root");
+		//start common
+		xmlTextWriterStartElement(writer, BAD_CAST "common");
 
-        xmlTextWriterEndElement(writer);
-        //end trans
+		//gateway_id
+		xmlTextWriterStartElement(writer, BAD_CAST "sadd");
+		xmlTextWriterWriteString(writer, BAD_CAST server_id);
+		xmlTextWriterEndElement(writer);
+		//sever_id
+		xmlTextWriterStartElement(writer, BAD_CAST "oadd");
+		xmlTextWriterWriteString(writer, BAD_CAST gateway_id);
+		xmlTextWriterEndElement(writer);
+		//func_id
+		xmlTextWriterStartElement(writer, BAD_CAST "func_type");
+		xmlTextWriterWriteString(writer, BAD_CAST "11");
+		xmlTextWriterEndElement(writer);
+		//operation_id
+		xmlTextWriterStartElement(writer, BAD_CAST "oper_type");
+		xmlTextWriterWriteString(writer, BAD_CAST "1");
+		xmlTextWriterEndElement(writer);
+		xmlTextWriterEndElement(writer);
+		//end common
 
-        xmlTextWriterStartElement(writer, BAD_CAST "bin");
-        xmlTextWriterWriteBase64(writer, file_buf, 0, len);
-        xmlTextWriterEndElement(writer);
-        xmlTextWriterEndDocument(writer);
-        xmlFreeTextWriter(writer);
-        sprintf(file, "%d", j);
-        strcat(file, ".xml");
-        xmlSaveFileEnc(file, doc, DEFAULT_ENCODING);
-        xmlFreeDoc(doc);
-        j++;
-    }
-    fclose(fp);
+		//start trans
+		xmlTextWriterStartElement(writer, BAD_CAST "trans");
+
+		xmlTextWriterStartElement(writer, BAD_CAST "frmid");
+		sprintf(tmpstr, "%d", j);
+		xmlTextWriterWriteString(writer, BAD_CAST tmpstr);
+		xmlTextWriterEndElement(writer);
+
+		xmlTextWriterStartElement(writer, BAD_CAST "bc");
+		sprintf(tmpstr, "%d", len);
+		xmlTextWriterWriteString(writer, BAD_CAST tmpstr);
+		xmlTextWriterEndElement(writer);
+
+		xmlTextWriterStartElement(writer, BAD_CAST "ck");
+		crc = crc16ModRtu((uint8*)file_buf, len);
+		sprintf(tmpstr, "%02X %02X", (uint8)crc, crc>>8);
+		xmlTextWriterWriteString(writer, BAD_CAST tmpstr);
+		xmlTextWriterEndElement(writer);
+
+		xmlTextWriterEndElement(writer);
+		//end trans
+
+		xmlTextWriterStartElement(writer, BAD_CAST "bin");
+		xmlTextWriterWriteBase64(writer, file_buf, 0, len);
+		xmlTextWriterEndElement(writer);
+		xmlTextWriterEndDocument(writer);
+		xmlFreeTextWriter(writer);
+		sprintf(file, "%d", j);
+		strcat(file, ".xml");
+		xmlSaveFileEnc(file, doc, DEFAULT_ENCODING);
+		xmlFreeDoc(doc);
+		j++;
+	}
+	fclose(fp);
 }
 
 /*
@@ -549,18 +549,18 @@ void get_local_time(char* buffer)
 */
 long get_file_size(char* filename)
 {
-    long length = 0;
-    FILE *fp = NULL;
-    fp = fopen(filename, "rb");
-    if (fp != NULL) {
-        fseek(fp, 0, SEEK_END);
-        length = ftell(fp);
-    }
-    if (fp != NULL) {
-        fclose(fp);
-        fp = NULL;
-    }
-    return length;
+	long length = 0;
+	FILE *fp = NULL;
+	fp = fopen(filename, "rb");
+	if (fp != NULL) {
+		fseek(fp, 0, SEEK_END);
+		length = ftell(fp);
+	}
+	if (fp != NULL) {
+		fclose(fp);
+		fp = NULL;
+	}
+	return length;
 }
 /*
 写入日志文件
@@ -572,24 +572,24 @@ long get_file_size(char* filename)
 */
 void write_log_file(char* buffer, unsigned buf_size)
 {
-    FILE *fp;
-    char now[64];
-    // 文件超过最大限制, 删除
-    long length = get_file_size(LOG_FILE_NAME);
-    if (length > FILE_MAX_SIZE) {
-        unlink(LOG_FILE_NAME); // 删除文件
-    }
-    // 写日志
-    fp = fopen(LOG_FILE_NAME, "at+");
-    if (fp != NULL) {
-        memset(now, 0, sizeof(now));
-        get_local_time(now);
-        strcat(now, "---->>>> ");
-        fwrite(now, strlen(now)+1, 1, fp);
-        fwrite(buffer, buf_size, 1, fp);
-        fclose(fp);
-        fp = NULL;
-    }
+	FILE *fp;
+	char now[64];
+	// 文件超过最大限制, 删除
+	long length = get_file_size(LOG_FILE_NAME);
+	if (length > FILE_MAX_SIZE) {
+		unlink(LOG_FILE_NAME); // 删除文件
+	}
+	// 写日志
+	fp = fopen(LOG_FILE_NAME, "at+");
+	if (fp != NULL) {
+		memset(now, 0, sizeof(now));
+		get_local_time(now);
+		strcat(now, "---->>>> ");
+		fwrite(now, strlen(now)+1, 1, fp);
+		fwrite(buffer, buf_size, 1, fp);
+		fclose(fp);
+		fp = NULL;
+	}
 }
 
 void printBuf(uint8* buf, uint16 bufSize, const char* file, const char* func, uint32 line)
@@ -601,3 +601,44 @@ void printBuf(uint8* buf, uint16 bufSize, const char* file, const char* func, ui
 	printf("\n");
 }
 
+uint8 inverseArray(uint8* buf, uint16 bufSize)
+{
+	uint16 i = 0;
+
+	if(NULL == buf)
+		return ERR_1;
+
+	for (i = 0;i < bufSize / 2; i++) {//swap two symmetric elements
+		buf[i] = buf[i] ^ buf[bufSize - i - 1];
+		buf[bufSize - i - 1] = buf[i] ^ buf[bufSize - i - 1];
+		buf[i] = buf[i] ^ buf[bufSize - i - 1];
+	}
+
+	return NO_ERR;
+}
+
+uint8 inverseInt16(uint16 little, uint16* big)
+{
+	if(NULL == big)
+		return ERR_1;
+
+	if(ERR_1 == inverseArray((uint8*)&little, sizeof(uint16)))
+		return ERR_1;
+
+	*big = little;
+
+	return NO_ERR;
+}
+
+uint8 inverseInt32(uint32 little, uint32* big)
+{
+	if(NULL == big)
+		return ERR_1;
+
+	if(ERR_1 == inverseArray((uint8*)&little, sizeof(uint32)))
+		return ERR_1;
+
+	*big = little;
+
+	return NO_ERR;
+}

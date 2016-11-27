@@ -83,7 +83,7 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 	uint8 lu8retrytimes = READ_METER_TIMES;
 	uint8 lu8Channel = pmf->u8Channel;//抄表对象所在通道。
 	CJ188_Format CJ188_Data;
-    lcModbusElec_str lcModStr;
+    elecMeterDataStr lcModStr;
 	struct tm NowTime;
 	time_t timep;
 
