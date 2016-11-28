@@ -57,6 +57,10 @@ uint8 createSendCmdAcrelDTSF1352(MeterFileType *pmf, uint8 *pDataTemp, uint16 *p
 	return createModCmd(pmf, pDataTemp, plen, ACREL_DTSF1352_PARA_START, ACREL_DTSF1352_PARA_LENGTH);
 }
 
+uint8 createSendCmdAcrelPZ80_E4C(MeterFileType *pmf, uint8 *pDataTemp, uint16 *plen)
+{
+	return createModCmd(pmf, pDataTemp, plen, ACREL_PZ80_E4C_PARA_START, ACREL_PZ80_E4C_PARA_LENGTH);
+}
 
 uint8 elecModReceiveFrame(MeterFileType *pmf, uint8 dev,uint16 Out_Time,uint8 *buf,uint16 *datalen)
 {
@@ -431,6 +435,16 @@ uint8 elecAcrelDTSF1352DataDeal(uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr p
 	return NO_ERR;
 }
 
+uint8 elecAcrelPZ80_E4CDataDeal(uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr pData)
+{
+	acrelPZ80_E4CDataStr PZ80_E4CStr;
+
+	if(NULL == pData || NULL == pDataBuf|| NULL == pLen)
+		return ERR_1;
+
+
+	
+}
 
 uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr pData)
 {
@@ -451,6 +465,9 @@ uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, elecMe
 		break;
 	case em_acrel_DTSF1352:
 		err = elecAcrelDTSF1352DataDeal(pDataBuf, pLen, pData);
+		break;
+	case em_acrel_PZ80_E4C:
+		err = elecAcrelPZ80_E4CDataDeal(pDataBuf, pLen, pData);
 		break;
 	default:
 		break;
@@ -475,6 +492,9 @@ uint8 ElecMeterCommunicate(MeterFileType *pmf,elecMeterDataStr *pData)
 		break;
 	case em_acrel_DTSF1352:
 		err = createSendCmdAcrelDTSF1352(pmf,lu8DataTemp,&lu16len);
+		break;
+	case em_acrel_PZ80_E4C:
+		err = createSendCmdAcrelPZ80_E4C(pmf,lu8DataTemp,&lu16len);
 		break;
 	default:
 		break;

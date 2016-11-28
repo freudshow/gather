@@ -30,9 +30,11 @@
 #define ACREL_DDSD1352_PARA_START		0x0000//ACREL_DDSD1352单项电表参数的起始寄存器地址
 #define ACREL_DDSD1352_PARA_LENGTH		0x003A//ACREL_DDSD1352单项电表参数的寄存器长度
 
-#define ACREL_DTSF1352_PARA_START		0x0000//ACREL_DDSD1352单项电表参数的起始寄存器地址
-#define ACREL_DTSF1352_PARA_LENGTH		0x0050//ACREL_DDSD1352单项电表参数的寄存器长度
+#define ACREL_DTSF1352_PARA_START		0x0000//ACREL_DTSF1352三项电表参数的起始寄存器地址
+#define ACREL_DTSF1352_PARA_LENGTH		0x0050//ACREL_DTSF1352三项电表参数的寄存器长度
 
+#define ACREL_PZ80_E4C_PARA_START		0x0000//ACREL_PZ80-E4C三项电表参数的起始寄存器地址
+#define ACREL_PZ80_E4C_PARA_LENGTH		0x004F//ACREL_PZ80-E4C三项电表参数的寄存器长度
 
 #pragma pack(push)
 #pragma pack(1)
@@ -220,7 +222,32 @@ typedef struct {//ACREL_DTSF1352三项电表返回值结构
 } acrelDTSF1352DataStr;
 typedef acrelDTSF1352DataStr* acrelDTSF1352DataPtr;
 
-typedef struct{//电表返回值格式
+typedef struct {//ACREL_PZ80_E4C三项电表返回值结构
+	uint8 address;	//模块地址号
+	uint8 func;		//功能码
+	uint8 dataLen;	//数据长度
+	uint16 passwd;	//密码
+	uint8  addr;	//地址
+	uint8  baud;	//波特率, 00-38400, 01-19200, 02-9600, 03-4800
+	uint16 ctlWord;	//控制字
+	uint16 PTRatio;	//PT变比
+	uint16 CTRatio;	//CT变比
+	uint8  oneOutSelect;	//第1路变送输出选择
+	uint16 oneOutScale;		//第1路输出满度
+	uint8  twoOutSelect;	//第2路变送输出选择
+	uint16 twoOutScale;		//第2路输出满度
+	uint8  threeOutSelect;	//第3路变送输出选择
+	uint16 threeOutScale;	//第3路输出满度
+	uint8  fourOutSelect;	//第4路变送输出选择
+	uint16 fourOutScale;	//第4路输出满度
+	uint16 unused1[6];		//保留
+	uint16 lightCtl;		//背光控制
+	uint16 unused2[16];		//保留
+	
+} acrelPZ80_E4CDataStr;
+typedef acrelPZ80_E4CDataStr* acrelPZ80_E4CDataPtr;
+
+typedef struct {//电表返回值格式
 	float   pact_tot_elec;              //正向有功总电能
 	uint8   pact_tot_elec_unit[5];      //+KWh
 	float   nact_tot_elec;              //反向有功总电能
