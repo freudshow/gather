@@ -226,6 +226,112 @@ uint8 elecLcModDataDeal(uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr pData)
 	return NO_ERR;
 }
 
+uint8 elecAcrelDDSD1352DataDeal(uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr pData)
+{
+	acrelDDSD1352DataStr ddsd1352Str;
+
+	if(NULL == pData || NULL == pDataBuf|| NULL == pLen)
+		return ERR_1;
+	if(*pLen != sizeof(acrelDDSD1352DataStr)) {
+		return ERR_1;
+	}
+	memcpy(((uint8*)&(ddsd1352Str.address)), pDataBuf, *pLen);
+	/* modbus transform big endian format, 
+	 * so we need to convert them to little endian
+	 */
+	/* start inverse */
+	if(ERR_1 == inverseInt32(ddsd1352Str.activeWork, \
+		&(ddsd1352Str.activeWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.activePeakWork, \
+							&(ddsd1352Str.activePeakWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.activeFlatWork, \
+							&(ddsd1352Str.activeFlatWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.activeValleyWork, \
+							&(ddsd1352Str.activeValleyWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.reverseActiveWork, \
+							&(ddsd1352Str.reverseActiveWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(ddsd1352Str.passwd, \
+							&(ddsd1352Str.passwd)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(ddsd1352Str.voltage, \
+							&(ddsd1352Str.voltage)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(ddsd1352Str.current, \
+							&(ddsd1352Str.current)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)ddsd1352Str.activePower, \
+							(uint16*)&(ddsd1352Str.activePower)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)ddsd1352Str.reactivePower, \
+							(uint16*)&(ddsd1352Str.reactivePower)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(ddsd1352Str.apparentPower, \
+							&(ddsd1352Str.apparentPower)))
+		return ERR_1;
+
+	if(ERR_1 == inverseInt16((uint16)ddsd1352Str.powerFactor, \
+							(uint16*)&(ddsd1352Str.powerFactor)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last1ActiveWork, \
+		&(ddsd1352Str.last1ActiveWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last1ActivePeakWork, \
+		&(ddsd1352Str.last1ActivePeakWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last1ActiveFlatWork, \
+		&(ddsd1352Str.last1ActiveFlatWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last1ActiveValleyWork, \
+		&(ddsd1352Str.last1ActiveValleyWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last2ActiveWork, \
+		&(ddsd1352Str.last2ActiveWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last2ActivePeakWork, \
+		&(ddsd1352Str.last2ActivePeakWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last2ActiveFlatWork, \
+		&(ddsd1352Str.last2ActiveFlatWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last2ActiveValleyWork, \
+		&(ddsd1352Str.last2ActiveValleyWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last3ActiveWork, \
+		&(ddsd1352Str.last3ActiveWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last3ActivePeakWork, \
+		&(ddsd1352Str.last3ActivePeakWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last3ActiveFlatWork, \
+		&(ddsd1352Str.last3ActiveFlatWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(ddsd1352Str.last3ActiveValleyWork, \
+		&(ddsd1352Str.last3ActiveValleyWork)))
+		return ERR_1;
+	/* end inverse */
+
+	/* start format */
+	pData->pact_tot_elec = ((float)ddsd1352Str.activeWork)/0.01;
+	strcpy((char*)pData->pact_tot_elec_unit, "+KWh");
+	pData->nact_tot_elec = ((float)ddsd1352Str.reverseActiveWork)/0.01;
+	strcpy((char*)pData->nact_tot_elec_unit, "-KWh");
+	pData->preact_tot_elec = 0.0;
+	strcpy((char*)pData->preact_tot_elec_unit, "+KVarh");
+	pData->nreact_tot_elec = 0.0;
+	strcpy((char*)pData->nreact_tot_elec_unit, "-KVarh");
+	pData->act_tot_elec = ((float)ddsd1352Str.activeWork)/0.01;
+	strcpy((char*)pData->act_tot_elec_unit, "KWh");
+	pData->react_tot_elec = ((float)ddsd1352Str.reverseActiveWork)/0.01;
+	strcpy((char*)pData->react_tot_elec_unit, "KVarh");
+	/* end format */
+	return NO_ERR;
+}
+
 uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr pData)
 {
 	uint8 err = NO_ERR;
@@ -241,6 +347,7 @@ uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, elecMe
 		err = elecLcModDataDeal(pDataBuf, pLen, pData);
 		break;
 	case em_acrel_DDSD1352:
+		err = elecAcrelDDSD1352DataDeal(pDataBuf, pLen, pData);
 		break;
 	default:
 		break;

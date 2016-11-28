@@ -50,10 +50,10 @@ typedef struct {//ACREL_DDSD1352单项电表返回值结构
 	uint16 passwd;//密码
 	uint16 voltage;//电压, 0.1V
 	uint16 current;//电流, 0.01A
-	uint16 activePower;//有功功率, 0.001kW, -32767~32767
-	uint16 reactivePower;//无功功率, 0.001kvar, -32767~32767
+	int16 activePower;//有功功率, 0.001kW, -32767~32767
+	int16 reactivePower;//无功功率, 0.001kvar, -32767~32767
 	uint16 apparentPower;//视在功率, 0.001kVA
-	uint16 powerFactor;//功率因数, 0.001, -1000~1000
+	int16 powerFactor;//功率因数, 0.001, -1000~1000
 	uint8  year;
 	uint8  month;
 	uint8  day;
