@@ -14,8 +14,10 @@ uint8 (*ELEC_METER_ComParaSetArray[])(void) = {METER_ComSet8};
  *  前导符个数+通讯类型(0:MBUS  1:485)+通讯协议类型(0:MODBUS  1:645)
  ****************************************************************/
 uint16 gELEC_METER_Table[ELECMETER_PROTO_SUM][5] = {
-	{ELEC_COMSET_1, 0x0000, 0, ELEC_RS485, ELEC_PROTO_MODBUS},//力创电表					-----idx: -0-
+	{ELEC_COMSET_1, 0x0000, 0, ELEC_RS485, ELEC_PROTO_MODBUS},//力创电表				-----idx: -0-
 	{ELEC_COMSET_1, 0x0000, 0, ELEC_RS485, ELEC_PROTO_MODBUS},//acrel DDSD1352单相电表	-----idx: -1-
+	{ELEC_COMSET_1, 0x0000, 0, ELEC_RS485, ELEC_PROTO_MODBUS},//acrel DTSF1352三相电表	-----idx: -2-
+	{ELEC_COMSET_1, 0x0000, 0, ELEC_RS485, ELEC_PROTO_MODBUS},//acrel PZ80-E4C三相电表	-----idx: -3-
 };
 
 uint8 createModCmd(MeterFileType *pmf, uint8 *pDataTemp, uint16 *plen, uint16 paraStart, uint16 regCount)
@@ -45,10 +47,16 @@ uint8 createSendCmdLc(MeterFileType *pmf, uint8 *pDataTemp, uint16 *plen)
 	return createModCmd(pmf, pDataTemp, plen, LC_ELEC_WORK_START, LC_ELEC_WORK_LEN);
 }
 
-uint8 createSendCmdAcrel(MeterFileType *pmf, uint8 *pDataTemp, uint16 *plen)
+uint8 createSendCmdAcrelDDSD1352(MeterFileType *pmf, uint8 *pDataTemp, uint16 *plen)
 {
 	return createModCmd(pmf, pDataTemp, plen, ACREL_DDSD1352_PARA_START, ACREL_DDSD1352_PARA_LENGTH);
 }
+
+uint8 createSendCmdAcrelDTSF1352(MeterFileType *pmf, uint8 *pDataTemp, uint16 *plen)
+{
+	return createModCmd(pmf, pDataTemp, plen, ACREL_DTSF1352_PARA_START, ACREL_DTSF1352_PARA_LENGTH);
+}
+
 
 uint8 elecModReceiveFrame(MeterFileType *pmf, uint8 dev,uint16 Out_Time,uint8 *buf,uint16 *datalen)
 {
@@ -277,6 +285,9 @@ uint8 elecAcrelDDSD1352DataDeal(uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr p
 	if(ERR_1 == inverseInt16((uint16)ddsd1352Str.powerFactor, \
 							(uint16*)&(ddsd1352Str.powerFactor)))
 		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)ddsd1352Str.frequency, \
+							(uint16*)&(ddsd1352Str.frequency)))
+		return ERR_1;
 	if(ERR_1 == inverseInt32(ddsd1352Str.last1ActiveWork, \
 		&(ddsd1352Str.last1ActiveWork)))
 		return ERR_1;
@@ -316,21 +327,110 @@ uint8 elecAcrelDDSD1352DataDeal(uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr p
 	/* end inverse */
 
 	/* start format */
-	pData->pact_tot_elec = ((float)ddsd1352Str.activeWork)/0.01;
+	pData->pact_tot_elec = ((float)ddsd1352Str.activeWork)*0.01;
 	strcpy((char*)pData->pact_tot_elec_unit, "+KWh");
-	pData->nact_tot_elec = ((float)ddsd1352Str.reverseActiveWork)/0.01;
+	pData->nact_tot_elec = ((float)ddsd1352Str.reverseActiveWork)*0.01;
 	strcpy((char*)pData->nact_tot_elec_unit, "-KWh");
 	pData->preact_tot_elec = 0.0;
 	strcpy((char*)pData->preact_tot_elec_unit, "+KVarh");
 	pData->nreact_tot_elec = 0.0;
 	strcpy((char*)pData->nreact_tot_elec_unit, "-KVarh");
-	pData->act_tot_elec = ((float)ddsd1352Str.activeWork)/0.01;
+	pData->act_tot_elec = ((float)ddsd1352Str.activeWork)*0.01;
 	strcpy((char*)pData->act_tot_elec_unit, "KWh");
-	pData->react_tot_elec = ((float)ddsd1352Str.reverseActiveWork)/0.01;
+	pData->react_tot_elec = ((float)ddsd1352Str.reverseActiveWork)*0.01;
 	strcpy((char*)pData->react_tot_elec_unit, "KVarh");
 	/* end format */
 	return NO_ERR;
 }
+
+
+uint8 elecAcrelDTSF1352DataDeal(uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr pData)
+{
+	acrelDTSF1352DataStr dtsf1352Str;
+
+	if(NULL == pData || NULL == pDataBuf|| NULL == pLen)
+		return ERR_1;
+	if(*pLen != sizeof(acrelDTSF1352DataStr)) {
+		return ERR_1;
+	}
+	memcpy(((uint8*)&(dtsf1352Str.address)), pDataBuf, *pLen);
+	/* modbus transform big endian format, 
+	 * so we need to convert them to little endian
+	 */
+	/* start inverse */
+	if(ERR_1 == inverseInt32(dtsf1352Str.activeWork, \
+		&(dtsf1352Str.activeWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(dtsf1352Str.activeSharpWork, \
+							&(dtsf1352Str.activeSharpWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(dtsf1352Str.activePeakWork, \
+							&(dtsf1352Str.activePeakWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(dtsf1352Str.activeFlatWork, \
+							&(dtsf1352Str.activeFlatWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt32(dtsf1352Str.activeValleyWork, \
+							&(dtsf1352Str.activeValleyWork)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.voltageA, \
+							(uint16*)&(dtsf1352Str.voltageA)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.voltageB, \
+							(uint16*)&(dtsf1352Str.voltageB)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.voltageC, \
+							(uint16*)&(dtsf1352Str.voltageC)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.currentA, \
+							(uint16*)&(dtsf1352Str.voltageA)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.currentB, \
+							(uint16*)&(dtsf1352Str.currentB)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.currentC, \
+							(uint16*)&(dtsf1352Str.currentC)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.voltageAB, \
+							(uint16*)&(dtsf1352Str.voltageAB)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.voltageCB, \
+							(uint16*)&(dtsf1352Str.voltageCB)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.voltageAC, \
+							(uint16*)&(dtsf1352Str.voltageAC)))
+		return ERR_1;	
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.voltageRatio, \
+							(uint16*)&(dtsf1352Str.voltageRatio)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.currentRatio, \
+							(uint16*)&(dtsf1352Str.currentRatio)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.pulseConst, \
+							(uint16*)&(dtsf1352Str.pulseConst)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16((uint16)dtsf1352Str.runState, \
+							(uint16*)&(dtsf1352Str.runState)))
+		return ERR_1;
+	/* end inverse */
+
+	/* start format */
+	pData->pact_tot_elec = ((float)dtsf1352Str.activeWork)*0.01;
+	strcpy((char*)pData->pact_tot_elec_unit, "+KWh");
+	pData->nact_tot_elec = 0.0;
+	strcpy((char*)pData->nact_tot_elec_unit, "-KWh");
+	pData->preact_tot_elec = 0.0;
+	strcpy((char*)pData->preact_tot_elec_unit, "+KVarh");
+	pData->nreact_tot_elec = 0.0;
+	strcpy((char*)pData->nreact_tot_elec_unit, "-KVarh");
+	pData->act_tot_elec = ((float)dtsf1352Str.activeWork)*0.01;
+	strcpy((char*)pData->act_tot_elec_unit, "KWh");
+	pData->react_tot_elec = 0.0;
+	strcpy((char*)pData->react_tot_elec_unit, "KVarh");
+	/* end format */
+	return NO_ERR;
+}
+
 
 uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr pData)
 {
@@ -349,10 +449,13 @@ uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, elecMe
 	case em_acrel_DDSD1352:
 		err = elecAcrelDDSD1352DataDeal(pDataBuf, pLen, pData);
 		break;
+	case em_acrel_DTSF1352:
+		err = elecAcrelDTSF1352DataDeal(pDataBuf, pLen, pData);
+		break;
 	default:
 		break;
 	}
-
+	*pLen = sizeof(elecMeterDataStr);
 	return err;
 }
 
@@ -368,7 +471,10 @@ uint8 ElecMeterCommunicate(MeterFileType *pmf,elecMeterDataStr *pData)
 		err = createSendCmdLc(pmf,lu8DataTemp,&lu16len);
 		break;
 	case em_acrel_DDSD1352:
-		err = createSendCmdAcrel(pmf,lu8DataTemp,&lu16len);
+		err = createSendCmdAcrelDDSD1352(pmf,lu8DataTemp,&lu16len);
+		break;
+	case em_acrel_DTSF1352:
+		err = createSendCmdAcrelDTSF1352(pmf,lu8DataTemp,&lu16len);
 		break;
 	default:
 		break;

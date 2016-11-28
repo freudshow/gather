@@ -30,6 +30,10 @@
 #define ACREL_DDSD1352_PARA_START		0x0000//ACREL_DDSD1352单项电表参数的起始寄存器地址
 #define ACREL_DDSD1352_PARA_LENGTH		0x003A//ACREL_DDSD1352单项电表参数的寄存器长度
 
+#define ACREL_DTSF1352_PARA_START		0x0000//ACREL_DDSD1352单项电表参数的起始寄存器地址
+#define ACREL_DTSF1352_PARA_LENGTH		0x0050//ACREL_DDSD1352单项电表参数的寄存器长度
+
+
 #pragma pack(push)
 #pragma pack(1)
 
@@ -42,6 +46,9 @@ typedef struct {//modbus读取命令帧
 }modSendStr;
 
 typedef struct {//ACREL_DDSD1352单项电表返回值结构
+	uint8 address;//模块地址号
+	uint8 func;//功能码
+	uint8 dataLen;//数据长度
 	uint32 activeWork;// 有功总电能, 0.01kWh
 	uint32 activePeakWork;//有功峰总电能, 0.01kWh
 	uint32 activeFlatWork;//有功平总电能, 0.01kWh
@@ -54,13 +61,14 @@ typedef struct {//ACREL_DDSD1352单项电表返回值结构
 	int16 reactivePower;//无功功率, 0.001kvar, -32767~32767
 	uint16 apparentPower;//视在功率, 0.001kVA
 	int16 powerFactor;//功率因数, 0.001, -1000~1000
+	int16 frequency;//频率, 0.01Hz
 	uint8  year;
 	uint8  month;
 	uint8  day;
 	uint8  hour;
 	uint8  minute;
 	uint8  second;
-	uint8  address;//地址
+	uint8  addr;//地址
 	uint8  baud;//波特率, 00-9600, 01-4800, 02-2400, 03-1200
 	uint8  oneRateNo;//第1时段费率号, 00-峰, 01-平, 02-谷, 下同
 	uint8  oneTimeEndMin;//第1时段终止: 分
@@ -98,8 +106,119 @@ typedef struct {//ACREL_DDSD1352单项电表返回值结构
 	uint32 last3ActivePeakWork;//上3月有功峰电能
 	uint32 last3ActiveFlatWork;//上3月有功平电能
 	uint32 last3ActiveValleyWork;//上3月有功谷电能
+	uint16 crcsum;
 } acrelDDSD1352DataStr;
 typedef acrelDDSD1352DataStr* acrelDDSD1352DataPtr;
+
+typedef struct {//ACREL_DTSF1352三项电表返回值结构
+	uint8 address;//模块地址号
+	uint8 func;//功能码
+	uint8 dataLen;//数据长度
+	uint32 activeWork;				//当前总有功电能
+	uint32 activeSharpWork;			//当前总有功尖电能
+	uint32 activePeakWork;			//当前总有功峰电能
+	uint32 activeFlatWork;			//当前总有功平电能
+	uint32 activeValleyWork;		//当前总有功谷电能
+	uint8  second;
+	uint8  minute;
+	uint8  hour;
+	uint8  day;
+	uint8  month;
+	uint8  year;
+	uint8  addr;					//地址
+	uint8  baud;					//波特率, 00-9600, 01-4800, 02-2400, 03-1200
+	uint8  firstOneRateNo;			//第1套时间段表, 第1时段费率号
+	uint8  firstOneTimeEndMin;		//第1套时间段表, 第1时段终止: 分
+	uint8  firstOneTimeEndHour;		//第1套时间段表, 第1时段终止: 时
+	uint8  firstTwoRateNo;			//第1套时间段表, 第2时段费率号
+	uint8  firstTwoTimeEndMin;		//第1套时间段表, 第2时段终止: 分
+	uint8  firstTwoTimeEndHour;		//第1套时间段表, 第2时段终止: 时
+	uint8  firstThreeRateNo;		//第1套时间段表, 第3时段费率号
+	uint8  firstThreeTimeEndMin;	//第1套时间段表, 第3时段终止: 分
+	uint8  firstThreeTimeEndHour;	//第1套时间段表, 第3时段终止: 时
+	uint8  firstFourRateNo;			//第1套时间段表, 第4时段费率号
+	uint8  firstFourTimeEndMin;		//第1套时间段表, 第4时段终止: 分
+	uint8  firstFourTimeEndHour;	//第1套时间段表, 第4时段终止: 时
+	uint8  firstFiveRateNo;			//第1套时间段表, 第5时段费率号
+	uint8  firstFiveTimeEndMin;		//第1套时间段表, 第5时段终止: 分
+	uint8  firstFiveTimeEndHour;	//第1套时间段表, 第5时段终止: 时
+	uint8  firstSixRateNo;			//第1套时间段表, 第6时段费率号
+	uint8  firstSixTimeEndMin;		//第1套时间段表, 第6时段终止: 分
+	uint8  firstSixTimeEndHour;		//第1套时间段表, 第6时段终止: 时
+	uint8  firstSevenRateNo;		//第1套时间段表, 第7时段费率号
+	uint8  firstSevenTimeEndMin;	//第1套时间段表, 第7时段终止: 分
+	uint8  firstSevenTimeEndHour;	//第1套时间段表, 第7时段终止: 时
+	uint8  firstEigthtRateNo;		//第1套时间段表, 第8时段费率号
+	uint8  firstEigthtTimeEndMin;	//第1套时间段表, 第8时段终止: 分
+	uint8  firstEigthtTimeEndHour;	//第1套时间段表, 第8时段终止: 时
+	uint8  secondOneRateNo;			//第2套时间段表, 第1时段费率号
+	uint8  secondOneTimeEndMin;		//第2套时间段表, 第1时段终止: 分
+	uint8  secondOneTimeEndHour;	//第2套时间段表, 第1时段终止: 时
+	uint8  secondTwoRateNo;			//第2套时间段表, 第2时段费率号
+	uint8  secondTwoTimeEndMin;		//第2套时间段表, 第2时段终止: 分
+	uint8  secondTwoTimeEndHour;	//第2套时间段表, 第2时段终止: 时
+	uint8  secondThreeRateNo;		//第2套时间段表, 第3时段费率号
+	uint8  secondThreeTimeEndMin;	//第2套时间段表, 第3时段终止: 分
+	uint8  secondThreeTimeEndHour;	//第2套时间段表, 第3时段终止: 时
+	uint8  secondFourRateNo;		//第2套时间段表, 第4时段费率号
+	uint8  secondFourTimeEndMin;	//第2套时间段表, 第4时段终止: 分
+	uint8  secondFourTimeEndHour;	//第2套时间段表, 第4时段终止: 时
+	uint8  secondFiveRateNo;		//第2套时间段表, 第5时段费率号
+	uint8  secondFiveTimeEndMin;	//第2套时间段表, 第5时段终止: 分
+	uint8  secondFiveTimeEndHour;	//第2套时间段表, 第5时段终止: 时
+	uint8  secondSixRateNo;			//第2套时间段表, 第6时段费率号
+	uint8  secondSixTimeEndMin;		//第2套时间段表, 第6时段终止: 分
+	uint8  secondSixTimeEndHour;	//第2套时间段表, 第6时段终止: 时
+	uint8  secondSevenRateNo;		//第2套时间段表, 第7时段费率号
+	uint8  secondSevenTimeEndMin;	//第2套时间段表, 第7时段终止: 分
+	uint8  secondSevenTimeEndHour;	//第2套时间段表, 第7时段终止: 时
+	uint8  secondEigthtRateNo;		//第2套时间段表, 第8时段费率号
+	uint8  secondEigthtTimeEndMin;	//第2套时间段表, 第8时段终止: 分
+	uint8  secondEigthtTimeEndHour;	//第2套时间段表, 第8时段终止: 时
+	uint8  secondNineRateNo;		//第2套时间段表, 第9时段费率号
+	uint8  secondNineTimeEndMin;	//第2套时间段表, 第9时段终止: 分
+	uint8  secondNineTimeEndHour;	//第2套时间段表, 第9时段终止: 时
+	uint8  unused; 					//寄存器0x0027中没有用到的字节
+	uint8  oneSegNo;				//第1时区时段表号
+	uint8  oneSegStartDay;			//第1时区起始日期: 日
+	uint8  oneSegStartMon;			//第1时区起始日期: 月
+	uint8  twoSegNo;				//第2时区时段表号
+	uint8  twoSegStartDay;			//第2时区起始日期: 日
+	uint8  twoSegStartMon;			//第2时区起始日期: 月
+	uint8  threeSegNo;				//第3时区时段表号
+	uint8  threeSegStartDay;		//第3时区起始日期: 日
+	uint8  threeSegStartMon;		//第3时区起始日期: 月
+	uint8  fourSegNo;				//第4时区时段表号
+	uint8  fourSegStartDay;			//第4时区起始日期: 日
+	uint8  fourSegStartMon;			//第4时区起始日期: 月
+	uint32 positiveActiveWork;		//当前正向总有功电能, 0.01kWh
+	uint32 positiveActiveSharpWork;	//当前正向有功尖电能, 0.01kWh
+	uint32 positiveActivePeakWork;	//当前正向有功峰电能, 0.01kWh
+	uint32 positiveActiveFlatWork;	//当前正向有功平电能, 0.01kWh
+	uint32 positiveActiveValleyWork;//当前正向有功谷电能, 0.01kWh
+	uint32 negtiveActiveWork;		//当前反向有功总电能, 0.01kWh
+	uint32 negtiveActiveSharpWork;	//当前反向有功尖电能, 0.01kWh
+	uint32 negtiveActivePeakWork;	//当前反向有功峰电能, 0.01kWh
+	uint32 negtiveActiveFlatWork;	//当前反向有功平电能, 0.01kWh
+	uint32 negtiveActiveValleyWork;	//当前反向有功谷电能, 0.01kWh
+	uint16  voltageA;				//A相电压, 0.1V
+	uint16  voltageB;				//B相电压, 0.1V
+	uint16  voltageC;				//C相电压, 0.1V
+	uint16  currentA;				//A相电流, 0.01A
+	uint16  currentB;				//B相电流, 0.01A
+	uint16  currentC;				//C相电流, 0.01A
+	uint16  voltageAB;				//A-B线电压
+	uint16  voltageCB;				//C-B线电压
+	uint16  voltageAC;				//A-C线电压
+	uint16  voltageRatio;			//电压变比PT
+	uint16  currentRatio;			//电流变比CT
+	uint8   pressLossThreshold;		//失压阈值
+	uint8   pressLossState;			//失压状态
+	uint16  pulseConst;				//脉冲常数
+	uint16  runState;				//运行状态
+	uint16 crcsum;
+} acrelDTSF1352DataStr;
+typedef acrelDTSF1352DataStr* acrelDTSF1352DataPtr;
 
 typedef struct{//电表返回值格式
 	float   pact_tot_elec;              //正向有功总电能
