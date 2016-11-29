@@ -441,9 +441,75 @@ uint8 elecAcrelPZ80_E4CDataDeal(uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr p
 
 	if(NULL == pData || NULL == pDataBuf|| NULL == pLen)
 		return ERR_1;
-
-
+	/* modbus transform big endian format, 
+	 * so we need to convert them to little endian
+	 */
+	/* start inverse */
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.passwd, \
+							&(PZ80_E4CStr.passwd)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.ctlWord, \
+							&(PZ80_E4CStr.ctlWord)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.PTRatio, \
+							&(PZ80_E4CStr.PTRatio)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.CTRatio, \
+							&(PZ80_E4CStr.CTRatio)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.oneOutScale, \
+							&(PZ80_E4CStr.oneOutScale)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.twoOutScale, \
+							&(PZ80_E4CStr.twoOutScale)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.threeOutScale, \
+							&(PZ80_E4CStr.threeOutScale)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.fourOutScale, \
+							&(PZ80_E4CStr.fourOutScale)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.inputState, \
+							&(PZ80_E4CStr.inputState)))
+		return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.voltageA, &(PZ80_E4CStr.voltageA))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.voltageB, &(PZ80_E4CStr.voltageB))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.voltageC, &(PZ80_E4CStr.voltageC))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.voltageAB, &(PZ80_E4CStr.voltageAB))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.voltageCB, &(PZ80_E4CStr.voltageCB))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.voltageAC, &(PZ80_E4CStr.voltageAC))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.currentA, &(PZ80_E4CStr.currentA))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.currentB, &(PZ80_E4CStr.currentB))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.currentC, &(PZ80_E4CStr.currentC))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.powerA, &(PZ80_E4CStr.powerA))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.powerB, &(PZ80_E4CStr.powerB))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.powerC, &(PZ80_E4CStr.powerC))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.powertotal, &(PZ80_E4CStr.powertotal))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.powerQA, &(PZ80_E4CStr.powerQA))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.powerQB, &(PZ80_E4CStr.powerQB))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.powerQC, &(PZ80_E4CStr.powerQC))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.powerQtotal, &(PZ80_E4CStr.powerQtotal))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.pfA, &(PZ80_E4CStr.pfA))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.pfB, &(PZ80_E4CStr.pfB))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.pfC, &(PZ80_E4CStr.pfC))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.pftotal, &(PZ80_E4CStr.pftotal))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.sA, &(PZ80_E4CStr.sA))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.sB, &(PZ80_E4CStr.sB))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.sC, &(PZ80_E4CStr.sC))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.stotal, &(PZ80_E4CStr.stotal))) return ERR_1;
+	if(ERR_1 == inverseInt16(PZ80_E4CStr.frequency, &(PZ80_E4CStr.frequency))) return ERR_1;
 	
+	if(ERR_1 == inverseInt32(PZ80_E4CStr.absorbActive2, &(PZ80_E4CStr.absorbActive2))) return ERR_1;
+	if(ERR_1 == inverseInt32(PZ80_E4CStr.freeActive2, &(PZ80_E4CStr.freeActive2))) return ERR_1;
+	if(ERR_1 == inverseInt32(PZ80_E4CStr.induceReactive2, &(PZ80_E4CStr.induceReactive2))) return ERR_1;
+	if(ERR_1 == inverseInt32(PZ80_E4CStr.capReactive2, &(PZ80_E4CStr.capReactive2))) return ERR_1;
+	if(ERR_1 == inverseFloat32(PZ80_E4CStr.absorbActive1, &(PZ80_E4CStr.absorbActive1))) return ERR_1;
+	if(ERR_1 == inverseFloat32(PZ80_E4CStr.freeActive1, &(PZ80_E4CStr.freeActive1))) return ERR_1;
+	if(ERR_1 == inverseFloat32(PZ80_E4CStr.induceReactive1, &(PZ80_E4CStr.induceReactive1))) return ERR_1;
+	if(ERR_1 == inverseFloat32(PZ80_E4CStr.capReactive1, &(PZ80_E4CStr.capReactive1))) return ERR_1;
+	/* end inverse */
+	memset(pData, 0, sizeof(elecMeterDataStr));
+	return NO_ERR;
 }
 
 uint8 ElecMeter_DataDeal(MeterFileType *pmf,uint8 *pDataBuf,uint16 *pLen, elecMeterDataPtr pData)

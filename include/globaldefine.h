@@ -32,6 +32,7 @@ typedef unsigned char uint8;
 typedef unsigned short uint16;
 typedef unsigned int uint32;
 
+typedef float		float32;
 
 //设备类型定义
 #define HEATMETER	0x20//热表
@@ -75,6 +76,7 @@ typedef unsigned int uint32;
  ** MODBUS相关
  ********************************************************************************/
 #define MODBUS_READ    0x03//读多路寄存器
+#define MODBUS_WRITE   0x10//写多路寄存器
 
 //定义设备文件名称
 #define DEVICE4851		"/dev/ttyS1"

@@ -138,6 +138,6 @@ extern void write_log_file(char* buffer, unsigned buf_size);
 extern void printBuf(uint8* buf, uint16 bufSize, const char* file, const char* func, uint32 line);
 extern uint8 inverseInt16(uint16 little, uint16* big);
 extern uint8 inverseInt32(uint32 little, uint32* big);
-
+extern uint8 inverseFloat32(float32 little, float32* big);
 #endif //_SYSFUCTIONS_H_
 

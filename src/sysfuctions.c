@@ -642,3 +642,17 @@ uint8 inverseInt32(uint32 little, uint32* big)
 
 	return NO_ERR;
 }
+
+uint8 inverseFloat32(float32 little, float32* big)
+{
+	if(NULL == big)
+		return ERR_1;
+
+	if(ERR_1 == inverseArray((uint8*)&little, sizeof(float32)))
+		return ERR_1;
+
+	*big = little;
+
+	return NO_ERR;
+}
+

@@ -241,9 +241,49 @@ typedef struct {//ACREL_PZ80_E4C三项电表返回值结构
 	uint8  fourOutSelect;	//第4路变送输出选择
 	uint16 fourOutScale;	//第4路输出满度
 	uint16 unused1[6];		//保留
-	uint16 lightCtl;		//背光控制
+	uint8  lightCtl;		//背光控制
+	uint8  unused3;			//保留
 	uint16 unused2[16];		//保留
-	
+	uint16 inputState;		//开关输入量状态
+	uint8  DPT;				//小数点U
+	uint8  DCT;				//小数点I
+	uint8  DPQ;				//小数点PQ
+	uint8  PQ;				//符号PQ
+	uint16  voltageA;		//A相电压
+	uint16  voltageB;		//B相电压
+	uint16  voltageC;		//C相电压
+	uint16  voltageAB;		//A-B线电压
+	uint16  voltageCB;		//C-B线电压
+	uint16  voltageAC;		//A-C线电压
+	uint16  currentA;		//A相电流
+	uint16  currentB;		//B相电流
+	uint16  currentC;		//C相电流
+	uint16  powerA;			//A相有功率
+	uint16  powerB;			//B相有功率
+	uint16  powerC;			//C相有功率
+	uint16  powertotal;		//总有功率
+	uint16  powerQA;		//A相无功率
+	uint16  powerQB;		//B相无功率
+	uint16  powerQC;		//C相无功率
+	uint16  powerQtotal;	//总无功率
+	uint16  pfA;			//A相视在因数
+	uint16  pfB;			//B相视在因数
+	uint16  pfC;			//C相视在因数
+	uint16  pftotal;		//总视在因数
+	uint16  sA;				//A相视在功率
+	uint16  sB;				//B相视在功率
+	uint16  sC;				//C相视在功率
+	uint16  stotal;			//总视在功率
+	uint16  frequency;		//频率
+	uint32  absorbActive2;	//吸收有功电能二次侧
+	uint32  freeActive2;	//释放有功电能二次侧
+	uint32  induceReactive2;//感性无功电能二次侧
+	uint32	capReactive2;	//容性无功电能二次侧
+	float32 absorbActive1;	//吸收有功电能一次侧
+	float32 freeActive1;	//释放有功电能一次侧
+	float32 induceReactive1;//感性无功电能一次侧
+	float32 capReactive1;	//容性无功电能一次侧
+	uint16  crcsum;
 } acrelPZ80_E4CDataStr;
 typedef acrelPZ80_E4CDataStr* acrelPZ80_E4CDataPtr;
 
