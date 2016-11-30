@@ -3,12 +3,10 @@
 
 #define	ELECMETER_PROTO_SUM		4	//电表协议总数。
 
-
 #define     ELEC_COMSET_1        	0
 #define		ELEC_COMSET_2			1
 #define		ELEC_COMSET_3			2
 #define		ELEC_COMSET_4			3
-
 
 #define ELEC_PROTO_MODBUS	0//MODBUS协议电表
 #define ELEC_PROTO_645		1//645协议电表
@@ -330,8 +328,6 @@ typedef enum lcElecAnswerState{//力创电表应答帧的解析状态
 	em_end_state
 }lcElecAnsSt;
 
-extern uint8 (*ELEC_METER_ComParaSetArray[])(void);
-extern uint16 gELEC_METER_Table[ELECMETER_PROTO_SUM][5];
 extern uint8 Read_ElecMeter(MeterFileType *pmf, elecMeterDataStr* pElecData);
 
 #endif //ELECT_H
