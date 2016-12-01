@@ -3,6 +3,13 @@
 
 #define WATER_PROTO_SUM			1//水表的总协议数量
 
+#define WATER_COMSET_1			0
+
+#define WATER_MBUS			0//MBUS总线
+#define WATER_RS485			1//485总线
+
+#define WATER_PROTO_MODBUS	0//MODBUS协议
+#define WATER_PROTO_CJ188	1//CJ188协议
 
 #define WATER_XINGYUAN_DATAID	0x1F90//兴源水表的数据标识符
 #define WATER_XINGYUAN_CTLCODE	0x01//兴源水表的控制码
@@ -37,4 +44,15 @@ typedef enum {//水表协议的索引号
 	em_water_xingYuan = 0
 } em_waterProtoIdx;
 
+typedef enum {//index of gELEC_WATER_Table's column
+	em_elec_table_comset = 0,
+	em_elec_table_dataID,
+	em_elec_table_prefixCnt,
+	em_elec_table_busType,
+	em_elec_table_protoType
+}elecMeterTableIdx;
+
+
+
+extern uint8 ReadWaterMeter(MeterFileType *pmf, waterDataPtr pWaterData);
 #endif//WATER_H
