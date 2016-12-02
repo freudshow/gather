@@ -17,8 +17,9 @@
 #include "includes.h"
 
 
+#define	CJ188_FRAME_START			0x68
+#define CJ188_FRAME_END				0x16
 
-#define	DELU_FRAME_START			0x68
 
 
 #pragma pack(push)

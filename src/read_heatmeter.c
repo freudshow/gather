@@ -35,13 +35,11 @@ static uint8 gMETER_FrameSer = 0x00;
 
 void CreateFrame_CJ188(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
 {
-	//uint16 lu8BufSize = *plen;   //pDataTemp指针指向空间的大小，以防超限,当前因256肯定够用，暂没做处理，以后完善。
 	DELU_Protocol	ProtocoalInfo;
 	uint8 *pTemp = pDataTemp;
 	uint8 *pCSStart; //记录校验计算起始位置。
 	uint8 lu8FrameLen = 0;
 	uint8 lu8CheckLen = 0;
-	uint8 lu8CS = 0;
 	uint8 lu8TempLen = 0;
 
 	ProtocoalInfo.PreSmybolNum  = gMETER_Table[pmf->u8ProtocolType][2];
@@ -58,7 +56,7 @@ void CreateFrame_CJ188(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
 	lu8FrameLen += ProtocoalInfo.PreSmybolNum;
 
 	pCSStart = pTemp;							//预留计算校验位
-	*pTemp++ = DELU_FRAME_START;					//组建 帧头 0x68
+	*pTemp++ = CJ188_FRAME_START;					//组建 帧头 0x68
 	*pTemp++ = ProtocoalInfo.MeterType;					//仪表类型
 	memcpy(pTemp, ProtocoalInfo.MeterAddr, 7);				//组建 地址域
 	pTemp += 7;
@@ -82,18 +80,14 @@ void CreateFrame_CJ188(MeterFileType *pmf,uint8 *pDataTemp,uint16 *plen)
 	lu8FrameLen += lu8TempLen;
 	lu8CheckLen += lu8TempLen;
 
-	lu8CS = PUBLIC_CountCS(pCSStart, lu8CheckLen);			//计算 校验字节
-	*pTemp++ = lu8CS;									//组建 校验位
-	*pTemp++ = 0x16;									//组建 结束位
+	*pTemp++ = PUBLIC_CountCS(pCSStart, lu8CheckLen);			//计算 校验字节
+	*pTemp++ = CJ188_FRAME_END;									//组建 结束位
 	lu8FrameLen += 2;									//组建 数据帧长度
 
-	*pTemp++ = 0x16;	//联强485总线1200bps调,最后一字节总是不对，组帧多放一字节。
+	*pTemp++ = CJ188_FRAME_END;	//联强485总线1200bps调,最后一字节总是不对，组帧多放一字节。
 	lu8FrameLen += 1;
 
 	*plen = lu8FrameLen;							//返回数据帧长度
-
-
-
 }
 
 

@@ -84,6 +84,7 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 	uint8 lu8Channel = pmf->u8Channel;//抄表对象所在通道。
 	CJ188_Format CJ188_Data;
     elecMeterDataStr lcModStr;
+	waterDataStr waterData;
 	struct tm NowTime;
 	time_t timep;
 
@@ -115,7 +116,20 @@ uint8 ReaOneMeter(MeterFileType *pmf)
         }
         break;
     case WATERMETER:
-			break;
+		for(i=0;i<lu8retrytimes;i++){
+            err = ReadWaterMeter(pmf, &waterData);
+            OSTimeDly(200); //防止抄表太快，这里以后可以改成延时可设置。
+            if(err == NO_ERR)
+                break;
+        }
+		if(err == NO_ERR){
+            err = insert_his_data(pmf, &waterData, &NowTime, &gTimeNode);
+            printf("[%s][%s][%d]insert_his_data over.\n", FILE_LINE);
+        } else {
+            err = insert_his_data(pmf, NULL, &NowTime, &gTimeNode);
+            printf("[%s][%s][%d]critical: not read response from meter!\n", FILE_LINE);
+        }
+		break;
     case ELECTMETER:
         for(i=0;i<lu8retrytimes;i++){
             err = Read_ElecMeter(pmf, &lcModStr);
@@ -147,9 +161,6 @@ uint8 ReaOneMeter(MeterFileType *pmf)
 
 	return err;
 }
-
-
-
 
 /*
   ******************************************************************************

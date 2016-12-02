@@ -17,6 +17,20 @@
 #pragma	pack(push)
 #pragma pack(1)
 
+typedef struct{
+	uint8	PreSymbolNum;	/*前导字符个数*/
+	uint8   startCode;		/*起始符*/
+	uint8  	MeterType;		/*仪表类型*/
+	uint8 	MeterAddr[7];	/*热计量表地址*/
+	uint8 	ControlCode;	/*控制码*/
+	uint8 	Length;			/*数据域长度*/
+	uint16	DataIdentifier;	/*数据标识符*/
+	uint8 	SER;			/*序列号*/
+	uint8	chkSum;			/*校验和*/
+	uint8	endCode;		/*结束符*/
+}waterCJ188Str;
+
+
 typedef struct {//兴源水表的返回数据的结构
 	uint32 accumFlow;		//累积流量, BCD, xxxxxx.xx, 小端
 	uint8  accumFlowUnit;	//累积流量单位, 0x2C-立方米
@@ -44,14 +58,25 @@ typedef enum {//水表协议的索引号
 	em_water_xingYuan = 0
 } em_waterProtoIdx;
 
-typedef enum {//index of gELEC_WATER_Table's column
-	em_elec_table_comset = 0,
-	em_elec_table_dataID,
-	em_elec_table_prefixCnt,
-	em_elec_table_busType,
-	em_elec_table_protoType
-}elecMeterTableIdx;
+typedef enum {//index of gWATER_METER_Table's column
+	em_water_table_comset = 0,
+	em_water_table_dataID,
+	em_water_table_prefixCnt,
+	em_water_table_busType,
+	em_water_table_protoType
+}waterMeterTableIdx;
 
+typedef enum cj188State{//cj188应答帧的解析状态
+	em_cj188_init_state = 0,//初始状态
+	em_cj188_startCode_state,//开始符状态
+	em_cj188_meterType_state,//仪表类型状态
+	em_cj188_address_state,	//仪表地址状态
+	em_cj188_control_state,	//控制码状态
+	em_cj188_length_state,	//数据长度状态
+	em_cj188_data_state,	//数据状态
+	em_cj188_chksum_state,	//校验值状态
+	em_cj188_endCode_state	//结束符状态
+}waterCJ188St;
 
 
 extern uint8 ReadWaterMeter(MeterFileType *pmf, waterDataPtr pWaterData);
