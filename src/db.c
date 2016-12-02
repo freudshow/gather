@@ -161,6 +161,51 @@ void get_heatdata_sql(CJ188_Format* heatdata, request_data_list item_list, char*
 	}
 }
 
+void get_waterdata_sql(waterDataStr* waterData, request_data_list item_list, char* sql_buf)
+{
+	char tmp_data[LENGTH_F_COL_NAME];
+	uint8 *p;
+	while(item_list) {//item_list->f_item_index的顺序和item_list->f_col_name的顺序是一致的, 不必担心value值顺序的混淆
+		memset(tmp_data, 0, LENGTH_F_COL_NAME);//使用之前置0
+		switch(item_list->f_item_index) {
+		case em_WCurAccumFlow:
+			p=(uint8 *)&(waterData->accumFlow);
+			sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+			*(p+3), waterData->accumFlowUnit);
+			break;
+		case em_WFlowrate:
+			p=(uint8 *)&(waterData->flowRate);
+			sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+			*(p+3), waterData->flowRateUnit);
+			break;
+		case em_WSettleAccumFlow:
+			p=(uint8 *)&(waterData->settleFlow);
+			sprintf(tmp_data, "%02x%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+			*(p+3), waterData->settleFlowUnit);
+			break;
+		case em_WSettleDate:
+			p=(uint8 *)&(waterData->settleDate);
+			sprintf(tmp_data, "%02x%02x", *p, *(p+1));
+			break;
+		case em_WAccumWorkTime:
+			p=(uint8 *)&(waterData->accumWorkTime);
+			sprintf(tmp_data, "%02x%02x%02x%02x", *p, *(p+1), *(p+2), \
+			*(p+3));
+			break;
+		default:
+			sprintf(tmp_data, "Err");
+			break;
+		}
+		strcat(sql_buf, SQL_SINGLE_QUOTES);
+		strcat(sql_buf, tmp_data);
+		strcat(sql_buf, SQL_SINGLE_QUOTES);
+		if (item_list->pNext)//如果不是倒数第一个, 就在后面加逗号, 否则不加
+		strcat(sql_buf, ",");
+		item_list = item_list->pNext;
+	}
+}
+
+
 void get_elecdata_sql(elecMeterDataPtr elecdata, request_data_list item_list, char* sql_buf)
 {
 	char tmp_data[LENGTH_F_COL_NAME];
@@ -412,6 +457,7 @@ uint8 insert_his_data(MeterFileType *pmf, void *pData, struct tm *pNowTime,struc
 			get_heatdata_sql(pData, item_list, sql_buf);
 			break;
 		case em_water:
+			get_waterdata_sql(pData, item_list, sql_buf);
 			break;
 		case em_elect:
 			get_elecdata_sql(pData, item_list, sql_buf);

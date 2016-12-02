@@ -331,7 +331,7 @@ typedef enum item_idx_water {//水表数据项
 	em_WCurAccumFlow=1, //当前累积流量
 	em_WFlowrate,       //流速
 	em_WSettleAccumFlow,//结算日累积流量
-	em_WSettleSate,     //结算日
+	em_WSettleDate,     //结算日
 	em_WAccumWorkTime   //累积工作时间
 }wItem_idx;
 
