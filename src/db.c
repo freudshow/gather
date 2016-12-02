@@ -50,7 +50,7 @@ static int each_meter_info(void *NotUsed, int f_cnt, char **f_value, char **f_na
  **********************/
 
 //u8Meter_type和aItems_list的索引顺序不能搞乱, 须以enum meter_type_idx规定的顺序为准
-static uint8 u8Meter_type[] = {HEATMETER, WATERMETER, ELECTMETER, GASMETER, SENSORDEV};
+static uint8 gu8Meter_type[] = {HEATMETER, WATERMETER, ELECTMETER, GASMETER, SENSORDEV};
 static request_data_list arrayRequest_list[MTYPE_CNT]={NULL};//仪表信息列表的数组, 私有变量
 static request_data_list list_set_request_data = NULL;
 static int set_request_data_idx=0;
@@ -287,7 +287,7 @@ mtype_idx idx_of_mtype(uint8 meterType)
 {
 	int i=0;
 	for(i=0;i<METER_TYPE_CNT;i++) {
-		if(meterType == u8Meter_type[i]) {
+		if(meterType == gu8Meter_type[i]) {
 			return i;
 		}
 	}
@@ -699,7 +699,7 @@ uint8 read_request_data(mtype_idx type_idx)
 	int  col_cnt = 5;
 
 	request_data_idx[type_idx] = 0;
-	sprintf(m_type, "%2x", u8Meter_type[type_idx]);
+	sprintf(m_type, "%2x", gu8Meter_type[type_idx]);
 	strcpy(con_buf, FIELD_REQUEST_MTYPE);
 	strcat(con_buf, SQL_EQUAL);
 	strcat(con_buf, m_type);
